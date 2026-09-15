@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AppointmentBooking.Mobile/AppointmentBooking.Mobile.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

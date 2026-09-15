@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="AppointmentBooking.Mobile.Views.Home.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Home"
+    x:DataType="viewModels:HomeViewModel"
+    BackgroundColor="{StaticResource Background}"
+    Shell.NavBarIsVisible="False"
+    SafeAreaEdges="All">
+
+    <Grid
+        RowDefinitions="Auto,*"
+        Padding="20,18,20,0">
+
+        <!-- HEADER -->
+
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="*,Auto"
+            Margin="0,0,0,24">
+
+            <VerticalStackLayout
+                Grid.Column="0"
+                Spacing="3">
+
+                <Label
+                    Text="Dobro došli"
+                    FontSize="14"
+                    TextColor="{StaticResource TextSecondary}" />
+
+                <Label
+                    Text="SALON"
+                    FontSize="26"
+                    CharacterSpacing="5"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}" />
+
+            </VerticalStackLayout>
+
+            <Label
+                Grid.Column="1"
+                Text="✂"
+                FontSize="34"
+                TextColor="{StaticResource Accent}"
+                VerticalOptions="Center" />
+
+        </Grid>
+
+
+        <!-- CONTENT -->
+
+        <ScrollView Grid.Row="1">
+
+            <VerticalStackLayout
+                Spacing="24"
+                Padding="0,0,0,24">
+
+                <!-- QUICK BOOKING -->
+
+                <Border
+                    BackgroundColor="{StaticResource Primary}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 22"
+                    Padding="20">
+
+                    <VerticalStackLayout
+                        Spacing="16">
+
+                        <VerticalStackLayout
+                            Spacing="4">
+
+                            <Label
+                                Text="Brza rezervacija"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextOnPrimary}" />
+
+                            <Label
+                                Text="Pronađite prvi slobodan termin."
+                                FontSize="14"
+                                TextColor="{StaticResource AccentLight}" />
+
+                        </VerticalStackLayout>
+
+                        <Border
+                            BackgroundColor="{StaticResource Surface}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="14,6">
+
+                            <Grid
+                                ColumnDefinitions="*,Auto">
+
+                                <VerticalStackLayout
+                                    Spacing="0">
+
+                                    <Label
+                                        Text="USLUGA"
+                                        FontSize="10"
+                                        CharacterSpacing="1.5"
+                                        TextColor="{StaticResource TextMuted}" />
+
+                                    <Label
+                                        Text="Odaberite uslugu"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextPrimary}" />
+
+                                </VerticalStackLayout>
+
+                                <Label
+                                    Grid.Column="1"
+                                    Text="⌄"
+                                    FontSize="24"
+                                    TextColor="{StaticResource Primary}"
+                                    VerticalOptions="Center" />
+
+                            </Grid>
+
+                        </Border>
+
+                        <Label
+                            Text="Najbliži slobodni termini"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource TextOnPrimary}" />
+
+                        <HorizontalStackLayout
+                            Spacing="10">
+
+                            <Border
+                                BackgroundColor="{StaticResource Surface}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="14,10">
+
+                                <Label
+                                    Text="10:30"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource Primary}" />
+
+                            </Border>
+
+                            <Border
+                                BackgroundColor="{StaticResource Surface}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="14,10">
+
+                                <Label
+                                    Text="11:00"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource Primary}" />
+
+                            </Border>
+
+                            <Border
+                                BackgroundColor="{StaticResource Surface}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="14,10">
+
+                                <Label
+                                    Text="13:30"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource Primary}" />
+
+                            </Border>
+
+                        </HorizontalStackLayout>
+
+                        <Button
+                            Text="REZERVIŠI TERMIN   →"
+                            BackgroundColor="{StaticResource Accent}"
+                            TextColor="{StaticResource Primary}"
+                            FontAttributes="Bold"
+                            HeightRequest="52"
+                            CornerRadius="14"
+                            Margin="0,4,0,0" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+                <!-- SERVICES -->
+
+                <VerticalStackLayout
+    Spacing="14">
+
+                    <Grid
+        ColumnDefinitions="*,Auto">
+
+                        <Label
+            Text="Naše usluge"
+            Style="{StaticResource TitleLabel}" />
+
+                        <Label
+            Grid.Column="1"
+            Text="Sve"
+            FontSize="13"
+            FontAttributes="Bold"
+            TextColor="{StaticResource AccentDark}"
+            VerticalOptions="Center" />
+
+                    </Grid>
+
+
+                    <Grid
+        ColumnDefinitions="*,*"
+        RowDefinitions="Auto,Auto"
+        ColumnSpacing="12"
+        RowSpacing="12">
+
+                        <!-- ŠIŠANJE -->
+
+                        <Border
+            Grid.Row="0"
+            Grid.Column="0"
+            BackgroundColor="{StaticResource Surface}"
+            Stroke="{StaticResource Border}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 18"
+            Padding="16">
+
+                            <VerticalStackLayout
+                Spacing="7">
+
+                                <Label
+                    Text="Šišanje"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                                <Label
+                    Text="Profesionalno šišanje."
+                    FontSize="12"
+                    TextColor="{StaticResource TextSecondary}"
+                    MaxLines="2" />
+
+                                <Grid
+                    ColumnDefinitions="*,Auto"
+                    Margin="0,4,0,0">
+
+                                    <Label
+                        Text="30 min"
+                        FontSize="12"
+                        TextColor="{StaticResource TextMuted}" />
+
+                                    <Label
+                        Grid.Column="1"
+                        Text="13 KM"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource AccentDark}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+                        <!-- BRIJANJE -->
+
+                        <Border
+            Grid.Row="0"
+            Grid.Column="1"
+            BackgroundColor="{StaticResource Surface}"
+            Stroke="{StaticResource Border}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 18"
+            Padding="16">
+
+                            <VerticalStackLayout
+                Spacing="7">
+
+                                <Label
+                    Text="Brijanje"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                                <Label
+                    Text="Klasično i precizno brijanje."
+                    FontSize="12"
+                    TextColor="{StaticResource TextSecondary}"
+                    MaxLines="2" />
+
+                                <Grid
+                    ColumnDefinitions="*,Auto"
+                    Margin="0,4,0,0">
+
+                                    <Label
+                        Text="15 min"
+                        FontSize="12"
+                        TextColor="{StaticResource TextMuted}" />
+
+                                    <Label
+                        Grid.Column="1"
+                        Text="7 KM"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource AccentDark}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+                        <!-- OBLIKOVANJE BRADE -->
+
+                        <Border
+            Grid.Row="1"
+            Grid.Column="0"
+            BackgroundColor="{StaticResource Surface}"
+            Stroke="{StaticResource Border}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 18"
+            Padding="16">
+
+                            <VerticalStackLayout
+                Spacing="7">
+
+                                <Label
+                    Text="Oblikovanje brade"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                                <Label
+                    Text="Precizno oblikovanje i stilizovanje."
+                    FontSize="12"
+                    TextColor="{StaticResource TextSecondary}"
+                    MaxLines="2" />
+
+                                <Grid
+                    ColumnDefinitions="*,Auto"
+                    Margin="0,4,0,0">
+
+                                    <Label
+                        Text="15 min"
+                        FontSize="12"
+                        TextColor="{StaticResource TextMuted}" />
+
+                                    <Label
+                        Grid.Column="1"
+                        Text="7 KM"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource AccentDark}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+                        <!-- PRANJE KOSE -->
+
+                        <Border
+            Grid.Row="1"
+            Grid.Column="1"
+            BackgroundColor="{StaticResource Surface}"
+            Stroke="{StaticResource Border}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 18"
+            Padding="16">
+
+                            <VerticalStackLayout
+                Spacing="7">
+
+                                <Label
+                    Text="Pranje kose"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                                <Label
+                    Text="Pranje prije ili poslije tretmana."
+                    FontSize="12"
+                    TextColor="{StaticResource TextSecondary}"
+                    MaxLines="2" />
+
+                                <Grid
+                    ColumnDefinitions="*,Auto"
+                    Margin="0,4,0,0">
+
+                                    <Label
+                        Text="5 min"
+                        FontSize="12"
+                        TextColor="{StaticResource TextMuted}" />
+
+                                    <Label
+                        Grid.Column="1"
+                        Text="5 KM"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource AccentDark}" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+
+                <!-- BOOKING CTA -->
+
+                <Border
+                    BackgroundColor="{StaticResource SurfaceSecondary}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 18"
+                    Padding="18">
+
+                    <Grid
+                        ColumnDefinitions="*,Auto">
+
+                        <VerticalStackLayout
+                            Spacing="4">
+
+                            <Label
+                                Text="Želite odabrati više usluga?"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextPrimary}" />
+
+                            <Label
+                                Text="Napravite rezervaciju po svojoj želji."
+                                FontSize="12"
+                                TextColor="{StaticResource TextSecondary}" />
+
+                        </VerticalStackLayout>
+
+                        <Label
+                            Grid.Column="1"
+                            Text="→"
+                            FontSize="28"
+                            TextColor="{StaticResource AccentDark}"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

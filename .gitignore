@@ -1,0 +1,60 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider / ReSharper
+.idea/
+*.DotSettings.user
+
+# VS Code
+.vscode/
+
+# NuGet
+packages/
+
+# MAUI generated/build output
+**/bin/
+**/obj/
+
+# Android build artifacts
+*.apk
+*.aab
+*.apks
+*.keystore
+*.jks
+
+# Android Studio
+**/.gradle/
+**/build/
+
+# iOS / MacCatalyst build artifacts
+**/DerivedData/
+**/*.app
+**/*.ipa
+**/*.dSYM/
+**/*.dSYM.zip
+
+# Test results / coverage
+TestResults/
+*.trx
+coverage/
+coverage.xml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example

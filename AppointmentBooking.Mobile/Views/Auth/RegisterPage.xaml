@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Auth"
+    x:Class="AppointmentBooking.Mobile.Views.Auth.RegisterPage"
+    x:DataType="viewModels:RegisterViewModel"
+    Title="Registracija"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource Background}"
+    SafeAreaEdges="All">
+
+    <ScrollView>
+        <Grid
+            Padding="24,24,24,30"
+            RowDefinitions="Auto,Auto,Auto,Auto"
+            RowSpacing="18">
+
+            <!-- BRAND -->
+
+            <VerticalStackLayout
+                Grid.Row="0"
+                Spacing="6"
+                HorizontalOptions="Center">
+
+                <Label
+                    Text="✂"
+                    FontSize="42"
+                    TextColor="{StaticResource Accent}"
+                    HorizontalOptions="Center" />
+
+                <Label
+                    Text="SALON"
+                    FontSize="30"
+                    CharacterSpacing="8"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}"
+                    HorizontalOptions="Center" />
+
+                <Label
+                    Text="LOOK GOOD. FEEL BETTER."
+                    FontSize="10"
+                    CharacterSpacing="3"
+                    TextColor="{StaticResource AccentDark}"
+                    HorizontalOptions="Center" />
+
+            </VerticalStackLayout>
+
+
+            <!-- HEADER -->
+
+            <VerticalStackLayout
+                Grid.Row="1"
+                Spacing="7">
+
+                <Label
+                    Text="Kreirajte račun"
+                    Style="{StaticResource TitleLabel}" />
+
+                <Label
+                    Text="Registrujte se i rezervišite svoj termin brzo i jednostavno."
+                    Style="{StaticResource SubtitleLabel}" />
+
+            </VerticalStackLayout>
+
+
+            <!-- FORM -->
+
+            <VerticalStackLayout
+                Grid.Row="2"
+                Spacing="12">
+
+                <!-- IME + PREZIME -->
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12">
+
+                    <!-- IME -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14,8">
+
+                        <VerticalStackLayout
+                            Spacing="0">
+
+                            <Label
+                                Text="Ime"
+                                Style="{StaticResource CaptionLabel}" />
+
+                            <Entry
+                                Placeholder="Unesite ime"
+                                Text="{Binding FirstName}"
+                                TextColor="{StaticResource TextPrimary}"
+                                PlaceholderColor="{StaticResource TextMuted}"
+                                BackgroundColor="{StaticResource Surface}"
+                                FontSize="15"
+                                HeightRequest="48"
+                                ReturnType="Next" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+                    <!-- PREZIME -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14,8">
+
+                        <VerticalStackLayout
+                            Spacing="0">
+
+                            <Label
+                                Text="Prezime"
+                                Style="{StaticResource CaptionLabel}" />
+
+                            <Entry
+                                Placeholder="Unesite prezime"
+                                Text="{Binding LastName}"
+                                TextColor="{StaticResource TextPrimary}"
+                                PlaceholderColor="{StaticResource TextMuted}"
+                                BackgroundColor="{StaticResource Surface}"
+                                FontSize="15"
+                                HeightRequest="48"
+                                ReturnType="Next" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+                <!-- EMAIL -->
+
+                <Border
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16,8">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="14">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="✉"
+                            FontSize="23"
+                            TextColor="{StaticResource Primary}"
+                            VerticalOptions="Center" />
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="0">
+
+                            <Label
+                                Text="Email adresa"
+                                Style="{StaticResource CaptionLabel}" />
+
+                            <Entry
+                                Placeholder="npr. korisnik@email.com"
+                                Keyboard="Email"
+                                Text="{Binding Email}"
+                                TextColor="{StaticResource TextPrimary}"
+                                PlaceholderColor="{StaticResource TextMuted}"
+                                BackgroundColor="{StaticResource Surface}"
+                                FontSize="15"
+                                HeightRequest="52"
+                                Margin="-4,0,0,0"
+                                ReturnType="Next" />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- TELEFON -->
+
+                <Border
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16,8">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="14">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="☎︎"
+                            FontSize="22"
+                            TextColor="{StaticResource Primary}"
+                            VerticalOptions="Center" />
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="0">
+
+                            <Label
+                                Text="Broj telefona"
+                                Style="{StaticResource CaptionLabel}" />
+
+                            <Entry
+                                Placeholder="+387 61 123 456"
+                                Keyboard="Telephone"
+                                Text="{Binding Phone}"
+                                TextColor="{StaticResource TextPrimary}"
+                                PlaceholderColor="{StaticResource TextMuted}"
+                                BackgroundColor="{StaticResource Surface}"
+                                FontSize="15"
+                                HeightRequest="52"
+                                Margin="-4,0,0,0"
+                                ReturnType="Next" />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- LOZINKA -->
+
+                <Border
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16,8">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="14">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="▢"
+                            FontSize="25"
+                            TextColor="{StaticResource Primary}"
+                            VerticalOptions="Center" />
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="0">
+
+                            <Label
+                                Text="Lozinka"
+                                Style="{StaticResource CaptionLabel}" />
+
+                            <Entry
+                                Placeholder="Unesite lozinku"
+                                IsPassword="True"
+                                Text="{Binding Password}"
+                                TextColor="{StaticResource TextPrimary}"
+                                PlaceholderColor="{StaticResource TextMuted}"
+                                BackgroundColor="{StaticResource Surface}"
+                                FontSize="15"
+                                HeightRequest="52"
+                                Margin="-4,0,0,0"
+                                ReturnType="Next" />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- POTVRDA LOZINKE -->
+
+                <Border
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Border}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16,8">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="14">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="▢"
+                            FontSize="25"
+                            TextColor="{StaticResource Primary}"
+                            VerticalOptions="Center" />
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="0">
+
+                            <Label
+                                Text="Potvrdi lozinku"
+                                Style="{StaticResource CaptionLabel}" />
+
+                            <Entry
+                                Placeholder="Ponovite lozinku"
+                                IsPassword="True"
+                                Text="{Binding ConfirmPassword}"
+                                TextColor="{StaticResource TextPrimary}"
+                                PlaceholderColor="{StaticResource TextMuted}"
+                                BackgroundColor="{StaticResource Surface}"
+                                FontSize="15"
+                                HeightRequest="52"
+                                Margin="-4,0,0,0"
+                                ReturnType="Done" />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- PASSWORD INFO -->
+
+                <Label
+                    Text="Lozinka mora sadržavati najmanje 8 karaktera."
+                    FontSize="12"
+                    TextColor="{StaticResource TextMuted}"
+                    Margin="4,-2,4,0" />
+
+
+                <!-- REGISTER -->
+
+                <Button
+                    Text="REGISTRUJ SE   →"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding RegisterCommand}"
+                    HorizontalOptions="Fill"
+                    Margin="0,4,0,0" />
+
+                <ActivityIndicator
+                    IsRunning="{Binding IsBusy}"
+                    IsVisible="{Binding IsBusy}"
+                    Color="{StaticResource Accent}"
+                    WidthRequest="28"
+                    HeightRequest="28"
+                    HorizontalOptions="Center"
+                    Margin="0,-2,0,0" />
+
+            </VerticalStackLayout>
+
+
+            <!-- LOGIN -->
+
+            <VerticalStackLayout
+                Grid.Row="3"
+                Spacing="16"
+                HorizontalOptions="Fill">
+
+                <BoxView
+                    HeightRequest="1"
+                    BackgroundColor="{StaticResource Border}" />
+
+                <HorizontalStackLayout
+                    HorizontalOptions="Center"
+                    Spacing="5">
+
+                    <Label
+                        Text="Već imate račun?"
+                        Style="{StaticResource CaptionLabel}"
+                        VerticalOptions="Center" />
+
+                    <Button
+                        Text="Prijavite se"
+                        Command="{Binding BackToLoginCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource AccentDark}"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        HeightRequest="30" />
+
+                </HorizontalStackLayout>
+
+                <VerticalStackLayout
+                    Spacing="4"
+                    HorizontalOptions="Center">
+
+                    <Label
+                        Text="LJEPOTA POČINJE"
+                        FontSize="10"
+                        CharacterSpacing="3"
+                        TextColor="{StaticResource TextMuted}"
+                        HorizontalOptions="Center" />
+
+                    <Label
+                        Text="BRIGOM O SEBI"
+                        FontSize="10"
+                        CharacterSpacing="3"
+                        TextColor="{StaticResource AccentDark}"
+                        HorizontalOptions="Center" />
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>

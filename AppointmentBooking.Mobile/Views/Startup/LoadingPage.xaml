@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AppointmentBooking.Mobile.Views.Startup.LoadingPage"
+    BackgroundColor="{StaticResource Background}"
+    Shell.NavBarIsVisible="False">
+
+    <Grid>
+
+        <VerticalStackLayout
+            Spacing="16"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+
+            <Label
+                Text="SALON"
+                FontSize="28"
+                FontAttributes="Bold"
+                CharacterSpacing="8"
+                TextColor="{StaticResource TextPrimary}"
+                HorizontalOptions="Center" />
+
+            <ActivityIndicator
+                IsRunning="True"
+                Color="{StaticResource Accent}"
+                WidthRequest="32"
+                HeightRequest="32" />
+
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>

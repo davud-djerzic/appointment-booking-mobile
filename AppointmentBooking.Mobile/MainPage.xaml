@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AppointmentBooking.Mobile.MainPage">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="24"
+            Spacing="20"
+            VerticalOptions="Center">
+
+            <Label
+                Text="Appointment Booking"
+                Style="{StaticResource TitleLabel}"
+                HorizontalOptions="Center" />
+
+            <Label
+                Text="Salon booking aplikacija"
+                Style="{StaticResource SubtitleLabel}"
+                HorizontalTextAlignment="Center" />
+
+            <Button
+                Text="TEST"
+                Style="{StaticResource PrimaryButton}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
