@@ -1,5 +1,4 @@
 ﻿using AppointmentBooking.Mobile.Models.Auth;
-using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.Authentication;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -24,7 +23,6 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
-    
 
     [RelayCommand]
     private async Task LoginAsync()
@@ -43,14 +41,18 @@ public partial class LoginViewModel : ObservableObject
             return;
         }
 
+        LoginRequest request = new(
+            Email.Trim(),
+            Password);
+
+        // Password više ne treba ostati u UI-u
+        // nakon što je request napravljen.
+        Password = string.Empty;
+
         IsBusy = true;
 
         try
         {
-            LoginRequest request = new(
-                Email.Trim(),
-                Password);
-
             AuthResult result =
                 await authService.LoginAsync(request);
 
@@ -81,5 +83,11 @@ public partial class LoginViewModel : ObservableObject
     private async Task GoToRegisterAsync()
     {
         await Shell.Current.GoToAsync("register");
+    }
+
+    public void ClearFields()
+    {
+        Email = string.Empty;
+        Password = string.Empty;
     }
 }

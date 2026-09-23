@@ -1,12 +1,19 @@
 ﻿using AppointmentBooking.Mobile.Configuration;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.Authentication;
+using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
 using AppointmentBooking.Mobile.Services.Storage;
 using AppointmentBooking.Mobile.ViewModels.Auth;
+using AppointmentBooking.Mobile.ViewModels.Booking;
 using AppointmentBooking.Mobile.ViewModels.Home;
+using AppointmentBooking.Mobile.ViewModels.Profile;
+using AppointmentBooking.Mobile.Views.Appointments;
 using AppointmentBooking.Mobile.Views.Auth;
+using AppointmentBooking.Mobile.Views.Booking;
+using AppointmentBooking.Mobile.Views.Gallery;
 using AppointmentBooking.Mobile.Views.Home;
+using AppointmentBooking.Mobile.Views.Profile;
 using AppointmentBooking.Mobile.Views.Startup;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
@@ -38,11 +45,21 @@ public static class MauiProgram
             RegisterPage,
             RegisterViewModel>("register");
 
+        builder.Services.AddTransientWithShellRoute<
+            ChangePasswordPage,
+            ChangePasswordViewModel>("change-password");
+
         builder.Services.AddSingleton<AppShell>();
 
         builder.Services.AddTransient<HomePage>();
         builder.Services.AddTransient<HomeViewModel>();
         builder.Services.AddTransient<LoadingPage>();
+        builder.Services.AddTransient<BookingPage>();
+        builder.Services.AddTransient<BookingViewModel>();
+        builder.Services.AddTransient<AppointmentsPage>();
+        builder.Services.AddTransient<GalleryPage>();
+        builder.Services.AddTransient<ProfilePage>();
+        builder.Services.AddTransient<ProfileViewModel>();
 
 #if DEBUG
         string apiBaseUrl =
@@ -70,6 +87,9 @@ public static class MauiProgram
 
         // Authorization handler
         builder.Services.AddSingleton<BearerTokenHandler>();
+
+        builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
+
 
         // Auth HTTP client
         builder.Services.AddSingleton<IAuthApiClient>(
