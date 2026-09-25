@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AppointmentBooking.Mobile.Services.Api;
 
@@ -8,7 +9,11 @@ public sealed class ApiClient(HttpClient httpClient) : IApiClient
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        Converters =
+    {
+        new JsonStringEnumConverter()
+    }
     };
 
     public async Task<TResponse?> GetAsync<TResponse>(

@@ -6,6 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Profile"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:salonResponses="clr-namespace:AppointmentBooking.Mobile.Models.Salons.Responses"
     x:Name="RootPage"
     x:DataType="viewModels:ProfileViewModel"
     BackgroundColor="{StaticResource Background}"
@@ -524,6 +525,163 @@
 
                 </VerticalStackLayout>
 
+
+                <!-- SALON -->
+
+                <VerticalStackLayout
+    Spacing="10">
+
+                    <Label
+        Text="Salon"
+        FontSize="20"
+        FontAttributes="Bold"
+        TextColor="{StaticResource TextPrimary}" />
+
+                    <Border
+        BackgroundColor="{StaticResource Surface}"
+        Stroke="{StaticResource Border}"
+        StrokeThickness="1"
+        StrokeShape="RoundRectangle 18"
+        Padding="16">
+
+                        <VerticalStackLayout
+            Spacing="16">
+
+                            <!-- SALON NAME -->
+
+                            <VerticalStackLayout
+                Spacing="3">
+
+                                <Label
+                    Text="Naziv salona"
+                    FontSize="11"
+                    TextColor="{StaticResource TextMuted}" />
+
+                                <Label
+                    Text="{Binding Salon.Name}"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                            </VerticalStackLayout>
+
+
+                            <!-- ADDRESS -->
+
+                            <VerticalStackLayout
+                Spacing="3">
+
+                                <Label
+                    Text="Adresa"
+                    FontSize="11"
+                    TextColor="{StaticResource TextMuted}" />
+
+                                <Label
+                    Text="{Binding Salon.Address}"
+                    FontSize="15"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                            </VerticalStackLayout>
+
+
+                            <!-- CITY -->
+
+                            <VerticalStackLayout
+                Spacing="3">
+
+                                <Label
+                    Text="Grad"
+                    FontSize="11"
+                    TextColor="{StaticResource TextMuted}" />
+
+                                <Label
+                    Text="{Binding Salon.City}"
+                    FontSize="15"
+                    TextColor="{StaticResource TextPrimary}" />
+
+                            </VerticalStackLayout>
+
+
+                            <!-- SOCIAL MEDIA -->
+
+                            <VerticalStackLayout
+                Spacing="3">
+
+                                <Label
+                    Text="Društvene mreže"
+                    FontSize="11"
+                    TextColor="{StaticResource TextMuted}" />
+
+                                <Label
+                    Text="{Binding Salon.InstagramUrl}"
+                    FontSize="13"
+                    TextColor="{StaticResource TextSecondary}"
+                    LineBreakMode="TailTruncation" />
+
+                                <Label
+                    Text="{Binding Salon.FacebookUrl}"
+                    FontSize="13"
+                    TextColor="{StaticResource TextSecondary}"
+                    LineBreakMode="TailTruncation" />
+
+                            </VerticalStackLayout>
+
+
+                            <!-- WORKING HOURS -->
+
+                            <VerticalStackLayout
+                Spacing="8">
+
+                                <Label
+                    Text="Radno vrijeme"
+                    FontSize="11"
+                    TextColor="{StaticResource TextMuted}" />
+
+                                <VerticalStackLayout
+                    BindableLayout.ItemsSource="{Binding Salon.WorkingHours}"
+                    Spacing="6">
+
+                                    <BindableLayout.ItemTemplate>
+
+                                        <DataTemplate
+                            x:DataType="salonResponses:SalonWorkingHoursResponse">
+
+                                            <Grid
+                                ColumnDefinitions="*,Auto,Auto"
+                                ColumnSpacing="8">
+
+                                                <Label
+                                    Text="{Binding DayOfWeek}"
+                                    FontSize="14"
+                                    TextColor="{StaticResource TextPrimary}" />
+
+                                                <Label
+                                    Grid.Column="1"
+                                    Text="{Binding StartsAt}"
+                                    FontSize="14"
+                                    TextColor="{StaticResource TextSecondary}" />
+
+                                                <Label
+                                    Grid.Column="2"
+                                    Text="{Binding EndsAt}"
+                                    FontSize="14"
+                                    TextColor="{StaticResource TextSecondary}" />
+
+                                            </Grid>
+
+                                        </DataTemplate>
+
+                                    </BindableLayout.ItemTemplate>
+
+                                </VerticalStackLayout>
+
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </VerticalStackLayout>
 
                 <!-- LOGOUT -->
 

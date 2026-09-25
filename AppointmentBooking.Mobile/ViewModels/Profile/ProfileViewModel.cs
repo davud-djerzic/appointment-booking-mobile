@@ -1,5 +1,6 @@
 ﻿using AppointmentBooking.Mobile.Models.Profile.Requests;
 using AppointmentBooking.Mobile.Models.Profile.Responses;
+using AppointmentBooking.Mobile.Models.Salons.Responses;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
@@ -39,6 +40,14 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
         [ObservableProperty]
         private bool isEditing;
+
+        private const long SalonId = 3;
+
+        [ObservableProperty]
+        private SalonResponse? salon;
+
+        [ObservableProperty]
+        private bool isLoadingSalon;
 
         public bool CanEdit =>
             !IsLoading &&
@@ -87,6 +96,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                 originalPhone = response.Phone;
 
                 IsEditing = false;
+
+                await LoadSalonAsync();
             }
             catch (Exception ex)
             {
@@ -101,6 +112,31 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
                 StartEditingCommand.NotifyCanExecuteChanged();
                 SaveChangesCommand.NotifyCanExecuteChanged();
+            }
+        }
+
+        [RelayCommand]
+        private async Task LoadSalonAsync()
+        {
+            try
+            {
+                IsLoadingSalon = true;
+
+                SalonResponse? response =
+                    await apiClient.GetAsync<SalonResponse>(
+                        $"api/salons/{SalonId}");
+
+                Salon = response;
+            }
+            catch (Exception ex)
+            {
+                Salon = null;
+
+                await errorHandler.HandleAsync(ex);
+            }
+            finally
+            {
+                IsLoadingSalon = false;
             }
         }
 
