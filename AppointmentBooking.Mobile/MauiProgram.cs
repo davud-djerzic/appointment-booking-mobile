@@ -4,6 +4,7 @@ using AppointmentBooking.Mobile.Services.Authentication;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
 using AppointmentBooking.Mobile.Services.Storage;
+using AppointmentBooking.Mobile.ViewModels.Appointment;
 using AppointmentBooking.Mobile.ViewModels.Auth;
 using AppointmentBooking.Mobile.ViewModels.Booking;
 using AppointmentBooking.Mobile.ViewModels.Home;
@@ -40,6 +41,9 @@ public static class MauiProgram
         // Pages / ViewModels
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<LoginViewModel>();
+
+        builder.Services.AddTransient<AppointmentsPage>();
+        builder.Services.AddTransient<AppointmentViewModel>();
 
         builder.Services.AddTransientWithShellRoute<
             RegisterPage,

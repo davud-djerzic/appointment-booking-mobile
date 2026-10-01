@@ -24,6 +24,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
         private string firstName = string.Empty;
 
         [ObservableProperty]
+        private bool isCustomerInfoExpanded;
+
+        [ObservableProperty]
         private string lastName = string.Empty;
 
         [ObservableProperty]
@@ -41,7 +44,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
         [ObservableProperty]
         private bool isEditing;
 
-        private const long SalonId = 3;
+        private const long SalonId = 1;
 
         [ObservableProperty]
         private SalonResponse? salon;
@@ -113,6 +116,12 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                 StartEditingCommand.NotifyCanExecuteChanged();
                 SaveChangesCommand.NotifyCanExecuteChanged();
             }
+        }
+
+        [RelayCommand]
+        private void ToggleCustomerInfo()
+        {
+            IsCustomerInfoExpanded = !IsCustomerInfoExpanded;
         }
 
         [RelayCommand]
@@ -258,6 +267,30 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                 StartEditingCommand.NotifyCanExecuteChanged();
                 SaveChangesCommand.NotifyCanExecuteChanged();
             }
+        }
+
+        [RelayCommand]
+        private async Task OpenInstagramAsync()
+        {
+            if (Salon?.InstagramUrl is null)
+            {
+                return;
+            }
+
+            await Launcher.Default.OpenAsync(
+                new Uri(Salon.InstagramUrl));
+        }
+
+        [RelayCommand]
+        private async Task OpenFacebookAsync()
+        {
+            if (Salon?.FacebookUrl is null)
+            {
+                return;
+            }
+
+            await Launcher.Default.OpenAsync(
+                new Uri(Salon.FacebookUrl));
         }
 
         [RelayCommand]

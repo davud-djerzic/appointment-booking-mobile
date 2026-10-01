@@ -197,4 +197,10 @@ public partial class AppShell : Shell
         mainTabBar.IsVisible = false;
         CurrentItem = loginItem;
     }
+
+    public void ShowBookingTab()
+    {
+        CurrentItem = mainTabBar;
+        mainTabBar.CurrentItem = bookingTab;
+    }
 }

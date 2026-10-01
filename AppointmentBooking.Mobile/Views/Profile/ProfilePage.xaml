@@ -19,6 +19,7 @@
             Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.LoadProfileCommand}" />
     </ContentPage.Behaviors>
 
+
     <Grid
         RowDefinitions="Auto,*"
         Padding="20,18,20,16">
@@ -46,6 +47,7 @@
                     TextColor="{StaticResource TextSecondary}" />
 
             </VerticalStackLayout>
+
 
             <Border
                 Grid.Column="1"
@@ -76,6 +78,7 @@
                 Spacing="18"
                 Padding="0,0,0,24">
 
+
                 <!-- PROFILE CARD -->
 
                 <Border
@@ -105,6 +108,7 @@
                                 VerticalOptions="Center" />
 
                         </Border>
+
 
                         <VerticalStackLayout
                             Grid.Column="1"
@@ -140,74 +144,430 @@
                 <VerticalStackLayout
                     Spacing="10">
 
-                    <Grid
-                        ColumnDefinitions="*,Auto">
-
-                        <Label
-                            Text="Moji podaci"
-                            FontSize="20"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
-                            VerticalOptions="Center" />
-
-                        <Button
-                            Grid.Column="1"
-                            Text="UREDI"
-                            Command="{Binding StartEditingCommand}"
-                            HeightRequest="38"
-                            Padding="14,0"
-                            FontSize="12"
-                            FontAttributes="Bold"
-                            BackgroundColor="{StaticResource SurfaceSecondary}"
-                            TextColor="{StaticResource AccentDark}"
-                            CornerRadius="12">
-
-                            <Button.Triggers>
-                                <DataTrigger
-                                    TargetType="Button"
-                                    Binding="{Binding IsEditing}"
-                                    Value="True">
-
-                                    <Setter
-                                        Property="IsVisible"
-                                        Value="False" />
-
-                                </DataTrigger>
-                            </Button.Triggers>
-
-                        </Button>
-
-                    </Grid>
+                    <Label
+                        Text="Moji podaci"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource TextPrimary}" />
 
 
-                    <!-- FIRST NAME -->
+                    <!-- CUSTOMER INFO CARD -->
 
                     <Border
-                        BackgroundColor="{StaticResource Surface}"
-                        Stroke="{StaticResource Border}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 16"
-                        Padding="14">
+                        BackgroundColor="{StaticResource SurfaceSecondary}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="16">
 
-                        <Grid>
+                        <Border.GestureRecognizers>
 
-                            <VerticalStackLayout
-                                Spacing="3">
+                            <TapGestureRecognizer
+                                Command="{Binding ToggleCustomerInfoCommand}" />
+
+                        </Border.GestureRecognizers>
+
+
+                        <VerticalStackLayout
+                            Spacing="14">
+
+
+                            <!-- CARD HEADER -->
+
+                            <Grid
+                                ColumnDefinitions="*,Auto">
+
+                                <VerticalStackLayout
+                                    Spacing="3">
+
+                                    <Label
+                                        Text="Lični podaci"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextPrimary}" />
+
+                                    <Label
+                                        Text="Pregledajte i uredite svoje podatke."
+                                        FontSize="12"
+                                        TextColor="{StaticResource TextSecondary}" />
+
+                                </VerticalStackLayout>
+
+
+                                <!-- ARROW -->
 
                                 <Label
-                                    Text="Ime"
-                                    FontSize="11"
-                                    TextColor="{StaticResource TextMuted}" />
-
-                                <Label
-                                    Text="{Binding FirstName}"
-                                    FontSize="16"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource TextPrimary}">
+                                    Grid.Column="1"
+                                    Text="›"
+                                    FontSize="28"
+                                    TextColor="{StaticResource AccentDark}"
+                                    VerticalOptions="Center">
 
                                     <Label.Triggers>
+
                                         <DataTrigger
                                             TargetType="Label"
+                                            Binding="{Binding IsCustomerInfoExpanded}"
+                                            Value="True">
+
+                                            <Setter
+                                                Property="Rotation"
+                                                Value="90" />
+
+                                        </DataTrigger>
+
+                                    </Label.Triggers>
+
+                                </Label>
+
+                            </Grid>
+
+
+                            <!-- CUSTOMER DETAILS -->
+
+                            <VerticalStackLayout
+                                Spacing="10"
+                                IsVisible="False">
+
+                                <VerticalStackLayout.Triggers>
+
+                                    <DataTrigger
+                                        TargetType="VerticalStackLayout"
+                                        Binding="{Binding IsCustomerInfoExpanded}"
+                                        Value="True">
+
+                                        <Setter
+                                            Property="IsVisible"
+                                            Value="True" />
+
+                                    </DataTrigger>
+
+                                </VerticalStackLayout.Triggers>
+
+
+                                <!-- FIRST NAME -->
+
+                                <Border
+                                    BackgroundColor="{StaticResource Surface}"
+                                    Stroke="{StaticResource Border}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="14">
+
+                                    <VerticalStackLayout
+                                        Spacing="3">
+
+                                        <Label
+                                            Text="Ime"
+                                            FontSize="11"
+                                            TextColor="{StaticResource TextMuted}" />
+
+
+                                        <!-- VIEW -->
+
+                                        <Label
+                                            Text="{Binding FirstName}"
+                                            FontSize="16"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}">
+
+                                            <Label.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Label"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="False" />
+
+                                                </DataTrigger>
+
+                                            </Label.Triggers>
+
+                                        </Label>
+
+
+                                        <!-- EDIT -->
+
+                                        <Entry
+                                            Text="{Binding FirstName}"
+                                            FontSize="16"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            BackgroundColor="Transparent"
+                                            ClearButtonVisibility="WhileEditing"
+                                            IsVisible="False">
+
+                                            <Entry.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Entry"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="True" />
+
+                                                </DataTrigger>
+
+                                            </Entry.Triggers>
+
+                                        </Entry>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+
+                                <!-- LAST NAME -->
+
+                                <Border
+                                    BackgroundColor="{StaticResource Surface}"
+                                    Stroke="{StaticResource Border}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="14">
+
+                                    <VerticalStackLayout
+                                        Spacing="3">
+
+                                        <Label
+                                            Text="Prezime"
+                                            FontSize="11"
+                                            TextColor="{StaticResource TextMuted}" />
+
+
+                                        <!-- VIEW -->
+
+                                        <Label
+                                            Text="{Binding LastName}"
+                                            FontSize="16"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}">
+
+                                            <Label.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Label"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="False" />
+
+                                                </DataTrigger>
+
+                                            </Label.Triggers>
+
+                                        </Label>
+
+
+                                        <!-- EDIT -->
+
+                                        <Entry
+                                            Text="{Binding LastName}"
+                                            FontSize="16"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            BackgroundColor="Transparent"
+                                            ClearButtonVisibility="WhileEditing"
+                                            IsVisible="False">
+
+                                            <Entry.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Entry"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="True" />
+
+                                                </DataTrigger>
+
+                                            </Entry.Triggers>
+
+                                        </Entry>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+
+                                <!-- EMAIL -->
+
+                                <Border
+                                    BackgroundColor="{StaticResource Surface}"
+                                    Stroke="{StaticResource Border}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="14">
+
+                                    <VerticalStackLayout
+                                        Spacing="3">
+
+                                        <Label
+                                            Text="Email"
+                                            FontSize="11"
+                                            TextColor="{StaticResource TextMuted}" />
+
+
+                                        <!-- VIEW -->
+
+                                        <Label
+                                            Text="{Binding Email}"
+                                            FontSize="16"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            LineBreakMode="TailTruncation">
+
+                                            <Label.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Label"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="False" />
+
+                                                </DataTrigger>
+
+                                            </Label.Triggers>
+
+                                        </Label>
+
+
+                                        <!-- EDIT -->
+
+                                        <Entry
+                                            Text="{Binding Email}"
+                                            Keyboard="Email"
+                                            FontSize="16"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            BackgroundColor="Transparent"
+                                            ClearButtonVisibility="WhileEditing"
+                                            IsVisible="False">
+
+                                            <Entry.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Entry"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="True" />
+
+                                                </DataTrigger>
+
+                                            </Entry.Triggers>
+
+                                        </Entry>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+
+                                <!-- PHONE -->
+
+                                <Border
+                                    BackgroundColor="{StaticResource Surface}"
+                                    Stroke="{StaticResource Border}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="14">
+
+                                    <VerticalStackLayout
+                                        Spacing="3">
+
+                                        <Label
+                                            Text="Telefon"
+                                            FontSize="11"
+                                            TextColor="{StaticResource TextMuted}" />
+
+
+                                        <!-- VIEW -->
+
+                                        <Label
+                                            Text="{Binding Phone}"
+                                            FontSize="16"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}">
+
+                                            <Label.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Label"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="False" />
+
+                                                </DataTrigger>
+
+                                            </Label.Triggers>
+
+                                        </Label>
+
+
+                                        <!-- EDIT -->
+
+                                        <Entry
+                                            Text="{Binding Phone}"
+                                            Keyboard="Telephone"
+                                            FontSize="16"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            BackgroundColor="Transparent"
+                                            ClearButtonVisibility="WhileEditing"
+                                            IsVisible="False">
+
+                                            <Entry.Triggers>
+
+                                                <DataTrigger
+                                                    TargetType="Entry"
+                                                    Binding="{Binding IsEditing}"
+                                                    Value="True">
+
+                                                    <Setter
+                                                        Property="IsVisible"
+                                                        Value="True" />
+
+                                                </DataTrigger>
+
+                                            </Entry.Triggers>
+
+                                        </Entry>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+
+                                <!-- EDIT BUTTON -->
+
+                                <Button
+                                    Text="UREDI"
+                                    Command="{Binding StartEditingCommand}"
+                                    HeightRequest="46"
+                                    BackgroundColor="{StaticResource Accent}"
+                                    TextColor="{StaticResource Primary}"
+                                    FontAttributes="Bold"
+                                    FontSize="13"
+                                    CornerRadius="14"
+                                    Margin="0,4,0,0">
+
+                                    <Button.Triggers>
+
+                                        <DataTrigger
+                                            TargetType="Button"
                                             Binding="{Binding IsEditing}"
                                             Value="True">
 
@@ -216,21 +576,31 @@
                                                 Value="False" />
 
                                         </DataTrigger>
-                                    </Label.Triggers>
 
-                                </Label>
+                                    </Button.Triggers>
 
-                                <Entry
-                                    Text="{Binding FirstName}"
-                                    FontSize="16"
-                                    TextColor="{StaticResource TextPrimary}"
-                                    BackgroundColor="Transparent"
-                                    ClearButtonVisibility="WhileEditing"
-                                    IsVisible="False">
+                                </Button>
 
-                                    <Entry.Triggers>
+
+                                <!-- SAVE BUTTON -->
+
+                                <Button
+                                    Text="SAČUVAJ IZMJENE"
+                                    Command="{Binding SaveChangesCommand}"
+                                    IsVisible="False"
+                                    IsEnabled="{Binding CanSave}"
+                                    BackgroundColor="{StaticResource Accent}"
+                                    TextColor="{StaticResource Primary}"
+                                    FontAttributes="Bold"
+                                    FontSize="13"
+                                    HeightRequest="46"
+                                    CornerRadius="14"
+                                    Margin="0,4,0,0">
+
+                                    <Button.Triggers>
+
                                         <DataTrigger
-                                            TargetType="Entry"
+                                            TargetType="Button"
                                             Binding="{Binding IsEditing}"
                                             Value="True">
 
@@ -239,232 +609,372 @@
                                                 Value="True" />
 
                                         </DataTrigger>
-                                    </Entry.Triggers>
 
-                                </Entry>
+                                    </Button.Triggers>
+
+                                </Button>
 
                             </VerticalStackLayout>
 
-                        </Grid>
-
-                    </Border>
-
-
-                    <!-- LAST NAME -->
-
-                    <Border
-                        BackgroundColor="{StaticResource Surface}"
-                        Stroke="{StaticResource Border}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 16"
-                        Padding="14">
-
-                        <VerticalStackLayout
-                            Spacing="3">
-
-                            <Label
-                                Text="Prezime"
-                                FontSize="11"
-                                TextColor="{StaticResource TextMuted}" />
-
-                            <Label
-                                Text="{Binding LastName}"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource TextPrimary}">
-
-                                <Label.Triggers>
-                                    <DataTrigger
-                                        TargetType="Label"
-                                        Binding="{Binding IsEditing}"
-                                        Value="True">
-
-                                        <Setter
-                                            Property="IsVisible"
-                                            Value="False" />
-
-                                    </DataTrigger>
-                                </Label.Triggers>
-
-                            </Label>
-
-                            <Entry
-                                Text="{Binding LastName}"
-                                FontSize="16"
-                                TextColor="{StaticResource TextPrimary}"
-                                BackgroundColor="Transparent"
-                                ClearButtonVisibility="WhileEditing"
-                                IsVisible="False">
-
-                                <Entry.Triggers>
-                                    <DataTrigger
-                                        TargetType="Entry"
-                                        Binding="{Binding IsEditing}"
-                                        Value="True">
-
-                                        <Setter
-                                            Property="IsVisible"
-                                            Value="True" />
-
-                                    </DataTrigger>
-                                </Entry.Triggers>
-
-                            </Entry>
-
                         </VerticalStackLayout>
 
                     </Border>
 
-
-                    <!-- EMAIL -->
-
-                    <Border
-                        BackgroundColor="{StaticResource Surface}"
-                        Stroke="{StaticResource Border}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 16"
-                        Padding="14">
-
-                        <VerticalStackLayout
-                            Spacing="3">
-
-                            <Label
-                                Text="Email"
-                                FontSize="11"
-                                TextColor="{StaticResource TextMuted}" />
-
-                            <Label
-                                Text="{Binding Email}"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource TextPrimary}"
-                                LineBreakMode="TailTruncation">
-
-                                <Label.Triggers>
-                                    <DataTrigger
-                                        TargetType="Label"
-                                        Binding="{Binding IsEditing}"
-                                        Value="True">
-
-                                        <Setter
-                                            Property="IsVisible"
-                                            Value="False" />
-
-                                    </DataTrigger>
-                                </Label.Triggers>
-
-                            </Label>
-
-                            <Entry
-                                Text="{Binding Email}"
-                                Keyboard="Email"
-                                FontSize="16"
-                                TextColor="{StaticResource TextPrimary}"
-                                BackgroundColor="Transparent"
-                                ClearButtonVisibility="WhileEditing"
-                                IsVisible="False">
-
-                                <Entry.Triggers>
-                                    <DataTrigger
-                                        TargetType="Entry"
-                                        Binding="{Binding IsEditing}"
-                                        Value="True">
-
-                                        <Setter
-                                            Property="IsVisible"
-                                            Value="True" />
-
-                                    </DataTrigger>
-                                </Entry.Triggers>
-
-                            </Entry>
-
-                        </VerticalStackLayout>
-
-                    </Border>
+                </VerticalStackLayout>
 
 
-                    <!-- PHONE -->
+                <!-- SALON -->
 
-                    <Border
-                        BackgroundColor="{StaticResource Surface}"
-                        Stroke="{StaticResource Border}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 16"
-                        Padding="14">
+                <VerticalStackLayout
+                    Spacing="10">
 
-                        <VerticalStackLayout
-                            Spacing="3">
-
-                            <Label
-                                Text="Telefon"
-                                FontSize="11"
-                                TextColor="{StaticResource TextMuted}" />
-
-                            <Label
-                                Text="{Binding Phone}"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource TextPrimary}">
-
-                                <Label.Triggers>
-                                    <DataTrigger
-                                        TargetType="Label"
-                                        Binding="{Binding IsEditing}"
-                                        Value="True">
-
-                                        <Setter
-                                            Property="IsVisible"
-                                            Value="False" />
-
-                                    </DataTrigger>
-                                </Label.Triggers>
-
-                            </Label>
-
-                            <Entry
-                                Text="{Binding Phone}"
-                                Keyboard="Telephone"
-                                FontSize="16"
-                                TextColor="{StaticResource TextPrimary}"
-                                BackgroundColor="Transparent"
-                                ClearButtonVisibility="WhileEditing"
-                                IsVisible="False">
-
-                                <Entry.Triggers>
-                                    <DataTrigger
-                                        TargetType="Entry"
-                                        Binding="{Binding IsEditing}"
-                                        Value="True">
-
-                                        <Setter
-                                            Property="IsVisible"
-                                            Value="True" />
-
-                                    </DataTrigger>
-                                </Entry.Triggers>
-
-                            </Entry>
-
-                        </VerticalStackLayout>
-
-                    </Border>
-
-
-                    <!-- SAVE -->
-
-                    <Button
-                        Text="SAČUVAJ IZMJENE"
-                        Command="{Binding SaveChangesCommand}"
-                        IsVisible="{Binding IsEditing}"
-                        IsEnabled="{Binding CanSave}"
-                        BackgroundColor="{StaticResource Accent}"
-                        TextColor="{StaticResource Primary}"
+                    <Label
+                        Text="Salon"
+                        FontSize="20"
                         FontAttributes="Bold"
-                        FontSize="14"
-                        HeightRequest="52"
-                        CornerRadius="14"
-                        Margin="0,4,0,0" />
+                        TextColor="{StaticResource TextPrimary}" />
+
+
+                    <Border
+                        BackgroundColor="{StaticResource Surface}"
+                        Stroke="{StaticResource Border}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 22"
+                        Padding="18">
+
+                        <VerticalStackLayout
+                            Spacing="16">
+
+
+                            <!-- SALON HEADER -->
+
+                            <Grid
+                                ColumnDefinitions="Auto,*"
+                                ColumnSpacing="14">
+
+                                <Border
+                                    WidthRequest="52"
+                                    HeightRequest="52"
+                                    BackgroundColor="{StaticResource SurfaceSecondary}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 26"
+                                    VerticalOptions="Center">
+
+                                    <Label
+                                        Text="✂"
+                                        FontSize="25"
+                                        TextColor="{StaticResource AccentDark}"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+
+                                </Border>
+
+
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="3"
+                                    VerticalOptions="Center">
+
+                                    <Label
+                                        Text="{Binding Salon.Name}"
+                                        FontSize="19"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextPrimary}" />
+
+                                    <Label
+                                        Text="Informacije o salonu"
+                                        FontSize="12"
+                                        TextColor="{StaticResource TextSecondary}" />
+
+                                </VerticalStackLayout>
+
+                            </Grid>
+
+
+                            <!-- ADDRESS -->
+
+                            <Border
+                                BackgroundColor="{StaticResource SurfaceSecondary}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="13">
+
+                                <Grid
+                                    ColumnDefinitions="Auto,*"
+                                    ColumnSpacing="12">
+
+                                    <Label
+                                        Text="📍"
+                                        FontSize="18"
+                                        VerticalOptions="Start" />
+
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        Spacing="2">
+
+                                        <Label
+                                            Text="Lokacija"
+                                            FontSize="11"
+                                            TextColor="{StaticResource TextMuted}" />
+
+                                        <Label
+                                            Text="{Binding Salon.Address}"
+                                            FontSize="15"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}" />
+
+                                        <Label
+                                            Text="{Binding Salon.City}"
+                                            FontSize="13"
+                                            TextColor="{StaticResource TextSecondary}" />
+
+                                    </VerticalStackLayout>
+
+                                </Grid>
+
+                            </Border>
+
+
+                            <!-- WORKING HOURS -->
+
+                            <VerticalStackLayout
+    Spacing="9">
+
+                                <Label
+        Text="Radno vrijeme"
+        FontSize="15"
+        FontAttributes="Bold"
+        TextColor="{StaticResource TextPrimary}" />
+
+                                <Border
+        BackgroundColor="{StaticResource SurfaceSecondary}"
+        StrokeThickness="0"
+        StrokeShape="RoundRectangle 14"
+        Padding="13">
+
+                                    <VerticalStackLayout
+            BindableLayout.ItemsSource="{Binding Salon.WorkingHours}"
+            Spacing="8">
+
+                                        <BindableLayout.ItemTemplate>
+
+                                            <DataTemplate
+                    x:DataType="salonResponses:SalonWorkingHoursResponse">
+
+                                                <Grid
+                        ColumnDefinitions="*,Auto"
+                        ColumnSpacing="12">
+
+                                                    <!-- DAY -->
+
+                                                    <Label
+                            Text="{Binding DayName}"
+                            FontSize="14"
+                            TextColor="{StaticResource TextPrimary}"
+                            VerticalOptions="Center" />
+
+                                                    <!-- TIME -->
+
+                                                    <HorizontalStackLayout
+                            Grid.Column="1"
+                            Spacing="5"
+                            VerticalOptions="Center">
+
+                                                        <Label
+                                Text="{Binding StartsAt, StringFormat='{0:HH\\:mm}'}"
+                                FontSize="14"
+                                TextColor="{StaticResource TextSecondary}" />
+
+                                                        <Label
+                                Text="-"
+                                FontSize="14"
+                                TextColor="{StaticResource TextSecondary}" />
+
+                                                        <Label
+                                Text="{Binding EndsAt, StringFormat='{0:HH\\:mm}'}"
+                                FontSize="14"
+                                TextColor="{StaticResource TextSecondary}" />
+
+                                                    </HorizontalStackLayout>
+
+                                                </Grid>
+
+                                            </DataTemplate>
+
+                                        </BindableLayout.ItemTemplate>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+                            </VerticalStackLayout>
+
+
+                            <!-- SOCIAL MEDIA -->
+
+                            <VerticalStackLayout
+                                Spacing="9">
+
+                                <Label
+                                    Text="Društvene mreže"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextPrimary}" />
+
+
+                                <!-- INSTAGRAM -->
+
+                                <Border
+                                    BackgroundColor="{StaticResource SurfaceSecondary}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="13">
+
+                                    <Border.GestureRecognizers>
+
+                                        <TapGestureRecognizer
+                                            Command="{Binding OpenInstagramCommand}" />
+
+                                    </Border.GestureRecognizers>
+
+
+                                    <Grid
+                                        ColumnDefinitions="Auto,*,Auto"
+                                        ColumnSpacing="12">
+
+                                        <Border
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="{StaticResource Background}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 10"
+                                            VerticalOptions="Center">
+
+                                            <Label
+                                                Text="◎"
+                                                FontSize="20"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource AccentDark}"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+
+                                        </Border>
+
+
+                                        <VerticalStackLayout
+                                            Grid.Column="1"
+                                            Spacing="1"
+                                            VerticalOptions="Center">
+
+                                            <Label
+                                                Text="Instagram"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource TextPrimary}" />
+
+                                            <Label
+                                                Text="Posjetite Instagram profil salona"
+                                                FontSize="11"
+                                                TextColor="{StaticResource TextSecondary}" />
+
+                                        </VerticalStackLayout>
+
+
+                                        <Label
+                                            Grid.Column="2"
+                                            Text="›"
+                                            FontSize="28"
+                                            TextColor="{StaticResource AccentDark}"
+                                            VerticalOptions="Center" />
+
+                                    </Grid>
+
+                                </Border>
+
+
+                                <!-- FACEBOOK -->
+
+                                <Border
+                                    BackgroundColor="{StaticResource SurfaceSecondary}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="13">
+
+                                    <Border.GestureRecognizers>
+
+                                        <TapGestureRecognizer
+                                            Command="{Binding OpenFacebookCommand}" />
+
+                                    </Border.GestureRecognizers>
+
+
+                                    <Grid
+                                        ColumnDefinitions="Auto,*,Auto"
+                                        ColumnSpacing="12">
+
+                                        <Border
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="{StaticResource Background}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 10"
+                                            VerticalOptions="Center">
+
+                                            <Label
+                                                Text="f"
+                                                FontSize="20"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource AccentDark}"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+
+                                        </Border>
+
+
+                                        <VerticalStackLayout
+                                            Grid.Column="1"
+                                            Spacing="1"
+                                            VerticalOptions="Center">
+
+                                            <Label
+                                                Text="Facebook"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource TextPrimary}" />
+
+                                            <Label
+                                                Text="Posjetite Facebook profil salona"
+                                                FontSize="11"
+                                                TextColor="{StaticResource TextSecondary}" />
+
+                                        </VerticalStackLayout>
+
+
+                                        <Label
+                                            Grid.Column="2"
+                                            Text="›"
+                                            FontSize="28"
+                                            TextColor="{StaticResource AccentDark}"
+                                            VerticalOptions="Center" />
+
+                                    </Grid>
+
+                                </Border>
+
+                            </VerticalStackLayout>
+
+
+                            <!-- SALON LOADING -->
+
+                            <ActivityIndicator
+                                IsRunning="{Binding IsLoadingSalon}"
+                                IsVisible="{Binding IsLoadingSalon}"
+                                HorizontalOptions="Center"
+                                Color="{StaticResource AccentDark}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
 
                 </VerticalStackLayout>
 
@@ -480,6 +990,7 @@
                         FontAttributes="Bold"
                         TextColor="{StaticResource TextPrimary}" />
 
+
                     <Border
                         BackgroundColor="{StaticResource SurfaceSecondary}"
                         StrokeThickness="0"
@@ -489,9 +1000,12 @@
                         <!-- OPEN CHANGE PASSWORD -->
 
                         <Border.GestureRecognizers>
+
                             <TapGestureRecognizer
                                 Command="{Binding OpenChangePasswordCommand}" />
+
                         </Border.GestureRecognizers>
+
 
                         <Grid
                             ColumnDefinitions="*,Auto">
@@ -512,6 +1026,7 @@
 
                             </VerticalStackLayout>
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="›"
@@ -525,163 +1040,6 @@
 
                 </VerticalStackLayout>
 
-
-                <!-- SALON -->
-
-                <VerticalStackLayout
-    Spacing="10">
-
-                    <Label
-        Text="Salon"
-        FontSize="20"
-        FontAttributes="Bold"
-        TextColor="{StaticResource TextPrimary}" />
-
-                    <Border
-        BackgroundColor="{StaticResource Surface}"
-        Stroke="{StaticResource Border}"
-        StrokeThickness="1"
-        StrokeShape="RoundRectangle 18"
-        Padding="16">
-
-                        <VerticalStackLayout
-            Spacing="16">
-
-                            <!-- SALON NAME -->
-
-                            <VerticalStackLayout
-                Spacing="3">
-
-                                <Label
-                    Text="Naziv salona"
-                    FontSize="11"
-                    TextColor="{StaticResource TextMuted}" />
-
-                                <Label
-                    Text="{Binding Salon.Name}"
-                    FontSize="18"
-                    FontAttributes="Bold"
-                    TextColor="{StaticResource TextPrimary}" />
-
-                            </VerticalStackLayout>
-
-
-                            <!-- ADDRESS -->
-
-                            <VerticalStackLayout
-                Spacing="3">
-
-                                <Label
-                    Text="Adresa"
-                    FontSize="11"
-                    TextColor="{StaticResource TextMuted}" />
-
-                                <Label
-                    Text="{Binding Salon.Address}"
-                    FontSize="15"
-                    TextColor="{StaticResource TextPrimary}" />
-
-                            </VerticalStackLayout>
-
-
-                            <!-- CITY -->
-
-                            <VerticalStackLayout
-                Spacing="3">
-
-                                <Label
-                    Text="Grad"
-                    FontSize="11"
-                    TextColor="{StaticResource TextMuted}" />
-
-                                <Label
-                    Text="{Binding Salon.City}"
-                    FontSize="15"
-                    TextColor="{StaticResource TextPrimary}" />
-
-                            </VerticalStackLayout>
-
-
-                            <!-- SOCIAL MEDIA -->
-
-                            <VerticalStackLayout
-                Spacing="3">
-
-                                <Label
-                    Text="Društvene mreže"
-                    FontSize="11"
-                    TextColor="{StaticResource TextMuted}" />
-
-                                <Label
-                    Text="{Binding Salon.InstagramUrl}"
-                    FontSize="13"
-                    TextColor="{StaticResource TextSecondary}"
-                    LineBreakMode="TailTruncation" />
-
-                                <Label
-                    Text="{Binding Salon.FacebookUrl}"
-                    FontSize="13"
-                    TextColor="{StaticResource TextSecondary}"
-                    LineBreakMode="TailTruncation" />
-
-                            </VerticalStackLayout>
-
-
-                            <!-- WORKING HOURS -->
-
-                            <VerticalStackLayout
-                Spacing="8">
-
-                                <Label
-                    Text="Radno vrijeme"
-                    FontSize="11"
-                    TextColor="{StaticResource TextMuted}" />
-
-                                <VerticalStackLayout
-                    BindableLayout.ItemsSource="{Binding Salon.WorkingHours}"
-                    Spacing="6">
-
-                                    <BindableLayout.ItemTemplate>
-
-                                        <DataTemplate
-                            x:DataType="salonResponses:SalonWorkingHoursResponse">
-
-                                            <Grid
-                                ColumnDefinitions="*,Auto,Auto"
-                                ColumnSpacing="8">
-
-                                                <Label
-                                    Text="{Binding DayOfWeek}"
-                                    FontSize="14"
-                                    TextColor="{StaticResource TextPrimary}" />
-
-                                                <Label
-                                    Grid.Column="1"
-                                    Text="{Binding StartsAt}"
-                                    FontSize="14"
-                                    TextColor="{StaticResource TextSecondary}" />
-
-                                                <Label
-                                    Grid.Column="2"
-                                    Text="{Binding EndsAt}"
-                                    FontSize="14"
-                                    TextColor="{StaticResource TextSecondary}" />
-
-                                            </Grid>
-
-                                        </DataTemplate>
-
-                                    </BindableLayout.ItemTemplate>
-
-                                </VerticalStackLayout>
-
-                            </VerticalStackLayout>
-
-                        </VerticalStackLayout>
-
-                    </Border>
-
-                </VerticalStackLayout>
 
                 <!-- LOGOUT -->
 

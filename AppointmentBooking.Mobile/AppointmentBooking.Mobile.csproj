@@ -73,6 +73,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\Appointments\AppointmentDetailsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Update="Views\Auth\RegisterPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </None>
