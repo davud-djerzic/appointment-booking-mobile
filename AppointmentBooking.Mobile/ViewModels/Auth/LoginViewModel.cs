@@ -85,6 +85,9 @@ public partial class LoginViewModel : ObservableObject
         await Shell.Current.GoToAsync("register");
     }
 
+    [RelayCommand]
+    private async Task GoToForgotPasswordAsync() => await Shell.Current.GoToAsync("forgot-password");
+
     public void ClearFields()
     {
         Email = string.Empty;

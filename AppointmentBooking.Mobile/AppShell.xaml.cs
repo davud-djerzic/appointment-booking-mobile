@@ -35,6 +35,10 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
+        Routing.RegisterRoute(
+    "forgot-password",
+    typeof(ForgotPasswordPage));
+
         this.sessionService = sessionService;
 
         loadingItem = new ShellContent

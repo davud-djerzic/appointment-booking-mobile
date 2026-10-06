@@ -45,6 +45,9 @@ public static class MauiProgram
         builder.Services.AddTransient<AppointmentsPage>();
         builder.Services.AddTransient<AppointmentViewModel>();
 
+        builder.Services.AddTransient<ForgotPasswordPage>();
+        builder.Services.AddTransient<ForgotPasswordViewModel>();
+
         builder.Services.AddTransientWithShellRoute<
             RegisterPage,
             RegisterViewModel>("register");

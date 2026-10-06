@@ -1,4 +1,5 @@
 ﻿using AppointmentBooking.Mobile.Models.Auth;
+using AppointmentBooking.Mobile.Models.Auth.Requests;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.Session;
 using AppointmentBooking.Mobile.Services.Storage;
@@ -162,6 +163,55 @@ namespace AppointmentBooking.Mobile.Services.Authentication
             }
 
             return "Podaci za prijavu nisu ispravni.";
+        }
+
+        public async Task RequestPasswordResetAsync(
+    string email,
+    CancellationToken cancellationToken = default)
+        {
+            ForgotPasswordRequest request =
+                new(email.Trim());
+
+            await apiClient.PostAsync<ForgotPasswordRequest, object>(
+                "api/auth/forgot-password",
+                request,
+                cancellationToken);
+        }
+
+        public async Task VerifyPasswordResetCodeAsync(
+            string email,
+            string code,
+            CancellationToken cancellationToken = default)
+        {
+            VerifyResetCodeRequest request =
+                new(
+                    email.Trim(),
+                    code.Trim());
+
+            await apiClient.PostAsync<VerifyResetCodeRequest, object>(
+                "api/auth/verify-reset-code",
+                request,
+                cancellationToken);
+        }
+
+        public async Task ResetPasswordAsync(
+            string email,
+            string code,
+            string newPassword,
+            string confirmPassword,
+            CancellationToken cancellationToken = default)
+        {
+            ResetPasswordRequest request =
+                new(
+                    email.Trim(),
+                    code.Trim(),
+                    newPassword,
+                    confirmPassword);
+
+            await apiClient.PostAsync<ResetPasswordRequest, object>(
+                "api/auth/reset-password",
+                request,
+                cancellationToken);
         }
     }
 }
