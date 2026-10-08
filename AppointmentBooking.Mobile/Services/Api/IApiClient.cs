@@ -10,6 +10,10 @@ namespace AppointmentBooking.Mobile.Services.Api
 
         Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest request, CancellationToken cancellationToken = default);
 
+        Task<TResponse?> PutAsync<TRequest, TResponse>(string endpoint, TRequest request, CancellationToken cancellationToken = default);
+
+        Task PutAsync<TRequest>(string endpoint, TRequest request, CancellationToken cancellationToken = default);
+
         Task<TResponse?> PostAsync<TResponse>(string endpoint, CancellationToken cancellationToken = default);
 
         Task PostAsync<TRequest>(string endpoint, TRequest request, CancellationToken cancellationToken = default);

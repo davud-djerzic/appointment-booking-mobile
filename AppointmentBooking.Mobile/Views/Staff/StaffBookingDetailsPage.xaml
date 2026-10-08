@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="AppointmentBooking.Mobile.Views.Staff.StaffBookingDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bookingModels="clr-namespace:AppointmentBooking.Mobile.Models.Bookings.Responses"
+    xmlns:appointmentModels="clr-namespace:AppointmentBooking.Mobile.Models.Appointments.Responses"
+    x:DataType="bookingModels:EmployeeBookingDetailsResponse"
+    BackgroundColor="#99000000"
+    Shell.NavBarIsVisible="False"
+    SafeAreaEdges="All">
+
+    <Grid Padding="16">
+
+        <Border
+            BackgroundColor="{StaticResource Surface}"
+            Stroke="{StaticResource Border}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 24"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            MaximumWidthRequest="520"
+            MaximumHeightRequest="860">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+
+                <!-- Header -->
+                <Grid
+                    Grid.Row="0"
+                    Padding="22,20,16,16"
+                    ColumnDefinitions="*,Auto">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="4"
+                        VerticalOptions="Center">
+
+                        <Label
+                            Text="DETALJI REZERVACIJE"
+                            FontSize="11"
+                            CharacterSpacing="1.2"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource AccentDark}" />
+
+                        <Label
+                            Text="{Binding CustomerName}"
+                            FontSize="23"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource TextPrimary}"
+                            LineBreakMode="TailTruncation" />
+
+                    </VerticalStackLayout>
+
+                    <Button
+                        Grid.Column="1"
+                        Text="✕"
+                        FontSize="17"
+                        TextColor="{StaticResource TextSecondary}"
+                        BackgroundColor="{StaticResource SurfaceSecondary}"
+                        WidthRequest="42"
+                        HeightRequest="42"
+                        CornerRadius="21"
+                        Padding="0"
+                        VerticalOptions="Start"
+                        Clicked="OnCloseClicked" />
+
+                </Grid>
+
+                <!-- Scrollable booking information -->
+                <ScrollView Grid.Row="1">
+
+                    <VerticalStackLayout
+                        Padding="20,0,20,20"
+                        Spacing="14">
+
+                        <!-- Date, time and status -->
+                        <Border
+                            BackgroundColor="{StaticResource Primary}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="18">
+
+                            <Grid
+                                ColumnDefinitions="*,Auto"
+                                RowDefinitions="Auto,Auto,Auto"
+                                RowSpacing="10">
+
+                                <VerticalStackLayout
+                                    Grid.Row="0"
+                                    Grid.Column="0"
+                                    Spacing="3">
+
+                                    <Label
+                                        Text="DATUM I VRIJEME"
+                                        FontSize="11"
+                                        CharacterSpacing="1"
+                                        FontAttributes="Bold"
+                                        TextColor="#D8D0C7" />
+
+                                    <Label
+                                        Text="{Binding LocalStartsAt, StringFormat='{}{0:dddd, d. MMMM yyyy.}'}"
+                                        FontSize="17"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextOnPrimary}" />
+
+                                </VerticalStackLayout>
+
+                                <Border
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    BackgroundColor="{StaticResource Accent}"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    Padding="10,6"
+                                    VerticalOptions="Center">
+
+                                    <Label
+                                        Text="{Binding StatusName}"
+                                        FontSize="12"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource Primary}"
+                                        HorizontalTextAlignment="Center" />
+
+                                </Border>
+
+                                <Grid
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    ColumnDefinitions="Auto,Auto,Auto"
+                                    ColumnSpacing="7">
+
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding LocalStartsAt, StringFormat='{}{0:HH:mm}'}"
+                                        FontSize="29"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextOnPrimary}" />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="—"
+                                        FontSize="25"
+                                        TextColor="#D8D0C7"
+                                        VerticalOptions="Center" />
+
+                                    <Label
+                                        Grid.Column="2"
+                                        Text="{Binding LocalEndsAt, StringFormat='{}{0:HH:mm}'}"
+                                        FontSize="29"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextOnPrimary}" />
+
+                                </Grid>
+
+                                <Label
+                                    Grid.Row="2"
+                                    Grid.ColumnSpan="2"
+                                    Text="{Binding Id, StringFormat='{}Rezervacija #{0}'}"
+                                    FontSize="12"
+                                    TextColor="#D8D0C7" />
+
+                            </Grid>
+
+                        </Border>
+
+                        <!-- Customer -->
+                        <Border
+                            BackgroundColor="{StaticResource Surface}"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="16">
+
+                            <VerticalStackLayout Spacing="12">
+
+                                <Label
+                                    Text="Podaci o klijentu"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextPrimary}" />
+
+                                <Grid
+                                    ColumnDefinitions="*,*"
+                                    ColumnSpacing="12"
+                                    RowDefinitions="Auto,Auto"
+                                    RowSpacing="10">
+
+                                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="3">
+                                        <Label Text="IME I PREZIME" FontSize="10" CharacterSpacing="0.8" FontAttributes="Bold" TextColor="{StaticResource TextMuted}" />
+                                        <Label Text="{Binding CustomerName}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="3">
+                                        <Label Text="TELEFON" FontSize="10" CharacterSpacing="0.8" FontAttributes="Bold" TextColor="{StaticResource TextMuted}" />
+                                        <Label Text="{Binding Customer.PhoneDisplay}" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="3">
+                                        <Label Text="E-POŠTA" FontSize="10" CharacterSpacing="0.8" FontAttributes="Bold" TextColor="{StaticResource TextMuted}" />
+                                        <Label Text="{Binding Customer.EmailDisplay}" FontSize="14" TextColor="{StaticResource TextPrimary}" LineBreakMode="WordWrap" />
+                                    </VerticalStackLayout>
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                        <!-- Services -->
+                        <Border
+                            BackgroundColor="{StaticResource Surface}"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="16">
+
+                            <VerticalStackLayout Spacing="12">
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label
+                                        Text="Usluge"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextPrimary}" />
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding Appointments.Count, StringFormat='{}{0} stavki'}"
+                                        FontSize="12"
+                                        TextColor="{StaticResource TextMuted}"
+                                        VerticalOptions="Center" />
+                                </Grid>
+
+                                <VerticalStackLayout
+                                    BindableLayout.ItemsSource="{Binding Appointments}"
+                                    Spacing="8">
+
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="appointmentModels:AppointmentResponse">
+                                            <Border
+                                                BackgroundColor="{StaticResource SurfaceSecondary}"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 13"
+                                                Padding="12">
+
+                                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="4">
+                                                    <Label
+                                                        Grid.Row="0"
+                                                        Grid.Column="0"
+                                                        Text="{Binding ServiceName}"
+                                                        FontSize="14"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{StaticResource TextPrimary}" />
+                                                    <Label
+                                                        Grid.Row="1"
+                                                        Grid.Column="0"
+                                                        Text="{Binding DurationMinutes, StringFormat='{}{0} min'}"
+                                                        FontSize="12"
+                                                        TextColor="{StaticResource TextSecondary}" />
+                                                    <Label
+                                                        Grid.RowSpan="2"
+                                                        Grid.Column="1"
+                                                        Text="{Binding Price, StringFormat='{}{0:F2} KM'}"
+                                                        FontSize="14"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{StaticResource TextPrimary}"
+                                                        VerticalOptions="Center" />
+                                                </Grid>
+
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+
+                                </VerticalStackLayout>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                        <!-- Totals -->
+                        <Border
+                            BackgroundColor="{StaticResource SurfaceSecondary}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="16">
+
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+
+                                <Label
+                                    Grid.Row="0"
+                                    Text="Ukupno trajanje"
+                                    FontSize="13"
+                                    TextColor="{StaticResource TextSecondary}" />
+                                <Label
+                                    Grid.Row="0"
+                                    Grid.Column="1"
+                                    Text="{Binding TotalDurationMinutes, StringFormat='{}{0} min'}"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    HorizontalTextAlignment="End" />
+
+                                <BoxView
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    HeightRequest="1"
+                                    Color="{StaticResource Border}"
+                                    VerticalOptions="Start" />
+
+                                <Label
+                                    Grid.Row="2"
+                                    Text="Ukupna cijena"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    Margin="0,8,0,0" />
+                                <Label
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Text="{Binding TotalPrice, StringFormat='{}{0:F2} KM'}"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource AccentDark}"
+                                    HorizontalTextAlignment="End"
+                                    Margin="0,5,0,0" />
+
+                            </Grid>
+
+                        </Border>
+
+                        <!-- Notes and creation information -->
+                        <Border
+                            IsVisible="{Binding HasNotes}"
+                            BackgroundColor="{StaticResource Surface}"
+                            Stroke="{StaticResource Border}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="16">
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Napomena"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextPrimary}" />
+                                <Label
+                                    Text="{Binding Notes}"
+                                    FontSize="13"
+                                    TextColor="{StaticResource TextSecondary}"
+                                    LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="4">
+                            <Label
+                                Grid.Row="0"
+                                Text="Kreirano"
+                                FontSize="12"
+                                TextColor="{StaticResource TextMuted}" />
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Text="{Binding CreatedAtText}"
+                                FontSize="12"
+                                TextColor="{StaticResource TextSecondary}"
+                                HorizontalTextAlignment="End" />
+                            <Label
+                                Grid.Row="1"
+                                Text="Završeno"
+                                FontSize="12"
+                                TextColor="{StaticResource TextMuted}"
+                                IsVisible="{Binding HasCompletedAt}" />
+                            <Label
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Text="{Binding CompletedAtText}"
+                                FontSize="12"
+                                TextColor="{StaticResource TextSecondary}"
+                                HorizontalTextAlignment="End"
+                                IsVisible="{Binding HasCompletedAt}" />
+                        </Grid>
+
+                    </VerticalStackLayout>
+
+                </ScrollView>
+
+                <!-- Footer -->
+                <Button
+                    Grid.Row="2"
+                    Text="Zatvori"
+                    Style="{StaticResource PrimaryButton}"
+                    Margin="20,8,20,18"
+                    Clicked="OnCloseClicked" />
+
+            </Grid>
+
+        </Border>
+
+    </Grid>
+
+</ContentPage>

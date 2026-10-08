@@ -47,6 +47,40 @@ public sealed class ApiClient(HttpClient httpClient) : IApiClient
             cancellationToken);
     }
 
+    public async Task<TResponse?> PutAsync<TRequest, TResponse>(
+        string endpoint,
+        TRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response =
+            await httpClient.PutAsJsonAsync(
+                endpoint,
+                request,
+                JsonOptions,
+                cancellationToken);
+
+        return await HandleResponseAsync<TResponse>(
+            response,
+            cancellationToken);
+    }
+
+    public async Task PutAsync<TRequest>(
+        string endpoint,
+        TRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage response =
+            await httpClient.PutAsJsonAsync(
+                endpoint,
+                request,
+                JsonOptions,
+                cancellationToken);
+
+        await HandleResponseAsync(
+            response,
+            cancellationToken);
+    }
+
     public async Task<TResponse?> PostAsync<TResponse>(
         string endpoint,
         CancellationToken cancellationToken = default)

@@ -7,5 +7,8 @@ namespace AppointmentBooking.Mobile.Models.Employees.Responses
     public sealed record BookableEmployeeResponse(
         long Id,
         string FirstName,
-        string LastName);
+        string LastName)
+    {
+        public string FullName => $"{FirstName} {LastName}";
+    }
 }

@@ -11,6 +11,8 @@ namespace AppointmentBooking.Mobile.Services.Session
 
         string? AccessToken { get; }
 
+        string? Role { get; }
+
         DateTimeOffset? AccessTokenExpiresAt { get; }
 
         event EventHandler<bool>? AuthenticationStateChanged;

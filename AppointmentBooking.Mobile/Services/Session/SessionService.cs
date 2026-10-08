@@ -1,6 +1,8 @@
 ﻿using AppointmentBooking.Mobile.Models.Auth;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.Storage;
+using System.Text;
+using System.Text.Json;
 
 namespace AppointmentBooking.Mobile.Services.Session;
 
@@ -12,6 +14,7 @@ public sealed class SessionService(
 
     private string? accessToken;
     private DateTimeOffset? accessTokenExpiresAt;
+    private string? role;
 
     public bool IsAuthenticated { get; private set; }
 
@@ -19,6 +22,8 @@ public sealed class SessionService(
 
     public DateTimeOffset? AccessTokenExpiresAt =>
         accessTokenExpiresAt;
+
+    public string? Role => role;
 
     public event EventHandler<bool>? AuthenticationStateChanged;
 
@@ -30,6 +35,7 @@ public sealed class SessionService(
 
         accessToken = token.AccessToken;
         accessTokenExpiresAt = token.AccessTokenExpiresAt;
+        role = GetRoleFromAccessToken(token.AccessToken);
 
         await tokenStorage.SetRefreshTokenAsync(
             token.RefreshToken,
@@ -72,7 +78,7 @@ public sealed class SessionService(
 
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                ClearAccessToken();
+                ClearSession();
                 SetAuthenticationState(false);
 
                 return false;
@@ -84,7 +90,7 @@ public sealed class SessionService(
                 await tokenStorage.ClearAsync(
                     cancellationToken);
 
-                ClearAccessToken();
+                ClearSession();
                 SetAuthenticationState(false);
 
                 return false;
@@ -109,6 +115,9 @@ public sealed class SessionService(
                 accessTokenExpiresAt =
                     response.AccessTokenExpiresAt;
 
+                role = GetRoleFromAccessToken(
+                    response.AccessToken);
+
                 await tokenStorage.SetRefreshTokenAsync(
                     response.RefreshToken,
                     response.RefreshTokenExpiresAt,
@@ -122,20 +131,19 @@ public sealed class SessionService(
                 when (ex.StatusCode ==
                       System.Net.HttpStatusCode.Unauthorized)
             {
-                // The refresh token itself is no longer valid.
                 await tokenStorage.ClearAsync(
                     cancellationToken);
 
-                ClearAccessToken();
+                ClearSession();
                 SetAuthenticationState(false);
 
                 return false;
             }
             catch (ApiException)
             {
-                // Server error / temporary API problem.
-                // Do not destroy a potentially valid refresh token.
-                ClearAccessToken();
+                // Temporary API/server problem.
+                // Do not destroy the refresh token.
+                ClearSession();
                 SetAuthenticationState(false);
 
                 return false;
@@ -174,7 +182,7 @@ public sealed class SessionService(
             await tokenStorage.ClearAsync(
                 cancellationToken);
 
-            ClearAccessToken();
+            ClearSession();
             SetAuthenticationState(false);
         }
     }
@@ -186,10 +194,11 @@ public sealed class SessionService(
                accessTokenExpiresAt.Value > DateTimeOffset.UtcNow;
     }
 
-    private void ClearAccessToken()
+    private void ClearSession()
     {
         accessToken = null;
         accessTokenExpiresAt = null;
+        role = null;
     }
 
     private void SetAuthenticationState(
@@ -203,5 +212,66 @@ public sealed class SessionService(
         AuthenticationStateChanged?.Invoke(
             this,
             IsAuthenticated);
+    }
+
+    private static string? GetRoleFromAccessToken(
+        string accessToken)
+    {
+        try
+        {
+            string[] parts = accessToken.Split('.');
+
+            if (parts.Length != 3)
+                return null;
+
+            string payload = parts[1];
+
+            int padding = payload.Length % 4;
+
+            if (padding > 0)
+            {
+                payload = payload.PadRight(
+                    payload.Length + (4 - padding),
+                    '=');
+            }
+
+            payload = payload
+                .Replace('-', '+')
+                .Replace('_', '/');
+
+            byte[] bytes =
+                Convert.FromBase64String(payload);
+
+            string json =
+                Encoding.UTF8.GetString(bytes);
+
+            using JsonDocument document =
+                JsonDocument.Parse(json);
+
+            JsonElement root = document.RootElement;
+
+            if (root.TryGetProperty(
+                    "role",
+                    out JsonElement roleElement))
+            {
+                return roleElement.GetString();
+            }
+
+            const string roleClaim =
+                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
+            if (root.TryGetProperty(
+                    roleClaim,
+                    out JsonElement roleClaimElement))
+            {
+                return roleClaimElement.GetString();
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

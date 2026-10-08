@@ -9,12 +9,14 @@ using AppointmentBooking.Mobile.ViewModels.Auth;
 using AppointmentBooking.Mobile.ViewModels.Booking;
 using AppointmentBooking.Mobile.ViewModels.Home;
 using AppointmentBooking.Mobile.ViewModels.Profile;
+using AppointmentBooking.Mobile.ViewModels.Staff;
 using AppointmentBooking.Mobile.Views.Appointments;
 using AppointmentBooking.Mobile.Views.Auth;
 using AppointmentBooking.Mobile.Views.Booking;
 using AppointmentBooking.Mobile.Views.Gallery;
 using AppointmentBooking.Mobile.Views.Home;
 using AppointmentBooking.Mobile.Views.Profile;
+using AppointmentBooking.Mobile.Views.Staff;
 using AppointmentBooking.Mobile.Views.Startup;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
@@ -47,6 +49,12 @@ public static class MauiProgram
 
         builder.Services.AddTransient<ForgotPasswordPage>();
         builder.Services.AddTransient<ForgotPasswordViewModel>();
+
+        builder.Services.AddTransient<StaffAppointmentsPage>();
+        builder.Services.AddTransient<StaffAppointmentsViewModel>();
+        builder.Services.AddTransient<StaffAvailabilityViewModel>();
+        builder.Services.AddTransient<StaffPanelPage>();
+
 
         builder.Services.AddTransientWithShellRoute<
             RegisterPage,

@@ -5,6 +5,7 @@ using AppointmentBooking.Mobile.Views.Booking;
 using AppointmentBooking.Mobile.Views.Gallery;
 using AppointmentBooking.Mobile.Views.Home;
 using AppointmentBooking.Mobile.Views.Profile;
+using AppointmentBooking.Mobile.Views.Staff;
 using AppointmentBooking.Mobile.Views.Startup;
 
 namespace AppointmentBooking.Mobile;
@@ -16,12 +17,18 @@ public partial class AppShell : Shell
     private readonly ShellContent loadingItem;
     private readonly ShellContent loginItem;
 
+    // CUSTOMER
     private readonly TabBar mainTabBar;
     private readonly Tab homeTab;
     private readonly Tab bookingTab;
     private readonly Tab appointmentsTab;
     private readonly Tab galleryTab;
     private readonly Tab profileTab;
+
+    // STAFF
+    private readonly TabBar staffTabBar;
+    private readonly Tab staffAppointmentsTab;
+    private readonly Tab staffPanelTab;
 
     public AppShell(
         LoginPage loginPage,
@@ -30,16 +37,22 @@ public partial class AppShell : Shell
         AppointmentsPage appointmentsPage,
         GalleryPage galleryPage,
         ProfilePage profilePage,
+        StaffAppointmentsPage staffAppointmentsPage,
+        StaffPanelPage staffPanelPage,
         LoadingPage loadingPage,
         ISessionService sessionService)
     {
         InitializeComponent();
 
         Routing.RegisterRoute(
-    "forgot-password",
-    typeof(ForgotPasswordPage));
+            "forgot-password",
+            typeof(ForgotPasswordPage));
 
         this.sessionService = sessionService;
+
+        // =========================
+        // LOADING
+        // =========================
 
         loadingItem = new ShellContent
         {
@@ -48,12 +61,20 @@ public partial class AppShell : Shell
             Content = loadingPage
         };
 
+        // =========================
+        // LOGIN
+        // =========================
+
         loginItem = new ShellContent
         {
             Title = "Prijava",
             Route = "login",
             Content = loginPage
         };
+
+        // =========================
+        // CUSTOMER CONTENT
+        // =========================
 
         ShellContent homeItem = new()
         {
@@ -101,6 +122,7 @@ public partial class AppShell : Shell
             Title = "Rezerviši",
             Route = "booking-tab"
         };
+
         appointmentsTab = new Tab
         {
             Title = "Termini",
@@ -118,7 +140,6 @@ public partial class AppShell : Shell
             Title = "Profil",
             Route = "profile-tab"
         };
-
 
         homeTab.Items.Add(homeItem);
         bookingTab.Items.Add(bookingItem);
@@ -138,16 +159,86 @@ public partial class AppShell : Shell
         mainTabBar.Items.Add(galleryTab);
         mainTabBar.Items.Add(profileTab);
 
+        mainTabBar.CurrentItem = homeTab;
+
+        // =========================
+        // STAFF CONTENT
+        // =========================
+
+        ShellContent staffAppointmentsItem = new()
+        {
+            Title = "Termini",
+            Route = "staff-appointments",
+            Content = staffAppointmentsPage
+        };
+
+        ShellContent staffPanelItem = new()
+        {
+            Title = "Panel",
+            Route = "staff-panel",
+            Content = staffPanelPage
+        };
+
+        staffAppointmentsTab = new Tab
+        {
+            Title = "Termini",
+            Route = "staff-appointments-tab"
+        };
+
+        staffPanelTab = new Tab
+        {
+            Title = "Panel",
+            Route = "staff-panel-tab"
+        };
+
+        staffAppointmentsTab.Items.Add(
+    staffAppointmentsItem);
+
+        staffPanelTab.Items.Add(
+            staffPanelItem);
+
+        staffTabBar = new TabBar
+        {
+            Title = "Staff navigacija",
+            Route = "staff"
+        };
+
+        staffTabBar.Items.Add(
+            staffAppointmentsTab);
+
+        staffTabBar.Items.Add(
+            staffPanelTab);
+
+        staffTabBar.CurrentItem =
+            staffAppointmentsTab;
+
+        // =========================
+        // SHELL
+        // =========================
+
         Items.Add(loadingItem);
         Items.Add(loginItem);
         Items.Add(mainTabBar);
+        Items.Add(staffTabBar);
+
+        mainTabBar.IsVisible = false;
+        staffTabBar.IsVisible = false;
 
         CurrentItem = loadingItem;
 
         sessionService.AuthenticationStateChanged +=
             OnAuthenticationStateChanged;
 
-        _ = InitializeSessionAsync();
+        Loaded += OnShellLoaded;
+    }
+
+    private async void OnShellLoaded(
+    object? sender,
+    EventArgs e)
+    {
+        Loaded -= OnShellLoaded;
+
+        await InitializeSessionAsync();
     }
 
     private async Task InitializeSessionAsync()
@@ -181,30 +272,71 @@ public partial class AppShell : Shell
         });
     }
 
-    private void SetAuthenticationState(bool isAuthenticated)
+    private void SetAuthenticationState(
+        bool isAuthenticated)
     {
-        mainTabBar.IsVisible = isAuthenticated;
-
-        CurrentItem =
-            isAuthenticated
-                ? mainTabBar
-                : loginItem;
-
-        if (isAuthenticated)
+        if (!isAuthenticated)
         {
-            mainTabBar.CurrentItem = homeTab;
+            ShowLogin();
+            return;
         }
+
+        if (string.Equals(
+                sessionService.Role,
+                "Admin",
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                sessionService.Role,
+                "Employee",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            ShowStaffPanel();
+            return;
+        }
+
+        ShowCustomerPanel();
+    }
+
+    private void ShowCustomerPanel()
+    {
+        staffTabBar.IsVisible = false;
+        mainTabBar.IsVisible = true;
+
+        CurrentItem = mainTabBar;
+    }
+
+    private void ShowStaffPanel()
+    {
+        mainTabBar.IsVisible = false;
+        staffTabBar.IsVisible = true;
+
+        CurrentItem = staffTabBar;
     }
 
     private void ShowLogin()
     {
         mainTabBar.IsVisible = false;
+        staffTabBar.IsVisible = false;
+
         CurrentItem = loginItem;
     }
 
     public void ShowBookingTab()
     {
+        mainTabBar.IsVisible = true;
+        staffTabBar.IsVisible = false;
+
         CurrentItem = mainTabBar;
         mainTabBar.CurrentItem = bookingTab;
+    }
+
+    public void ShowStaffAppointmentsTab()
+    {
+        mainTabBar.IsVisible = false;
+        staffTabBar.IsVisible = true;
+
+        CurrentItem = staffTabBar;
+        staffTabBar.CurrentItem =
+            staffAppointmentsTab;
     }
 }
