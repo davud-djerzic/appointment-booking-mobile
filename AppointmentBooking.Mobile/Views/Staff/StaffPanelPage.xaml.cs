@@ -23,7 +23,9 @@ namespace AppointmentBooking.Mobile.Views.Staff
         {
             base.OnAppearing();
 
-            await viewModel.LoadBlocksCommand.ExecuteAsync(null);
+            await Task.WhenAll(
+                viewModel.LoadBlocksCommand.ExecuteAsync(null),
+                viewModel.LoadWorkingHoursCommand.ExecuteAsync(null));
         }
 
         private async void OnAddClicked(object? sender, EventArgs e)

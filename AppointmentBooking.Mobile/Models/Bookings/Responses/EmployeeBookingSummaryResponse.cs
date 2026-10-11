@@ -56,5 +56,9 @@ namespace AppointmentBooking.Mobile.Models.Bookings.Responses
                 BookingStatus.Cancelled => "Otkazano",
                 _ => "Nepoznato"
             };
+
+        public bool CanBeCancelledByEmployee =>
+            Status == BookingStatus.Scheduled &&
+            StartsAt > DateTimeOffset.Now;
     }
 }

@@ -4,6 +4,7 @@ using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
 using AppointmentBooking.Mobile.Models.Employees.Responses;
 using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.BookingCalendar;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,6 +17,7 @@ public partial class BookingViewModel : ObservableObject
 {
     private readonly IApiClient apiClient;
     private readonly IErrorHandler errorHandler;
+    private readonly IBookingCalendarService bookingCalendarService;
 
     [ObservableProperty]
     private ObservableCollection<ServiceSelectionItem> serviceItems = [];
@@ -51,6 +53,9 @@ public partial class BookingViewModel : ObservableObject
     private bool isHoldConfirmationVisible;
 
     private bool employeeLookupCompleted;
+
+    private HashSet<DateOnly> workingDates = [];
+    private long? calendarEmployeeId;
 
     public ObservableCollection<CalendarDayItem> CalendarDays { get; } = [];
 
@@ -107,10 +112,12 @@ public partial class BookingViewModel : ObservableObject
 
     public BookingViewModel(
         IApiClient apiClient,
-        IErrorHandler errorHandler)
+        IErrorHandler errorHandler,
+        IBookingCalendarService bookingCalendarService)
     {
         this.apiClient = apiClient;
         this.errorHandler = errorHandler;
+        this.bookingCalendarService = bookingCalendarService;
 
         BuildCalendar();
     }
@@ -224,10 +231,12 @@ public partial class BookingViewModel : ObservableObject
         OnPropertyChanged(nameof(EmployeeName));
         OnPropertyChanged(nameof(HasBookableEmployee));
         OnPropertyChanged(nameof(IsEmployeeUnavailable));
+        await LoadCalendarDaysAsync();
+        BuildCalendar();
     }
 
     [RelayCommand]
-    private void PreviousMonth()
+    private Task PreviousMonthAsync()
     {
         DateTime currentMonth =
             new(
@@ -240,21 +249,32 @@ public partial class BookingViewModel : ObservableObject
 
         if (previousMonth < currentMonth)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         DisplayedMonth = previousMonth;
 
         BuildCalendar();
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
-    private void NextMonth()
+    private Task NextMonthAsync()
     {
-        DisplayedMonth =
-            DisplayedMonth.AddMonths(1);
+        DateTime nextMonth = DisplayedMonth.AddMonths(1);
+        DateOnly? latestWorkingDate = workingDates.Count == 0
+            ? null
+            : workingDates.Max();
 
+        if (latestWorkingDate.HasValue &&
+            nextMonth > new DateTime(latestWorkingDate.Value.Year, latestWorkingDate.Value.Month, 1))
+        {
+            return Task.CompletedTask;
+        }
+
+        DisplayedMonth = nextMonth;
         BuildCalendar();
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -555,8 +575,15 @@ public partial class BookingViewModel : ObservableObject
                 DisplayedMonth.Year,
                 DisplayedMonth.Month);
 
-        int firstDayOffset =
-            ((int)firstDay.DayOfWeek + 6) % 7;
+        int firstDayOffset = firstDay.DayOfWeek switch
+        {
+            DayOfWeek.Monday => 0,
+            DayOfWeek.Tuesday => 1,
+            DayOfWeek.Wednesday => 2,
+            DayOfWeek.Thursday => 3,
+            DayOfWeek.Friday => 4,
+            _ => 0
+        };
 
         for (int i = 0; i < firstDayOffset; i++)
         {
@@ -575,21 +602,58 @@ public partial class BookingViewModel : ObservableObject
                     DisplayedMonth.Month,
                     day);
 
+            if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+            {
+                continue;
+            }
+
             CalendarDays.Add(
                 new CalendarDayItem
                 {
                     Date = date,
-                    IsSelectable = date >= today,
+                    IsSelectable = date >= today && workingDates.Contains(DateOnly.FromDateTime(date)),
                     IsSelected =
                         SelectedDate.HasValue &&
                         SelectedDate.Value.Date == date.Date
                 });
         }
 
-        while (CalendarDays.Count % 7 != 0)
+        while (CalendarDays.Count % 5 != 0)
         {
             CalendarDays.Add(
                 new CalendarDayItem());
+        }
+    }
+
+    private async Task LoadCalendarDaysAsync()
+    {
+        if (BookableEmployee is null)
+        {
+            workingDates.Clear();
+            calendarEmployeeId = null;
+            BuildCalendar();
+            return;
+        }
+
+        long employeeId = BookableEmployee.Id;
+
+        try
+        {
+            BookingCalendarDaysResponse? response =
+                await bookingCalendarService.GetWorkingDaysAsync(employeeId);
+
+            if (BookableEmployee?.Id != employeeId)
+            {
+                return;
+            }
+
+            workingDates = (response?.WorkingDates ?? []).ToHashSet();
+            calendarEmployeeId = employeeId;
+        }
+        catch (Exception ex)
+        {
+            workingDates.Clear();
+            await errorHandler.HandleAsync(ex);
         }
     }
 
@@ -625,6 +689,13 @@ public partial class BookingViewModel : ObservableObject
         OnPropertyChanged(nameof(EmployeeName));
         OnPropertyChanged(nameof(HasBookableEmployee));
         OnPropertyChanged(nameof(IsEmployeeUnavailable));
+
+        if (calendarEmployeeId != value?.Id)
+        {
+            workingDates.Clear();
+            calendarEmployeeId = null;
+            BuildCalendar();
+        }
     }
 
     partial void OnBookingHoldChanged(

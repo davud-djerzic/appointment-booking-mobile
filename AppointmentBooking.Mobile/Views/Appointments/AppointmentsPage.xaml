@@ -219,7 +219,7 @@
 
                                     <BoxView
                                         HeightRequest="1"
-                                        Color="{StaticResource BorderColor}" />
+                                        Color="{StaticResource Border}" />
 
 
                                     <!-- FRIZER -->
@@ -416,7 +416,7 @@
 
                                     <BoxView
                                         HeightRequest="1"
-                                        Color="{StaticResource BorderColor}" />
+                                        Color="{StaticResource Border}" />
 
 
                                     <!-- FRIZER -->
@@ -588,7 +588,7 @@
 
                                     <BoxView
                                         HeightRequest="1"
-                                        Color="{StaticResource BorderColor}" />
+                                        Color="{StaticResource Border}" />
 
 
                                     <!-- FRIZER -->

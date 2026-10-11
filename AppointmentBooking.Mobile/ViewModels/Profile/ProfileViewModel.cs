@@ -282,18 +282,6 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
         }
 
         [RelayCommand]
-        private async Task OpenFacebookAsync()
-        {
-            if (Salon?.FacebookUrl is null)
-            {
-                return;
-            }
-
-            await Launcher.Default.OpenAsync(
-                new Uri(Salon.FacebookUrl));
-        }
-
-        [RelayCommand]
         private async Task LogoutAsync()
         {
             bool confirmed =

@@ -1,5 +1,6 @@
 ﻿using AppointmentBooking.Mobile.Configuration;
 using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.BookingCalendar;
 using AppointmentBooking.Mobile.Services.Authentication;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
@@ -158,6 +159,8 @@ public static class MauiProgram
 
                 return new ApiClient(httpClient);
             });
+
+        builder.Services.AddSingleton<IBookingCalendarService, BookingCalendarService>();
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -9,7 +9,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Booking
     {
         public DateTime Date { get; init; }
 
-        public bool IsSelectable { get; init; }
+        [ObservableProperty]
+        private bool isSelectable;
 
         public bool IsEmpty =>
             Date == default;

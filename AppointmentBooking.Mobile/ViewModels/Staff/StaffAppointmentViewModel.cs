@@ -1,10 +1,12 @@
 ﻿using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
 using AppointmentBooking.Mobile.Models.Bookings.Requests;
+using AppointmentBooking.Mobile.Models.Enums;
 using AppointmentBooking.Mobile.Models.BookableServices;
 using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Employees.Responses;
 using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.BookingCalendar;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -22,6 +24,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private readonly IApiClient apiClient;
         private readonly IErrorHandler errorHandler;
         private readonly ISessionService sessionService;
+        private readonly IBookingCalendarService bookingCalendarService;
 
         [ObservableProperty]
         private bool isLoading;
@@ -31,6 +34,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         [ObservableProperty]
         private bool isShowingPassedToday;
+
+        [ObservableProperty]
+        private bool isCancelledPanelExpanded;
 
         [ObservableProperty]
         private bool isPreparingStaffBooking;
@@ -51,6 +57,15 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private TimeSpan staffBookingTime = new(16, 0, 0);
 
         [ObservableProperty]
+        private bool isTimeSelectorVisible;
+
+        [ObservableProperty]
+        private string timeSelectorHour = "16";
+
+        [ObservableProperty]
+        private string timeSelectorMinute = "00";
+
+        [ObservableProperty]
         private string? staffBookingNotes;
 
         [ObservableProperty]
@@ -58,9 +73,15 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         private bool wasStaffBookingCreated;
 
+        private bool selectNextWorkingDayOnLoad;
+        private long? calendarEmployeeId;
+        private HashSet<DateOnly> workingDates = [];
+
         public ObservableCollection<EmployeeBookingSummaryResponse> Appointments { get; } = [];
 
         public ObservableCollection<EmployeeBookingSummaryResponse> VisibleAppointments { get; } = [];
+
+        public ObservableCollection<EmployeeBookingSummaryResponse> CancelledAppointments { get; } = [];
 
         public ObservableCollection<BookableEmployeeResponse> BookingEmployees { get; } = [];
 
@@ -74,6 +95,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         public bool IsEmployee => !IsAdmin;
 
         public DateTime StaffBookingToday => DateTime.Today;
+
+        public string StaffBookingTimeDisplay => StaffBookingTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
 
         public bool CanCreateStaffBooking =>
             !IsSavingStaffBooking &&
@@ -104,14 +127,20 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         public bool HasAppointments =>
             Appointments.Count > 0;
 
+        public bool HasCancelledAppointments =>
+            CancelledAppointments.Count > 0;
+
+        public string CancelledAppointmentsTitle =>
+            $"Otkazani termini ({CancelledAppointments.Count})";
+
         public bool IsTodaySelected =>
             SelectedDate.Date == DateTime.Today;
 
         public string UpcomingTodaySegmentLabel =>
-            $"Aktuelni i naredni ({Appointments.Count(x => x.EndsAt > DateTimeOffset.Now)})";
+            $"Aktuelni i naredni ({Appointments.Count(x => x.Status != BookingStatus.Cancelled && x.EndsAt > DateTimeOffset.Now)})";
 
         public string PassedTodaySegmentLabel =>
-            $"Prošli ({Appointments.Count(x => x.EndsAt <= DateTimeOffset.Now)})";
+            $"Prošli ({Appointments.Count(x => x.Status != BookingStatus.Cancelled && x.EndsAt <= DateTimeOffset.Now)})";
 
         public string EmptyAppointmentsTitle =>
             IsTodaySelected
@@ -152,11 +181,13 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         public StaffAppointmentsViewModel(
             IApiClient apiClient,
             IErrorHandler errorHandler,
-            ISessionService sessionService)
+            ISessionService sessionService,
+            IBookingCalendarService bookingCalendarService)
         {
             this.apiClient = apiClient;
             this.errorHandler = errorHandler;
             this.sessionService = sessionService;
+            this.bookingCalendarService = bookingCalendarService;
         }
 
         partial void OnCustomerFirstNameChanged(string value) =>
@@ -168,8 +199,11 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         partial void OnStaffBookingDateChanged(DateTime value) =>
             OnPropertyChanged(nameof(CanCreateStaffBooking));
 
-        partial void OnStaffBookingTimeChanged(TimeSpan value) =>
+        partial void OnStaffBookingTimeChanged(TimeSpan value)
+        {
             OnPropertyChanged(nameof(CanCreateStaffBooking));
+            OnPropertyChanged(nameof(StaffBookingTimeDisplay));
+        }
 
         partial void OnSelectedBookingEmployeeChanged(BookableEmployeeResponse? value)
         {
@@ -351,6 +385,35 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 StaffBookingDate.Date.Add(StaffBookingTime),
                 DateTimeKind.Unspecified);
 
+        [RelayCommand]
+        private void OpenTimeSelector()
+        {
+            TimeSelectorHour = StaffBookingTime.Hours.ToString("00", CultureInfo.InvariantCulture);
+            TimeSelectorMinute = StaffBookingTime.Minutes.ToString("00", CultureInfo.InvariantCulture);
+            IsTimeSelectorVisible = true;
+        }
+
+        [RelayCommand]
+        private async Task ConfirmTimeSelectorAsync()
+        {
+            if (!int.TryParse(TimeSelectorHour, NumberStyles.None, CultureInfo.InvariantCulture, out int hour) ||
+                !int.TryParse(TimeSelectorMinute, NumberStyles.None, CultureInfo.InvariantCulture, out int minute) ||
+                hour is < 0 or > 23 || minute is < 0 or > 59)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Neispravno vrijeme",
+                    "Unesite sat od 00 do 23 i minute od 00 do 59.",
+                    "U redu");
+                return;
+            }
+
+            StaffBookingTime = new TimeSpan(hour, minute, 0);
+            IsTimeSelectorVisible = false;
+        }
+
+        [RelayCommand]
+        private void CloseTimeSelector() => IsTimeSelectorVisible = false;
+
         private void ClearBookingServices()
         {
             foreach (ServiceSelectionItem item in BookingServices)
@@ -392,6 +455,13 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             VisibleAppointments.Clear();
         }
 
+        public void ResetToNextWorkingDay()
+        {
+            selectNextWorkingDayOnLoad = true;
+            SelectedDate = DateTime.Today;
+            IsShowingPassedToday = false;
+        }
+
         partial void OnIsShowingPassedTodayChanged(bool value)
         {
             OnPropertyChanged(nameof(UpcomingSegmentBackground));
@@ -410,8 +480,43 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             {
                 IsLoading = true;
 
+                await EnsureStaffWorkingDatesAsync();
+
+                if (selectNextWorkingDayOnLoad)
+                {
+                    selectNextWorkingDayOnLoad = false;
+
+                    DateOnly? nextWorkingDate = workingDates
+                        .Where(date => date >= DateOnly.FromDateTime(DateTime.Today))
+                        .OrderBy(date => date)
+                        .Select(date => (DateOnly?)date)
+                        .FirstOrDefault();
+
+                    if (nextWorkingDate.HasValue)
+                    {
+                        SelectedDate = nextWorkingDate.Value.ToDateTime(TimeOnly.MinValue);
+                    }
+                }
+                else if (SelectedDate.Date != DateTime.Today &&
+                    !workingDates.Contains(DateOnly.FromDateTime(SelectedDate)))
+                {
+                    DateOnly? nextWorkingDate = workingDates
+                        .Where(date => date >= DateOnly.FromDateTime(DateTime.Today))
+                        .OrderBy(date => date)
+                        .Select(date => (DateOnly?)date)
+                        .FirstOrDefault();
+
+                    if (nextWorkingDate.HasValue)
+                    {
+                        SelectedDate = nextWorkingDate.Value.ToDateTime(TimeOnly.MinValue);
+                    }
+                }
+
                 Appointments.Clear();
                 VisibleAppointments.Clear();
+                CancelledAppointments.Clear();
+                OnPropertyChanged(nameof(HasCancelledAppointments));
+                OnPropertyChanged(nameof(CancelledAppointmentsTitle));
 
                 DateTimeOffset dayStart =
                     CreateLocalDateStart(SelectedDate);
@@ -481,9 +586,44 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         }
 
         [RelayCommand]
+        private async Task CancelStaffBookingAsync(
+            EmployeeBookingSummaryResponse? booking)
+        {
+            if ((!IsEmployee && !IsAdmin) ||
+                booking is null ||
+                !booking.CanBeCancelledByEmployee)
+            {
+                return;
+            }
+
+            bool confirmed = await Shell.Current.DisplayAlertAsync(
+                "Otkaži termin",
+                $"Otkazati termin {booking.TimeRange}? Taj period će biti blokiran kao pauza i neće se moći ponovo rezervisati.",
+                "Otkaži termin",
+                "Nazad");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            try
+            {
+                await apiClient.PostAsync<object?>(
+                    $"api/bookings/{booking.Id}/cancel-and-block");
+
+                await LoadAppointmentsCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                await errorHandler.HandleAsync(ex);
+            }
+        }
+
+        [RelayCommand]
         private async Task PreviousDayAsync()
         {
-            SelectedDate = SelectedDate.AddDays(-1);
+            await MoveToWorkingDateAsync(-1);
 
             await LoadAppointmentsCommand.ExecuteAsync(null);
         }
@@ -502,8 +642,18 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         private void RefreshVisibleAppointments()
         {
+            CancelledAppointments.Clear();
+            foreach (EmployeeBookingSummaryResponse appointment in Appointments
+                .Where(x => x.Status == BookingStatus.Cancelled)
+                .OrderBy(x => x.StartsAt))
+            {
+                CancelledAppointments.Add(appointment);
+            }
+
             IEnumerable<EmployeeBookingSummaryResponse> appointments =
-                Appointments.OrderBy(x => x.StartsAt);
+                Appointments
+                    .Where(x => x.Status != BookingStatus.Cancelled)
+                    .OrderBy(x => x.StartsAt);
 
             if (IsTodaySelected)
             {
@@ -522,14 +672,75 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
             OnPropertyChanged(nameof(UpcomingTodaySegmentLabel));
             OnPropertyChanged(nameof(PassedTodaySegmentLabel));
+            OnPropertyChanged(nameof(HasCancelledAppointments));
+            OnPropertyChanged(nameof(CancelledAppointmentsTitle));
         }
+
+        [RelayCommand]
+        private void ToggleCancelledPanel() =>
+            IsCancelledPanelExpanded = !IsCancelledPanelExpanded;
 
         [RelayCommand]
         private async Task NextDayAsync()
         {
-            SelectedDate = SelectedDate.AddDays(1);
+            await MoveToWorkingDateAsync(1);
 
             await LoadAppointmentsCommand.ExecuteAsync(null);
+        }
+
+        private Task MoveToWorkingDateAsync(int direction)
+        {
+            DateOnly candidate = DateOnly.FromDateTime(SelectedDate);
+            for (int attempt = 0; attempt < 730; attempt++)
+            {
+                candidate = candidate.AddDays(direction);
+                if (workingDates.Contains(candidate))
+                {
+                    SelectedDate = candidate.ToDateTime(TimeOnly.MinValue);
+                    return Task.CompletedTask;
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private async Task EnsureStaffWorkingDatesAsync()
+        {
+            try
+            {
+                if (calendarEmployeeId is null)
+                {
+                    BookableEmployeeResponse? employee;
+                    if (IsAdmin)
+                    {
+                        PagedResponse<BookableEmployeeResponse>? employees =
+                            await apiClient.GetAsync<PagedResponse<BookableEmployeeResponse>>(
+                                "api/employees?isActive=true&page=1&pageSize=100");
+                        employee = employees?.Items?.FirstOrDefault();
+                    }
+                    else
+                    {
+                        employee = await apiClient.GetAsync<BookableEmployeeResponse>("api/employees/me");
+                    }
+
+                    calendarEmployeeId = employee?.Id;
+                }
+
+                if (calendarEmployeeId is not long employeeId)
+                {
+                    workingDates.Clear();
+                    return;
+                }
+
+                BookingCalendarDaysResponse? response =
+                    await bookingCalendarService.GetWorkingDaysAsync(employeeId);
+
+                workingDates = (response?.WorkingDates ?? []).ToHashSet();
+            }
+            catch (Exception ex)
+            {
+                await errorHandler.HandleAsync(ex);
+            }
         }
 
         private void SortAppointments()

@@ -735,6 +735,45 @@
                             </Border>
 
 
+                            <!-- PHONE -->
+
+                            <Border
+                                BackgroundColor="{StaticResource SurfaceSecondary}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="13">
+
+                                <Grid
+                                    ColumnDefinitions="Auto,*"
+                                    ColumnSpacing="12">
+
+                                    <Label
+                                        Text="☎"
+                                        FontSize="18"
+                                        VerticalOptions="Start" />
+
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        Spacing="2">
+
+                                        <Label
+                                            Text="Telefon"
+                                            FontSize="11"
+                                            TextColor="{StaticResource TextMuted}" />
+
+                                        <Label
+                                            Text="{Binding Salon.Phone, TargetNullValue='Nije navedeno'}"
+                                            FontSize="15"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}" />
+
+                                    </VerticalStackLayout>
+
+                                </Grid>
+
+                            </Border>
+
+
                             <!-- WORKING HOURS -->
 
                             <VerticalStackLayout
@@ -891,75 +930,6 @@
 
                                 </Border>
 
-
-                                <!-- FACEBOOK -->
-
-                                <Border
-                                    BackgroundColor="{StaticResource SurfaceSecondary}"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 14"
-                                    Padding="13">
-
-                                    <Border.GestureRecognizers>
-
-                                        <TapGestureRecognizer
-                                            Command="{Binding OpenFacebookCommand}" />
-
-                                    </Border.GestureRecognizers>
-
-
-                                    <Grid
-                                        ColumnDefinitions="Auto,*,Auto"
-                                        ColumnSpacing="12">
-
-                                        <Border
-                                            WidthRequest="34"
-                                            HeightRequest="34"
-                                            BackgroundColor="{StaticResource Background}"
-                                            StrokeThickness="0"
-                                            StrokeShape="RoundRectangle 10"
-                                            VerticalOptions="Center">
-
-                                            <Label
-                                                Text="f"
-                                                FontSize="20"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource AccentDark}"
-                                                HorizontalOptions="Center"
-                                                VerticalOptions="Center" />
-
-                                        </Border>
-
-
-                                        <VerticalStackLayout
-                                            Grid.Column="1"
-                                            Spacing="1"
-                                            VerticalOptions="Center">
-
-                                            <Label
-                                                Text="Facebook"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource TextPrimary}" />
-
-                                            <Label
-                                                Text="Posjetite Facebook profil salona"
-                                                FontSize="11"
-                                                TextColor="{StaticResource TextSecondary}" />
-
-                                        </VerticalStackLayout>
-
-
-                                        <Label
-                                            Grid.Column="2"
-                                            Text="›"
-                                            FontSize="28"
-                                            TextColor="{StaticResource AccentDark}"
-                                            VerticalOptions="Center" />
-
-                                    </Grid>
-
-                                </Border>
 
                             </VerticalStackLayout>
 

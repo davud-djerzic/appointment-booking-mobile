@@ -40,6 +40,19 @@ namespace AppointmentBooking.Mobile.Views.Staff
                 new StaffBookingDetailsPage(details));
         }
 
+        private async void OnCancelStaffBookingClicked(
+            object? sender,
+            EventArgs e)
+        {
+            if (sender is not Button button ||
+                button.CommandParameter is not EmployeeBookingSummaryResponse booking)
+            {
+                return;
+            }
+
+            await viewModel.CancelStaffBookingCommand.ExecuteAsync(booking);
+        }
+
         private async void OnCreateStaffBookingClicked(object? sender, EventArgs e)
         {
             bool isReady = await viewModel.PrepareStaffBookingAsync();
@@ -77,6 +90,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
                 return;
             }
 
+            viewModel.ResetToNextWorkingDay();
             await viewModel.LoadAppointmentsCommand.ExecuteAsync(null);
 
             hasLoaded = true;

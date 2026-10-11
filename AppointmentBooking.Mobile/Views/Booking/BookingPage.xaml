@@ -287,7 +287,7 @@
                     <!-- WEEK DAYS -->
 
                     <Grid
-                        ColumnDefinitions="*,*,*,*,*,*,*"
+                        ColumnDefinitions="*,*,*,*,*"
                         Padding="2,0">
 
                         <Label
@@ -329,22 +329,6 @@
                             FontAttributes="Bold"
                             TextColor="{StaticResource TextMuted}" />
 
-                        <Label
-                            Grid.Column="5"
-                            Text="Su"
-                            HorizontalOptions="Center"
-                            FontSize="11"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
-
-                        <Label
-                            Grid.Column="6"
-                            Text="Ne"
-                            HorizontalOptions="Center"
-                            FontSize="11"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
-
                     </Grid>
 
 
@@ -358,7 +342,7 @@
 
                             <GridItemsLayout
                                 Orientation="Vertical"
-                                Span="7"
+                                Span="5"
                                 HorizontalItemSpacing="5"
                                 VerticalItemSpacing="5" />
 
@@ -399,7 +383,11 @@
 
                                             <Setter
                                                 Property="Opacity"
-                                                Value="0.35" />
+                                                Value="0.5" />
+
+                                            <Setter
+                                                Property="BackgroundColor"
+                                                Value="{StaticResource SurfaceSecondary}" />
 
                                         </DataTrigger>
 
@@ -413,6 +401,7 @@
                                         BackgroundColor="Transparent"
                                         TextColor="{StaticResource TextPrimary}"
                                         FontAttributes="Bold"
+                                        IsEnabled="{Binding IsSelectable}"
                                         Padding="0" />
 
                                 </Border>
