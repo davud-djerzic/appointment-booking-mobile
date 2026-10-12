@@ -9,7 +9,7 @@
     xmlns:workingHoursModels="clr-namespace:AppointmentBooking.Mobile.Models.EmployeeWorkingHours"
     x:Name="RootPage"
     x:DataType="viewModels:StaffAvailabilityViewModel"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
@@ -24,18 +24,18 @@
                     Text="Panel"
                     FontSize="28"
                     FontAttributes="Bold"
-                    TextColor="{StaticResource TextPrimary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
                 <Label
                     Text="Upravljajte pauzama i godišnjim odmorima"
                     FontSize="14"
-                    TextColor="{StaticResource TextSecondary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
             </VerticalStackLayout>
 
             <Button
                 Grid.Column="1"
                 Text="Odjavi se"
                 Clicked="OnLogoutClicked"
-                BackgroundColor="{StaticResource Surface}"
+                BackgroundColor="{StaticResource BrandButton}"
                 BorderColor="{StaticResource Border}"
                 BorderWidth="1"
                 TextColor="{StaticResource TextPrimary}"
@@ -76,7 +76,7 @@
                                     ItemsSource="{Binding WorkingDays}"
                                     SelectedItem="{Binding SelectedWorkingDay}"
                                     TextColor="{StaticResource TextPrimary}"
-                                    TitleColor="{StaticResource TextSecondary}" />
+                                    TitleColor="{StaticResource TextSecondary}"  BackgroundColor="{StaticResource TextBoxBackground}"/>
                             </Border>
                         </VerticalStackLayout>
 
@@ -87,7 +87,7 @@
                                     <Button
                                         Text="{Binding RecurringBreakStartsAtDisplay}"
                                         Command="{Binding OpenRecurringBreakStartTimeSelectorCommand}"
-                                        BackgroundColor="{StaticResource Surface}"
+                                        BackgroundColor="{StaticResource BrandButton}"
                                         TextColor="{StaticResource TextPrimary}"
                                         BorderColor="{StaticResource Border}"
                                         BorderWidth="1"
@@ -103,7 +103,7 @@
                                     <Button
                                         Text="{Binding RecurringBreakEndsAtDisplay}"
                                         Command="{Binding OpenRecurringBreakEndTimeSelectorCommand}"
-                                        BackgroundColor="{StaticResource Surface}"
+                                        BackgroundColor="{StaticResource BrandButton}"
                                         TextColor="{StaticResource TextPrimary}"
                                         BorderColor="{StaticResource Border}"
                                         BorderWidth="1"
@@ -119,7 +119,7 @@
                             Text="Primijeni stalnu pauzu"
                             Command="{Binding ApplyRecurringBreakCommand}"
                             IsEnabled="{Binding CanApplyRecurringBreak}"
-                            BackgroundColor="{StaticResource Primary}"
+                            BackgroundColor="{StaticResource BrandButton}"
                             TextColor="{StaticResource TextOnPrimary}"
                             FontAttributes="Bold"
                             HeightRequest="48"
@@ -224,7 +224,7 @@
                                     Date="{Binding BreakDate}"
                                     MinimumDate="{Binding Today}"
                                     Format="dddd, dd.MM.yyyy."
-                                    TextColor="{StaticResource TextPrimary}" />
+                                    TextColor="{StaticResource TextPrimary}"  BackgroundColor="{StaticResource TextBoxBackground}"/>
                             </Border>
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <VerticalStackLayout Spacing="6">
@@ -233,7 +233,7 @@
                                         <Button
                                             Text="{Binding BreakStartsAtDisplay}"
                                             Command="{Binding OpenBreakStartTimeSelectorCommand}"
-                                            BackgroundColor="{StaticResource Surface}"
+                                            BackgroundColor="{StaticResource BrandButton}"
                                             TextColor="{StaticResource TextPrimary}"
                                             BorderColor="{StaticResource Border}"
                                             BorderWidth="1"
@@ -249,7 +249,7 @@
                                         <Button
                                             Text="{Binding BreakEndsAtDisplay}"
                                             Command="{Binding OpenBreakEndTimeSelectorCommand}"
-                                            BackgroundColor="{StaticResource Surface}"
+                                            BackgroundColor="{StaticResource BrandButton}"
                                             TextColor="{StaticResource TextPrimary}"
                                             BorderColor="{StaticResource Border}"
                                             BorderWidth="1"
@@ -273,13 +273,13 @@
                                 <VerticalStackLayout Spacing="6">
                                     <Label Text="Od" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextSecondary}" />
                                     <Border Padding="10,6" BackgroundColor="{StaticResource SurfaceSecondary}" StrokeThickness="0" StrokeShape="RoundRectangle 13">
-                                        <DatePicker Date="{Binding VacationStartsOn}" MinimumDate="{Binding Tomorrow}" Format="dd.MM.yyyy." TextColor="{StaticResource TextPrimary}" />
+                                        <DatePicker Date="{Binding VacationStartsOn}" MinimumDate="{Binding Tomorrow}" Format="dd.MM.yyyy." TextColor="{StaticResource TextPrimary}"  BackgroundColor="{StaticResource TextBoxBackground}"/>
                                     </Border>
                                 </VerticalStackLayout>
                                 <VerticalStackLayout Grid.Column="1" Spacing="6">
                                     <Label Text="Do (uključujući datum)" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextSecondary}" />
                                     <Border Padding="10,6" BackgroundColor="{StaticResource SurfaceSecondary}" StrokeThickness="0" StrokeShape="RoundRectangle 13">
-                                        <DatePicker Date="{Binding VacationEndsOn}" MinimumDate="{Binding VacationStartsOn}" Format="dd.MM.yyyy." TextColor="{StaticResource TextPrimary}" />
+                                        <DatePicker Date="{Binding VacationEndsOn}" MinimumDate="{Binding VacationStartsOn}" Format="dd.MM.yyyy." TextColor="{StaticResource TextPrimary}"  BackgroundColor="{StaticResource TextBoxBackground}"/>
                                     </Border>
                                 </VerticalStackLayout>
                             </Grid>
@@ -303,7 +303,7 @@
                                     AutoSize="TextChanges"
                                     MaxLength="500"
                                     MinimumHeightRequest="76"
-                                    BackgroundColor="Transparent"
+                                    BackgroundColor="{StaticResource TextBoxBackground}"
                                     TextColor="{StaticResource TextPrimary}" />
                             </Border>
                         </VerticalStackLayout>
@@ -314,7 +314,7 @@
                                 Text="Sačuvaj"
                                 Command="{Binding SaveBlockCommand}"
                                 IsEnabled="{Binding CanSave}"
-                                BackgroundColor="{StaticResource Primary}"
+                                BackgroundColor="{StaticResource BrandButton}"
                                 TextColor="{StaticResource TextOnPrimary}"
                                 FontAttributes="Bold"
                                 HeightRequest="48"
@@ -323,7 +323,7 @@
                                 Grid.Column="1"
                                 Text="Odustani"
                                 Command="{Binding CancelFormCommand}"
-                                BackgroundColor="{StaticResource SurfaceSecondary}"
+                                BackgroundColor="{StaticResource BrandButton}"
                                 TextColor="{StaticResource TextPrimary}"
                                 FontAttributes="Bold"
                                 HeightRequest="48"
@@ -361,8 +361,8 @@
                                 Grid.Column="1"
                                 Text="＋  Dodaj"
                                 Clicked="OnAddClicked"
-                                BackgroundColor="{StaticResource Accent}"
-                                TextColor="{StaticResource Primary}"
+                                BackgroundColor="{StaticResource BrandButton}"
+                                TextColor="{StaticResource BrandBackground}"
                                 FontAttributes="Bold"
                                 FontSize="14"
                                 HeightRequest="46"
@@ -460,8 +460,8 @@
                                                         Clicked="OnEditClicked"
                                                         CommandParameter="{Binding .}"
                                                         IsEnabled="{Binding CanEdit}"
-                                                        BackgroundColor="{StaticResource SurfaceSecondary}"
-                                                        TextColor="{StaticResource Primary}"
+                                                        BackgroundColor="{StaticResource BrandButton}"
+                                                        TextColor="{StaticResource BrandBackground}"
                                                         FontAttributes="Bold"
                                                         FontSize="12"
                                                         HeightRequest="38"
@@ -473,7 +473,7 @@
                                                         Text="Obriši"
                                                         Clicked="OnDeleteClicked"
                                                         CommandParameter="{Binding .}"
-                                                        BackgroundColor="{StaticResource SurfaceSecondary}"
+                                                        BackgroundColor="{StaticResource BrandButton}"
                                                         TextColor="{StaticResource Error}"
                                                         FontAttributes="Bold"
                                                         FontSize="12"
@@ -516,21 +516,21 @@
                         <VerticalStackLayout Spacing="8">
                             <Label Text="SAT" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource TextSecondary}" />
                             <Border Padding="4" BackgroundColor="{StaticResource SurfaceSecondary}" Stroke="{StaticResource Border}" StrokeThickness="1" StrokeShape="RoundRectangle 14">
-                                <Entry Text="{Binding TimeSelectorHour}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="Transparent" />
+                                <Entry Text="{Binding TimeSelectorHour}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="{StaticResource TextBoxBackground}" />
                             </Border>
                         </VerticalStackLayout>
                         <Label Grid.Column="1" Text=":" FontSize="30" FontAttributes="Bold" VerticalOptions="End" Margin="0,0,0,5" TextColor="{StaticResource TextPrimary}" />
                         <VerticalStackLayout Grid.Column="2" Spacing="8">
                             <Label Text="MINUTE" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource TextSecondary}" />
                             <Border Padding="4" BackgroundColor="{StaticResource SurfaceSecondary}" Stroke="{StaticResource Border}" StrokeThickness="1" StrokeShape="RoundRectangle 14">
-                                <Entry Text="{Binding TimeSelectorMinute}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="Transparent" />
+                                <Entry Text="{Binding TimeSelectorMinute}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="{StaticResource TextBoxBackground}" />
                             </Border>
                         </VerticalStackLayout>
                     </Grid>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Button Text="Zatvori" Command="{Binding CloseTimeSelectorCommand}" BackgroundColor="{StaticResource SurfaceSecondary}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
-                        <Button Grid.Column="1" Text="Potvrdi" Command="{Binding ConfirmTimeSelectorCommand}" BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource TextOnPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
+                        <Button Text="Zatvori" Command="{Binding CloseTimeSelectorCommand}" BackgroundColor="{StaticResource BrandButton}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
+                        <Button Grid.Column="1" Text="Potvrdi" Command="{Binding ConfirmTimeSelectorCommand}" BackgroundColor="{StaticResource BrandButton}" TextColor="{StaticResource TextOnPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
                     </Grid>
                 </VerticalStackLayout>
             </Border>

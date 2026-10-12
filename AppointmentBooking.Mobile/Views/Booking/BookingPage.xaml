@@ -10,7 +10,7 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Name="RootPage"
     x:DataType="viewModels:BookingViewModel"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False">
 
     <ContentPage.Behaviors>
@@ -34,12 +34,12 @@
                 Text="Rezerviši termin"
                 FontSize="28"
                 FontAttributes="Bold"
-                TextColor="{StaticResource TextPrimary}" />
+                TextColor="{StaticResource TextOnBrandBackground}" />
 
             <Label
                 Text="Odaberite usluge i datum."
                 FontSize="14"
-                TextColor="{StaticResource TextSecondary}" />
+                TextColor="{StaticResource TextOnBrandBackground}" />
 
             <!-- EMPLOYEE -->
 
@@ -103,7 +103,7 @@
                         Text="Odaberite usluge"
                         FontSize="19"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
                     <CollectionView
                         ItemsSource="{Binding ServiceItems}"
@@ -241,7 +241,7 @@
                         Text="Odaberite datum"
                         FontSize="19"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
                     <!-- MONTH NAVIGATION -->
 
@@ -256,7 +256,7 @@
                             HeightRequest="44"
                             Padding="0"
                             FontSize="24"
-                            BackgroundColor="{StaticResource Surface}"
+                            BackgroundColor="{StaticResource BrandButton}"
                             TextColor="{StaticResource TextPrimary}"
                             CornerRadius="12" />
 
@@ -265,7 +265,7 @@
                             Text="{Binding DisplayedMonthTitle}"
                             FontSize="17"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalOptions="Center"
                             VerticalOptions="Center" />
 
@@ -277,7 +277,7 @@
                             HeightRequest="44"
                             Padding="0"
                             FontSize="24"
-                            BackgroundColor="{StaticResource Surface}"
+                            BackgroundColor="{StaticResource BrandButton}"
                             TextColor="{StaticResource TextPrimary}"
                             CornerRadius="12" />
 
@@ -295,7 +295,7 @@
                             HorizontalOptions="Center"
                             FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Column="1"
@@ -303,7 +303,7 @@
                             HorizontalOptions="Center"
                             FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Column="2"
@@ -311,7 +311,7 @@
                             HorizontalOptions="Center"
                             FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Column="3"
@@ -319,7 +319,7 @@
                             HorizontalOptions="Center"
                             FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Column="4"
@@ -327,7 +327,7 @@
                             HorizontalOptions="Center"
                             FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextMuted}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                     </Grid>
 
@@ -398,7 +398,7 @@
                                         Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.SelectDateCommand}"
                                         CommandParameter="{Binding .}"
                                         HeightRequest="42"
-                                        BackgroundColor="Transparent"
+                                        BackgroundColor="{StaticResource BrandButton}"
                                         TextColor="{StaticResource TextPrimary}"
                                         FontAttributes="Bold"
                                         IsEnabled="{Binding IsSelectable}"
@@ -423,7 +423,7 @@
                             Text="Slobodni termini"
                             FontSize="19"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <FlexLayout
                             Direction="Row"
@@ -451,7 +451,7 @@
                                             CommandParameter="{Binding .}"
                                             HeightRequest="44"
                                             Padding="14,10"
-                                            BackgroundColor="Transparent"
+                                            BackgroundColor="{StaticResource BrandButton}"
                                             TextColor="{StaticResource TextPrimary}"
                                             FontSize="15"
                                             FontAttributes="Bold" />
@@ -667,7 +667,7 @@
                             Command="{Binding CancelHoldCommand}"
                             HeightRequest="52"
                             CornerRadius="14"
-                            BackgroundColor="{StaticResource SurfaceSecondary}"
+                            BackgroundColor="{StaticResource BrandButton}"
                             TextColor="{StaticResource TextPrimary}"
                             FontAttributes="Bold" />
 
@@ -677,8 +677,8 @@
             Command="{Binding ConfirmBookingCommand}"
             HeightRequest="52"
             CornerRadius="14"
-            BackgroundColor="{StaticResource Accent}"
-            TextColor="{StaticResource Primary}"
+            BackgroundColor="{StaticResource BrandButton}"
+            TextColor="{StaticResource BrandBackground}"
             FontAttributes="Bold" />
 
                     </Grid>     

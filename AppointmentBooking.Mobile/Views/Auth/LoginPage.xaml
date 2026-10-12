@@ -8,7 +8,7 @@
     x:DataType="viewModels:LoginViewModel"
     Title="Prijava"
     Shell.NavBarIsVisible="False"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     SafeAreaEdges="All">
 
     <ScrollView>
@@ -21,29 +21,16 @@
 
             <VerticalStackLayout
                 Grid.Row="0"
-                Spacing="6"
+                Spacing="0"
                 HorizontalOptions="Center">
 
-                <Label
-                    Text="✂"
-                    FontSize="42"
-                    TextColor="{StaticResource Accent}"
-                    HorizontalOptions="Center" />
-
-                <Label
-                    Text="SALON"
-                    FontSize="30"
-                    CharacterSpacing="8"
-                    FontAttributes="Bold"
-                    TextColor="{StaticResource TextPrimary}"
-                    HorizontalOptions="Center" />
-
-                <Label
-                    Text="LOOK GOOD. FEEL BETTER."
-                    FontSize="10"
-                    CharacterSpacing="3"
-                    TextColor="{StaticResource AccentDark}"
-                    HorizontalOptions="Center" />
+                <Image
+                    Source="slika.jpg"
+                    WidthRequest="180"
+                    HeightRequest="180"
+                    Aspect="AspectFit"
+                    HorizontalOptions="Center"
+                    SemanticProperties.Description="Logo Koteša barbershop" />
 
             </VerticalStackLayout>
 
@@ -53,14 +40,11 @@
             <VerticalStackLayout
                 Grid.Row="1"
                 Spacing="8">
-
+                
                 <Label
-                    Text="Dobro došli"
-                    Style="{StaticResource TitleLabel}" />
-
-                <Label
-                    Text="Prijavite se na svoj račun i rezervišite termin u par klikova."
-                    Style="{StaticResource SubtitleLabel}" />
+                    Text="Prijavite se na svoj račun i rezervišite termin."
+                    Style="{StaticResource SubtitleLabel}"
+                    TextColor="{StaticResource TextOnBrandBackground}" />
 
             </VerticalStackLayout>
 
@@ -74,38 +58,30 @@
                 <!-- EMAIL -->
 
                 <Border
-                    BackgroundColor="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource TextBoxBackground}"
                     Stroke="{StaticResource Border}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 16"
                     Padding="16,8">
 
-                    <Grid
-                        ColumnDefinitions="Auto,*"
-                        ColumnSpacing="14">
-
-                        <Label
-                            Grid.Column="0"
-                            Text="✉"
-                            FontSize="23"
-                            TextColor="{StaticResource Primary}"
-                            VerticalOptions="Center" />
+                    <Grid>
 
                         <VerticalStackLayout
-                            Grid.Column="1"
+                            Grid.Column="0"
                             Spacing="0">
 
                             <Label
                                 Text="Email adresa"
-                                Style="{StaticResource CaptionLabel}" />
+                                Style="{StaticResource CaptionLabel}"
+                                TextColor="#68562C" />
 
                             <Entry
                                 Placeholder="npr. korisnik@email.com"
                                 Keyboard="Email"
                                 Text="{Binding Email}"
                                 TextColor="{StaticResource TextPrimary}"
-                                PlaceholderColor="{StaticResource TextMuted}"
-                                BackgroundColor="{StaticResource Surface}"
+                                PlaceholderColor="#75643C"
+                                BackgroundColor="{StaticResource TextBoxBackground}"
                                 FontSize="15"
                                 HeightRequest="52"
                                 Margin="-4,0,0,0" />           
@@ -120,38 +96,30 @@
                 <!-- PASSWORD -->
 
                 <Border
-                    BackgroundColor="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource TextBoxBackground}"
                     Stroke="{StaticResource Border}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 16"
                     Padding="16,8">
 
-                    <Grid
-                        ColumnDefinitions="Auto,*"
-                        ColumnSpacing="14">
-
-                        <Label
-                            Grid.Column="0"
-                            Text="▢"
-                            FontSize="25"
-                            TextColor="{StaticResource Primary}"
-                            VerticalOptions="Center" />
+                    <Grid>
 
                         <VerticalStackLayout
-                            Grid.Column="1"
+                            Grid.Column="0"
                             Spacing="0">
 
                             <Label
                                 Text="Lozinka"
-                                Style="{StaticResource CaptionLabel}" />
+                                Style="{StaticResource CaptionLabel}"
+                                TextColor="#68562C" />
 
                             <Entry
                                 Placeholder="Unesite lozinku"
                                 IsPassword="True"
                                 Text="{Binding Password}"
                                 TextColor="{StaticResource TextPrimary}"
-                                PlaceholderColor="{StaticResource TextMuted}"
-                                BackgroundColor="{StaticResource Surface}"
+                                PlaceholderColor="#75643C"
+                                BackgroundColor="{StaticResource TextBoxBackground}"
                                 FontSize="15"
                                 HeightRequest="52"
                                 Margin="-4,0,0,0" />      
@@ -175,16 +143,21 @@
                     Text="ZABORAVILI STE LOZINKU?"
                     BackgroundColor="Transparent"
                     Command="{Binding GoToForgotPasswordCommand}"
-                    TextColor="{StaticResource AccentDark}"
+                    TextColor="{StaticResource BrandButton}"
                     FontSize="13"
                     FontAttributes="Bold"
                     HorizontalOptions="End"
                     Padding="0"
-                    HeightRequest="32" />
+                    HeightRequest="32"
+                    Margin="0,-12,0,0" />
 
                 <Button
-                    Text="PRIJAVI SE   →"
+                    Text="PRIJAVI SE"
                     Style="{StaticResource PrimaryButton}"
+                    BackgroundColor="{StaticResource BrandButton}"
+                    TextColor="{StaticResource BrandBackground}"
+                    BorderColor="{StaticResource BrandButton}"
+                    BorderWidth="0"
                     Command="{Binding LoginCommand}"
                     HorizontalOptions="Fill" />  
 
@@ -209,13 +182,14 @@
                     <Label
                         Text="Nemate račun?"
                         Style="{StaticResource CaptionLabel}"
+                        TextColor="{StaticResource TextOnBrandBackground}"
                         VerticalOptions="Center" />
 
                     <Button
                         Text="Registrujte se"
                         Command="{Binding GoToRegisterCommand}"
                         BackgroundColor="Transparent"
-                        TextColor="{StaticResource AccentDark}"
+                        TextColor="{StaticResource BrandButton}"
                         FontSize="13"
                         FontAttributes="Bold"
                         Padding="0"
@@ -227,18 +201,18 @@
                     Spacing="4"
                     HorizontalOptions="Center">
 
-                    <Label
-                        Text="LJEPOTA POČINJE"
-                        FontSize="10"
-                        CharacterSpacing="3"
-                        TextColor="{StaticResource TextMuted}"
+                <Label
+                    Text="LJEPOTA POČINJE"
+                    FontSize="10"
+                    CharacterSpacing="3"
+                    TextColor="{StaticResource TextOnBrandBackground}"
                         HorizontalOptions="Center" />
 
                     <Label
                         Text="BRIGOM O SEBI"
                         FontSize="10"
                         CharacterSpacing="3"
-                        TextColor="{StaticResource AccentDark}"
+                    TextColor="{StaticResource TextOnBrandBackground}"
                         HorizontalOptions="Center" />
 
                 </VerticalStackLayout>

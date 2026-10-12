@@ -7,7 +7,7 @@
     xmlns:viewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Staff"
     xmlns:serviceModels="clr-namespace:AppointmentBooking.Mobile.Models.BookableServices"
     x:DataType="viewModels:StaffAppointmentsViewModel"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
@@ -18,17 +18,17 @@
                     Text="Novi termin"
                     FontSize="28"
                     FontAttributes="Bold"
-                    TextColor="{StaticResource TextPrimary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
                 <Label
                     Text="Ručni unos rezervacije za klijenta"
                     FontSize="14"
-                    TextColor="{StaticResource TextSecondary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
             </VerticalStackLayout>
             <Button
                 Grid.Column="1"
                 Text="Zatvori"
                 Clicked="OnCancelClicked"
-                BackgroundColor="{StaticResource Surface}"
+                BackgroundColor="{StaticResource BrandButton}"
                 TextColor="{StaticResource TextPrimary}"
                 BorderColor="{StaticResource Border}"
                 BorderWidth="1"
@@ -58,7 +58,7 @@
                                 SelectedItem="{Binding SelectedBookingEmployee}"
                                 SelectedIndexChanged="OnEmployeeSelectionChanged"
                                 TitleColor="{StaticResource TextMuted}"
-                                TextColor="{StaticResource TextPrimary}" />
+                                TextColor="{StaticResource TextPrimary}"  BackgroundColor="{StaticResource TextBoxBackground}"/>
                         </VerticalStackLayout>
 
                         <VerticalStackLayout IsVisible="{Binding IsEmployee}" Spacing="3">
@@ -73,7 +73,7 @@
                         Text="Odaberite usluge"
                         FontSize="19"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
                     <Border
                         BackgroundColor="{StaticResource Surface}"
@@ -169,7 +169,7 @@
                                         Placeholder="Ime klijenta"
                                         PlaceholderColor="{StaticResource TextMuted}"
                                         TextColor="{StaticResource TextPrimary}"
-                                        BackgroundColor="{StaticResource Surface}"
+                                        BackgroundColor="{StaticResource TextBoxBackground}"
                                         FontSize="15"
                                         HeightRequest="48" />
                                 </Border>
@@ -182,7 +182,7 @@
                                         Placeholder="Prezime klijenta"
                                         PlaceholderColor="{StaticResource TextMuted}"
                                         TextColor="{StaticResource TextPrimary}"
-                                        BackgroundColor="{StaticResource Surface}"
+                                        BackgroundColor="{StaticResource TextBoxBackground}"
                                         FontSize="15"
                                         HeightRequest="48" />
                                 </Border>
@@ -201,14 +201,14 @@
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <VerticalStackLayout Spacing="5">
                                 <Label Text="Datum" FontSize="13" TextColor="{StaticResource TextSecondary}" />
-                                <DatePicker Date="{Binding StaffBookingDate}" MinimumDate="{Binding StaffBookingToday}" Format="dd.MM.yyyy." TextColor="{StaticResource TextPrimary}" />
+                                <DatePicker Date="{Binding StaffBookingDate}" MinimumDate="{Binding StaffBookingToday}" Format="dd.MM.yyyy." TextColor="{StaticResource TextPrimary}"  BackgroundColor="{StaticResource TextBoxBackground}"/>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="5">
                                 <Label Text="Početak" FontSize="13" TextColor="{StaticResource TextSecondary}" />
                                 <Button
                                     Text="{Binding StaffBookingTimeDisplay}"
                                     Command="{Binding OpenTimeSelectorCommand}"
-                                    BackgroundColor="{StaticResource Surface}"
+                                    BackgroundColor="{StaticResource BrandButton}"
                                     TextColor="{StaticResource TextPrimary}"
                                     BorderColor="{StaticResource Border}"
                                     BorderWidth="1"
@@ -235,7 +235,7 @@
                                 AutoSize="TextChanges"
                                 MaxLength="500"
                                 MinimumHeightRequest="64"
-                                BackgroundColor="{StaticResource Surface}"
+                                BackgroundColor="{StaticResource TextBoxBackground}"
                                 PlaceholderColor="{StaticResource TextMuted}"
                                 TextColor="{StaticResource TextPrimary}" />
                         </Border>
@@ -250,7 +250,7 @@
                 Text="Sačuvaj termin"
                 Clicked="OnSaveClicked"
                 IsEnabled="{Binding CanCreateStaffBooking}"
-                BackgroundColor="{StaticResource Primary}"
+                BackgroundColor="{StaticResource BrandButton}"
                 TextColor="{StaticResource TextOnPrimary}"
                 FontSize="15"
                 FontAttributes="Bold"
@@ -282,21 +282,21 @@
                         <VerticalStackLayout Spacing="8">
                             <Label Text="SAT" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource TextSecondary}" />
                             <Border Padding="4" BackgroundColor="{StaticResource SurfaceSecondary}" Stroke="{StaticResource Border}" StrokeThickness="1" StrokeShape="RoundRectangle 14">
-                                <Entry Text="{Binding TimeSelectorHour}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="Transparent" />
+                                <Entry Text="{Binding TimeSelectorHour}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="{StaticResource TextBoxBackground}" />
                             </Border>
                         </VerticalStackLayout>
                         <Label Grid.Column="1" Text=":" FontSize="30" FontAttributes="Bold" VerticalOptions="End" Margin="0,0,0,5" TextColor="{StaticResource TextPrimary}" />
                         <VerticalStackLayout Grid.Column="2" Spacing="8">
                             <Label Text="MINUTE" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource TextSecondary}" />
                             <Border Padding="4" BackgroundColor="{StaticResource SurfaceSecondary}" Stroke="{StaticResource Border}" StrokeThickness="1" StrokeShape="RoundRectangle 14">
-                                <Entry Text="{Binding TimeSelectorMinute}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="Transparent" />
+                                <Entry Text="{Binding TimeSelectorMinute}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" BackgroundColor="{StaticResource TextBoxBackground}" />
                             </Border>
                         </VerticalStackLayout>
                     </Grid>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Button Text="Zatvori" Command="{Binding CloseTimeSelectorCommand}" BackgroundColor="{StaticResource SurfaceSecondary}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
-                        <Button Grid.Column="1" Text="Potvrdi" Command="{Binding ConfirmTimeSelectorCommand}" BackgroundColor="{StaticResource Primary}" TextColor="{StaticResource TextOnPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
+                        <Button Text="Zatvori" Command="{Binding CloseTimeSelectorCommand}" BackgroundColor="{StaticResource BrandButton}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
+                        <Button Grid.Column="1" Text="Potvrdi" Command="{Binding ConfirmTimeSelectorCommand}" BackgroundColor="{StaticResource BrandButton}" TextColor="{StaticResource TextOnPrimary}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
                     </Grid>
                 </VerticalStackLayout>
             </Border>

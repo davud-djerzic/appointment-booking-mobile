@@ -596,13 +596,15 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 return;
             }
 
-            bool confirmed = await Shell.Current.DisplayAlertAsync(
-                "Otkaži termin",
-                $"Otkazati termin {booking.TimeRange}? Taj period će biti blokiran kao pauza i neće se moći ponovo rezervisati.",
-                "Otkaži termin",
-                "Nazad");
+            string? cancellationChoice = await Shell.Current.DisplayActionSheetAsync(
+                $"Otkaži termin {booking.TimeRange}",
+                "Nazad",
+                null,
+                "Otkaži bez pauze",
+                "Otkaži i napravi pauzu");
 
-            if (!confirmed)
+            if (cancellationChoice is not "Otkaži bez pauze" and
+                not "Otkaži i napravi pauzu")
             {
                 return;
             }
@@ -610,7 +612,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             try
             {
                 await apiClient.PostAsync<object?>(
-                    $"api/bookings/{booking.Id}/cancel-and-block");
+                    cancellationChoice == "Otkaži bez pauze"
+                        ? $"api/bookings/{booking.Id}/cancel"
+                        : $"api/bookings/{booking.Id}/cancel-and-block");
 
                 await LoadAppointmentsCommand.ExecuteAsync(null);
             }

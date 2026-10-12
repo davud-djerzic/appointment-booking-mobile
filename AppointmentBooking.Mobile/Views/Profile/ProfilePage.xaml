@@ -9,7 +9,7 @@
     xmlns:salonResponses="clr-namespace:AppointmentBooking.Mobile.Models.Salons.Responses"
     x:Name="RootPage"
     x:DataType="viewModels:ProfileViewModel"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
@@ -39,12 +39,12 @@
                     Text="Profil"
                     FontSize="28"
                     FontAttributes="Bold"
-                    TextColor="{StaticResource TextPrimary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
 
                 <Label
                     Text="Upravljajte svojim podacima"
                     FontSize="14"
-                    TextColor="{StaticResource TextSecondary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
 
             </VerticalStackLayout>
 
@@ -148,7 +148,7 @@
                         Text="Moji podaci"
                         FontSize="20"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
 
                     <!-- CUSTOMER INFO CARD -->
@@ -294,11 +294,11 @@
                                             Text="{Binding FirstName}"
                                             FontSize="16"
                                             TextColor="{StaticResource TextPrimary}"
-                                            BackgroundColor="Transparent"
+                                            BackgroundColor="{StaticResource TextBoxBackground}"
                                             ClearButtonVisibility="WhileEditing"
                                             IsVisible="False">
 
-                                            <Entry.Triggers>
+                                            <Entry.Triggers BackgroundColor="{StaticResource TextBoxBackground}" TextColor="{StaticResource TextPrimary}">
 
                                                 <DataTrigger
                                                     TargetType="Entry"
@@ -370,11 +370,11 @@
                                             Text="{Binding LastName}"
                                             FontSize="16"
                                             TextColor="{StaticResource TextPrimary}"
-                                            BackgroundColor="Transparent"
+                                            BackgroundColor="{StaticResource TextBoxBackground}"
                                             ClearButtonVisibility="WhileEditing"
                                             IsVisible="False">
 
-                                            <Entry.Triggers>
+                                            <Entry.Triggers BackgroundColor="{StaticResource TextBoxBackground}" TextColor="{StaticResource TextPrimary}">
 
                                                 <DataTrigger
                                                     TargetType="Entry"
@@ -448,11 +448,11 @@
                                             Keyboard="Email"
                                             FontSize="16"
                                             TextColor="{StaticResource TextPrimary}"
-                                            BackgroundColor="Transparent"
+                                            BackgroundColor="{StaticResource TextBoxBackground}"
                                             ClearButtonVisibility="WhileEditing"
                                             IsVisible="False">
 
-                                            <Entry.Triggers>
+                                            <Entry.Triggers BackgroundColor="{StaticResource TextBoxBackground}" TextColor="{StaticResource TextPrimary}">
 
                                                 <DataTrigger
                                                     TargetType="Entry"
@@ -525,11 +525,11 @@
                                             Keyboard="Telephone"
                                             FontSize="16"
                                             TextColor="{StaticResource TextPrimary}"
-                                            BackgroundColor="Transparent"
+                                            BackgroundColor="{StaticResource TextBoxBackground}"
                                             ClearButtonVisibility="WhileEditing"
                                             IsVisible="False">
 
-                                            <Entry.Triggers>
+                                            <Entry.Triggers BackgroundColor="{StaticResource TextBoxBackground}" TextColor="{StaticResource TextPrimary}">
 
                                                 <DataTrigger
                                                     TargetType="Entry"
@@ -557,8 +557,8 @@
                                     Text="UREDI"
                                     Command="{Binding StartEditingCommand}"
                                     HeightRequest="46"
-                                    BackgroundColor="{StaticResource Accent}"
-                                    TextColor="{StaticResource Primary}"
+                                    BackgroundColor="{StaticResource BrandButton}"
+                                    TextColor="{StaticResource BrandBackground}"
                                     FontAttributes="Bold"
                                     FontSize="13"
                                     CornerRadius="14"
@@ -589,8 +589,8 @@
                                     Command="{Binding SaveChangesCommand}"
                                     IsVisible="False"
                                     IsEnabled="{Binding CanSave}"
-                                    BackgroundColor="{StaticResource Accent}"
-                                    TextColor="{StaticResource Primary}"
+                                    BackgroundColor="{StaticResource BrandButton}"
+                                    TextColor="{StaticResource BrandBackground}"
                                     FontAttributes="Bold"
                                     FontSize="13"
                                     HeightRequest="46"
@@ -632,7 +632,7 @@
                         Text="Salon"
                         FontSize="20"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
 
                     <Border
@@ -958,7 +958,7 @@
                         Text="Sigurnost"
                         FontSize="20"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
 
                     <Border
@@ -1016,7 +1016,7 @@
                 <Button
                     Text="ODJAVI SE"
                     Command="{Binding LogoutCommand}"
-                    BackgroundColor="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource BrandButton}"
                     BorderColor="{StaticResource Border}"
                     BorderWidth="1"
                     TextColor="{StaticResource TextPrimary}"

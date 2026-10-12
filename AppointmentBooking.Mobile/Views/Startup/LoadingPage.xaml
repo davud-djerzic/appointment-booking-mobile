@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="AppointmentBooking.Mobile.Views.Startup.LoadingPage"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False">
 
     <Grid>
@@ -19,7 +19,7 @@
                 FontSize="28"
                 FontAttributes="Bold"
                 CharacterSpacing="8"
-                TextColor="{StaticResource TextPrimary}"
+                TextColor="{StaticResource TextOnBrandBackground}"
                 HorizontalOptions="Center" />
 
             <ActivityIndicator

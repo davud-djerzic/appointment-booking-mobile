@@ -7,7 +7,7 @@
     xmlns:viewmodels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Appointment"
     xmlns:models="clr-namespace:AppointmentBooking.Mobile.Models.Bookings.Responses"
     x:DataType="viewmodels:AppointmentViewModel"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False">
 
     <Grid RowDefinitions="Auto,Auto,*">
@@ -23,7 +23,7 @@
                 Text="Termini"
                 FontSize="28"
                 FontAttributes="Bold"
-                TextColor="{StaticResource TextPrimary}"
+                TextColor="{StaticResource TextOnBrandBackground}"
                 VerticalOptions="Center" />
 
             <ActivityIndicator
@@ -152,13 +152,13 @@
                             Text="Nemate predstojećih termina."
                             FontSize="17"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalTextAlignment="Center" />
 
                         <Label
                             Text="Vaši zakazani termini će se prikazati ovdje."
                             FontSize="14"
-                            TextColor="{StaticResource TextSecondary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalTextAlignment="Center" />
 
                     </VerticalStackLayout>
@@ -292,7 +292,7 @@
                                             FontSize="14"
                                             FontAttributes="Bold"
                                             TextColor="{StaticResource TextOnPrimary}"
-                                            BackgroundColor="{StaticResource Primary}"
+                                            BackgroundColor="{StaticResource BrandButton}"
                                             CornerRadius="12"
                                             HeightRequest="44"
                                             Clicked="OnDetailsClicked"
@@ -304,7 +304,7 @@
                                             FontSize="14"
                                             FontAttributes="Bold"
                                             TextColor="{StaticResource TextPrimary}"
-                                            BackgroundColor="{StaticResource SurfaceSecondary}"
+                                            BackgroundColor="{StaticResource BrandButton}"
                                             BorderColor="{StaticResource Border}"
                                             BorderWidth="1"
                                             CornerRadius="12"
@@ -349,13 +349,13 @@
                             Text="Nemate prethodnih termina."
                             FontSize="17"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalTextAlignment="Center" />
 
                         <Label
                             Text="Vaši završeni termini će se prikazati ovdje."
                             FontSize="14"
-                            TextColor="{StaticResource TextSecondary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalTextAlignment="Center" />
 
                     </VerticalStackLayout>
@@ -482,7 +482,7 @@
                                         FontSize="14"
                                         FontAttributes="Bold"
                                         TextColor="{StaticResource TextOnPrimary}"
-                                        BackgroundColor="{StaticResource Primary}"
+                                        BackgroundColor="{StaticResource BrandButton}"
                                         CornerRadius="12"
                                         HeightRequest="44"
                                         Margin="0,6,0,0"
@@ -524,13 +524,13 @@
                             Text="Nemate otkazanih termina."
                             FontSize="17"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalTextAlignment="Center" />
 
                         <Label
                             Text="Vaši otkazani termini će se prikazati ovdje."
                             FontSize="14"
-                            TextColor="{StaticResource TextSecondary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             HorizontalTextAlignment="Center" />
 
                     </VerticalStackLayout>
@@ -665,7 +665,7 @@
                                         FontSize="14"
                                         FontAttributes="Bold"
                                         TextColor="{StaticResource TextOnPrimary}"
-                                        BackgroundColor="{StaticResource Primary}"
+                                        BackgroundColor="{StaticResource BrandButton}"
                                         CornerRadius="12"
                                         HeightRequest="44"
                                         Margin="0,6,0,0"

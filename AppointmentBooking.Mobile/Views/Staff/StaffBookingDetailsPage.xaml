@@ -7,7 +7,7 @@
     xmlns:bookingModels="clr-namespace:AppointmentBooking.Mobile.Models.Bookings.Responses"
     xmlns:appointmentModels="clr-namespace:AppointmentBooking.Mobile.Models.Appointments.Responses"
     x:DataType="bookingModels:EmployeeBookingDetailsResponse"
-    BackgroundColor="#99000000"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
@@ -57,7 +57,7 @@
                         Text="✕"
                         FontSize="17"
                         TextColor="{StaticResource TextSecondary}"
-                        BackgroundColor="{StaticResource SurfaceSecondary}"
+                        BackgroundColor="{StaticResource BrandButton}"
                         WidthRequest="42"
                         HeightRequest="42"
                         CornerRadius="21"
@@ -391,7 +391,7 @@
                     Text="Zatvori"
                     Style="{StaticResource PrimaryButton}"
                     Margin="20,8,20,18"
-                    Clicked="OnCloseClicked" />
+                    Clicked="OnCloseClicked"  BackgroundColor="{StaticResource BrandButton}"/>
 
             </Grid>
 

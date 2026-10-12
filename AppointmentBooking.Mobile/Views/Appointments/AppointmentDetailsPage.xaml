@@ -6,7 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:models="clr-namespace:AppointmentBooking.Mobile.Models.Bookings.Responses"
     x:DataType="models:BookingDetailsResponse"
-    BackgroundColor="#66000000"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False">
 
     <Grid Padding="24">
@@ -53,7 +53,7 @@
                         FontSize="18"
                         FontAttributes="Bold"
                         TextColor="{StaticResource TextSecondary}"
-                        BackgroundColor="Transparent"
+                        BackgroundColor="{StaticResource BrandButton}"
                         WidthRequest="42"
                         HeightRequest="42"
                         Padding="0"
@@ -300,7 +300,7 @@
                     FontSize="15"
                     FontAttributes="Bold"
                     TextColor="{StaticResource TextOnPrimary}"
-                    BackgroundColor="{StaticResource Primary}"
+                    BackgroundColor="{StaticResource BrandButton}"
                     CornerRadius="14"
                     HeightRequest="48"
                     Margin="0,18,0,0"

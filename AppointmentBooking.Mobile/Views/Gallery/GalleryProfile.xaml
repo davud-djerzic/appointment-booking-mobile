@@ -4,7 +4,7 @@
     x:Class="AppointmentBooking.Mobile.Views.Gallery.GalleryPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False">
 
     <Grid
@@ -14,7 +14,7 @@
             Text="Galerija"
             FontSize="28"
             FontAttributes="Bold"
-            TextColor="{StaticResource TextPrimary}"
+            TextColor="{StaticResource TextOnBrandBackground}"
             HorizontalOptions="Center"
             VerticalOptions="Center" />
 

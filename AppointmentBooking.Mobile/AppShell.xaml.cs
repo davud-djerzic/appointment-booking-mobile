@@ -302,6 +302,7 @@ public partial class AppShell : Shell
         staffTabBar.IsVisible = false;
         mainTabBar.IsVisible = true;
 
+        mainTabBar.CurrentItem = homeTab;
         CurrentItem = mainTabBar;
     }
 
@@ -310,6 +311,7 @@ public partial class AppShell : Shell
         mainTabBar.IsVisible = false;
         staffTabBar.IsVisible = true;
 
+        staffTabBar.CurrentItem = staffAppointmentsTab;
         CurrentItem = staffTabBar;
     }
 

@@ -8,9 +8,10 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:bookingResponses="clr-namespace:AppointmentBooking.Mobile.Models.Bookings.Responses"
     xmlns:serviceResponses="clr-namespace:AppointmentBooking.Mobile.Models.BookableServices.Responses"
+    xmlns:servicePicker="clr-namespace:AppointmentBooking.Mobile.Models.BookableServices"
     x:Name="RootPage"
     x:DataType="viewModels:HomeViewModel"
-    BackgroundColor="{StaticResource Background}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
@@ -26,39 +27,33 @@
 
         <!-- HEADER -->
         <Grid
+            x:Name="HeaderGrid"
             Grid.Row="0"
             ColumnDefinitions="*,Auto"
             Margin="0,0,0,24">
 
-            <VerticalStackLayout
+            <HorizontalStackLayout
                 Grid.Column="0"
-                Spacing="3">
+                Spacing="7"
+                VerticalOptions="Center">
 
                 <Label
-                    Text="Dobro došli"
-                    FontSize="14"
-                    TextColor="{StaticResource TextSecondary}" />
+                    Text="Zdravo,"
+                    FontSize="22"
+                    TextColor="{StaticResource TextOnBrandBackground}" />
 
                 <Label
-                    Text="SALON"
-                    FontSize="26"
-                    CharacterSpacing="5"
+                    Text="{Binding GreetingName}"
+                    FontSize="22"
                     FontAttributes="Bold"
-                    TextColor="{StaticResource TextPrimary}" />
+                    TextColor="{StaticResource TextOnBrandBackground}" />
 
-            </VerticalStackLayout>
-
-            <Label
-                Grid.Column="1"
-                Text="✂"
-                FontSize="34"
-                TextColor="{StaticResource Accent}"
-                VerticalOptions="Center" />
+            </HorizontalStackLayout>
 
         </Grid>
 
         <!-- MAIN CONTENT -->
-        <ScrollView Grid.Row="1">
+        <ScrollView x:Name="MainScrollView" Grid.Row="1">
 
             <VerticalStackLayout
                 Spacing="24"
@@ -66,8 +61,9 @@
 
                 <!-- QUICK BOOKING -->
                 <Border
-                    BackgroundColor="{StaticResource Primary}"
-                    StrokeThickness="0"
+                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                    Stroke="{StaticResource PanelBorder}"
+                    StrokeThickness="0.8"
                     StrokeShape="RoundRectangle 22"
                     Padding="20">
 
@@ -79,43 +75,54 @@
                                 Text="Brza rezervacija"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="{StaticResource TextOnPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                             <Label
                                 Text="Pronađite prvi slobodan termin."
                                 FontSize="14"
-                                TextColor="{StaticResource AccentLight}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         </VerticalStackLayout>
 
                         <!-- SERVICE PICKER -->
                         <Border
-                            BackgroundColor="{StaticResource Surface}"
-                            StrokeThickness="0"
+                            BackgroundColor="{StaticResource TextBoxBackground}"
+                            Stroke="{StaticResource BorderFocused}"
+                            StrokeThickness="1"
                             StrokeShape="RoundRectangle 14"
                             Padding="14,6">
 
-                            <VerticalStackLayout Spacing="0">
+                            <Grid ColumnDefinitions="*,Auto">
+
+                                <VerticalStackLayout Spacing="2">
+
+                                    <Label
+                                        Text="USLUGA"
+                                        FontSize="10"
+                                        CharacterSpacing="1.5"
+                                        TextColor="{StaticResource TextMuted}" />
+
+                                    <Label
+                                        Text="{Binding SelectedService.Name, TargetNullValue='Odaberite uslugu'}"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextPrimary}"
+                                        LineBreakMode="TailTruncation" />
+
+                                </VerticalStackLayout>
 
                                 <Label
-                                    Text="USLUGA"
-                                    FontSize="10"
-                                    CharacterSpacing="1.5"
-                                    TextColor="{StaticResource TextMuted}" />
-
-                                <Picker
-                                    Title="Odaberite uslugu"
-                                    ItemsSource="{Binding ServicePickerItems}"
-                                    SelectedItem="{Binding SelectedService, Mode=TwoWay}"
-                                    ItemDisplayBinding="{Binding DisplayName}"
-                                    FontSize="16"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource TextPrimary}"
-                                    BackgroundColor="Transparent"
-                                    HorizontalOptions="Fill"
+                                    Grid.Column="1"
+                                    Text="⌄"
+                                    FontSize="24"
+                                    TextColor="{StaticResource BrandBackground}"
                                     VerticalOptions="Center" />
 
-                            </VerticalStackLayout>
+                            </Grid>
+
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenServicePickerCommand}" />
+                            </Border.GestureRecognizers>
 
                         </Border>
 
@@ -124,11 +131,11 @@
                             Text="PRONAĐI SLOBODNE TERMINE   →"
                             Command="{Binding LoadQuickAvailabilityCommand}"
                             IsEnabled="{Binding CanSearchAvailability}"
-                            TextColor="{StaticResource Primary}"
+                            TextColor="{StaticResource BrandBackground}"
                             FontAttributes="Bold"
                             HeightRequest="52"
                             CornerRadius="14"
-                            Margin="0,4,0,0">
+                            Margin="0,4,0,0" BackgroundColor="{StaticResource BrandButton}">
 
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroupList>
@@ -140,11 +147,11 @@
 
                                                 <Setter
                                                     Property="BackgroundColor"
-                                                    Value="{StaticResource Accent}" />
+                                                    Value="{StaticResource BrandButton}" />
 
                                                 <Setter
                                                     Property="TextColor"
-                                                    Value="{StaticResource Primary}" />
+                                                    Value="{StaticResource BrandBackground}" />
 
                                             </VisualState.Setters>
                                         </VisualState>
@@ -175,33 +182,26 @@
                 </Border>
 
                 <!-- SERVICES -->
-                <VerticalStackLayout Spacing="14">
+                <VerticalStackLayout Spacing="12">
 
-                    <Grid ColumnDefinitions="*,Auto">
-
-                        <Label
-            Text="Naše usluge"
-            Style="{StaticResource TitleLabel}" />
-
-                        <Label
-            Grid.Column="1"
-            Text="Sve"
-            FontSize="13"
-            FontAttributes="Bold"
-            TextColor="{StaticResource AccentDark}"
-            VerticalOptions="Center" />
-
-                    </Grid>
+                    <Label
+                        Text="Usluge:"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource TextOnBrandBackground}"
+                        Margin="4,0" />
 
                     <CollectionView
-        ItemsSource="{Binding Services}"
-        SelectionMode="None">
+                        ItemsSource="{Binding FeaturedServices}"
+                        SelectionMode="None"
+                        Margin="0"
+                        HorizontalOptions="Fill">
 
                         <CollectionView.ItemsLayout>
                             <GridItemsLayout
                 Orientation="Vertical"
-                Span="2"
-                HorizontalItemSpacing="12"
+                Span="1"
+                HorizontalItemSpacing="0"
                 VerticalItemSpacing="12" />
                         </CollectionView.ItemsLayout>
 
@@ -210,47 +210,58 @@
                 x:DataType="serviceResponses:ServiceResponse">
 
                                 <Border
-                    BackgroundColor="{StaticResource Surface}"
-                    Stroke="{StaticResource Border}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 18"
-                    Padding="16">
+                                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                    Stroke="{StaticResource PanelBorder}"
+                                    StrokeThickness="0.8"
+                                    StrokeShape="RoundRectangle 14"
+                                    HeightRequest="70"
+                                    Padding="12,8"
+                                    HorizontalOptions="Fill">
 
-                                    <VerticalStackLayout Spacing="7">
-
-                                        <Label
-                            Text="{Binding Name}"
-                            FontSize="18"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
-                            MaxLines="2" />
+                                    <Grid RowDefinitions="*,Auto" RowSpacing="6">
 
                                         <Label
-                            Text="{Binding Description}"
-                            FontSize="12"
-                            TextColor="{StaticResource TextSecondary}"
-                            MaxLines="2"
-                            LineBreakMode="TailTruncation" />
+                                            Text="{Binding Name}"
+                                            FontSize="16"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextOnBrandBackground}"
+                                            MaxLines="1"
+                                            LineBreakMode="TailTruncation"
+                                            VerticalOptions="Start" />
 
                                         <Grid
-                            ColumnDefinitions="*,Auto"
-                            Margin="0,4,0,0">
+                                            Grid.Row="1"
+                                            ColumnDefinitions="Auto,*"
+                                            ColumnSpacing="6">
+
+                                            <Border
+                                                BackgroundColor="{StaticResource BrandButton}"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 9"
+                                                Padding="7,4"
+                                                VerticalOptions="Center">
+
+                                                <Label
+                                                    Text="{Binding DurationMinutes, StringFormat='{}{0} min'}"
+                                                    FontSize="11"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandBackground}"
+                                                    VerticalOptions="Center" />
+
+                                            </Border>
 
                                             <Label
-                                Text="{Binding DurationMinutes, StringFormat='{}{0} min'}"
-                                FontSize="12"
-                                TextColor="{StaticResource TextMuted}" />
-
-                                            <Label
-                                Grid.Column="1"
-                                Text="{Binding Price, StringFormat='{}{0:0.00} KM'}"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource AccentDark}" />
+                                                Grid.Column="1"
+                                                Text="{Binding Price, StringFormat='{}{0:0.00} KM'}"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandButton}"
+                                                HorizontalTextAlignment="End"
+                                                VerticalOptions="Center" />
 
                                         </Grid>
 
-                                    </VerticalStackLayout>
+                                    </Grid>
 
                                 </Border>
 
@@ -263,10 +274,12 @@
 
                 <!-- BOOKING CTA -->
                 <Border
-                    BackgroundColor="{StaticResource SurfaceSecondary}"
-                    StrokeThickness="0"
+                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                    Stroke="{StaticResource PanelBorder}"
+                    StrokeThickness="0.8"
                     StrokeShape="RoundRectangle 18"
-                    Padding="18">
+                    Padding="18"
+                    Margin="0,12,0,0">
 
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBookingClicked" />
@@ -280,20 +293,21 @@
                                 Text="Želite odabrati više usluga?"
                                 FontSize="16"
                                 FontAttributes="Bold"
-                                TextColor="{StaticResource TextPrimary}" />
+                                TextColor="{StaticResource TextOnBrandBackground}" />
 
                             <Label
                                 Text="Napravite rezervaciju po svojoj želji."
                                 FontSize="12"
-                                TextColor="{StaticResource TextSecondary}" />
+                                TextColor="{StaticResource TextOnBrandBackground}" />
 
                         </VerticalStackLayout>
 
                         <Label
                             Grid.Column="1"
-                            Text="→"
-                            FontSize="28"
-                            TextColor="{StaticResource AccentDark}"
+                            Text="⟶"
+                            FontSize="32"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandButton}"
                             VerticalOptions="Center" />
 
                     </Grid>
@@ -306,19 +320,28 @@
 
         <!-- AVAILABLE TIMES MODAL -->
         <Grid
+            x:Name="AvailableTimesOverlay"
             Grid.Row="0"
             Grid.RowSpan="2"
             IsVisible="{Binding IsAvailabilityModalVisible}"
-            BackgroundColor="#80000000"
             Padding="24">
 
             <Border
-                BackgroundColor="{StaticResource Surface}"
-                StrokeThickness="0"
+                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                Stroke="{StaticResource PanelBorder}"
+                StrokeThickness="0.8"
                 StrokeShape="RoundRectangle 24"
                 Padding="20"
                 VerticalOptions="Center"
                 HorizontalOptions="Fill">
+
+                <Border.Shadow>
+                    <Shadow
+                        Brush="#99000000"
+                        Offset="0,12"
+                        Radius="28"
+                        Opacity="0.8" />
+                </Border.Shadow>
 
                 <VerticalStackLayout Spacing="18">
 
@@ -328,18 +351,18 @@
                             Text="Slobodni termini"
                             FontSize="24"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Text="{Binding QuickAvailability.Date, StringFormat='{}{0:dd.MM.yyyy.}'}"
                             FontSize="14"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource AccentDark}" />
+                            TextColor="{StaticResource BrandButton}" />
 
                         <Label
                             Text="Odaberite termin koji vam odgovara."
                             FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                     </VerticalStackLayout>
 
@@ -355,12 +378,37 @@
                                 x:DataType="bookingResponses:AvailableTimeSlotResponse">
 
                                 <Border
-                                    BackgroundColor="{StaticResource Background}"
+                                    BackgroundColor="{StaticResource TextBoxBackground}"
                                     Stroke="{StaticResource Border}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 14"
                                     Padding="14"
                                     Margin="0,0,0,8">
+
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal">
+                                                <VisualState.Setters>
+                                                    <Setter
+                                                        Property="BackgroundColor"
+                                                        Value="{StaticResource TextBoxBackground}" />
+                                                    <Setter
+                                                        Property="Stroke"
+                                                        Value="{StaticResource Border}" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter
+                                                        Property="BackgroundColor"
+                                                        Value="{StaticResource BrandButton}" />
+                                                    <Setter
+                                                        Property="Stroke"
+                                                        Value="{StaticResource BrandButton}" />
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
 
                                     <Grid ColumnDefinitions="*,Auto">
 
@@ -383,7 +431,7 @@
                                             Grid.Column="1"
                                             Text="›"
                                             FontSize="24"
-                                            TextColor="{StaticResource AccentDark}"
+                                            TextColor="{StaticResource BrandBackground}"
                                             VerticalOptions="Center" />
 
                                     </Grid>
@@ -400,7 +448,7 @@
                         Text="{Binding SelectedTimeSlot.StartsAt, StringFormat='Odabrani termin: {0:HH:mm}'}"
                         FontSize="14"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource AccentDark}"
+                        TextColor="{StaticResource TextOnBrandBackground}"
                         HorizontalOptions="Center" />
 
                     <Grid
@@ -411,8 +459,10 @@
                             Grid.Column="0"
                             Text="OTKAŽI"
                             Command="{Binding CancelAvailabilityCommand}"
-                            BackgroundColor="{StaticResource Background}"
-                            TextColor="{StaticResource TextPrimary}"
+                            BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                            BorderColor="{StaticResource PanelBorder}"
+                            BorderWidth="1"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             FontAttributes="Bold"
                             HeightRequest="50"
                             CornerRadius="14" />
@@ -422,8 +472,8 @@
                             Text="POTVRDI"
                             Command="{Binding CreateHoldCommand}"
                             IsEnabled="{Binding CanConfirmBooking}"
-                            BackgroundColor="{StaticResource Accent}"
-                            TextColor="{StaticResource Primary}"
+                            BackgroundColor="{StaticResource BrandButton}"
+                            TextColor="{StaticResource BrandBackground}"
                             FontAttributes="Bold"
                             HeightRequest="50"
                             CornerRadius="14" />
@@ -446,7 +496,8 @@
 
             <Border
                 BackgroundColor="{StaticResource Surface}"
-                StrokeThickness="0"
+                Stroke="{StaticResource Border}"
+                StrokeThickness="0.8"
                 StrokeShape="RoundRectangle 24"
                 Padding="22"
                 VerticalOptions="Center"
@@ -593,7 +644,7 @@
                             Grid.Column="0"
                             Text="ODUSTANI"
                             Command="{Binding CancelHoldConfirmationCommand}"
-                            BackgroundColor="{StaticResource Background}"
+                            BackgroundColor="{StaticResource BrandButton}"
                             TextColor="{StaticResource TextPrimary}"
                             FontAttributes="Bold"
                             HeightRequest="50"
@@ -603,13 +654,132 @@
                             Grid.Column="1"
                             Text="POTVRDI REZERVACIJU"
                             Command="{Binding ConfirmHoldCommand}"
-                            BackgroundColor="{StaticResource Accent}"
-                            TextColor="{StaticResource Primary}"
+                            BackgroundColor="{StaticResource BrandButton}"
+                            TextColor="{StaticResource BrandBackground}"
                             FontAttributes="Bold"
                             HeightRequest="50"
                             CornerRadius="14" />
 
                     </Grid>
+
+                </VerticalStackLayout>
+
+            </Border>
+
+        </Grid>
+
+        <!-- SERVICE PICKER -->
+        <Grid
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            x:Name="ServicePickerOverlay"
+            IsVisible="{Binding IsServicePickerVisible}"
+            Padding="24">
+
+            <Border
+                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                Stroke="{StaticResource PanelBorder}"
+                StrokeThickness="0.8"
+                StrokeShape="RoundRectangle 26"
+                Padding="20"
+                VerticalOptions="Center"
+                HorizontalOptions="Fill">
+
+                <Border.Shadow>
+                    <Shadow
+                        Brush="#99000000"
+                        Offset="0,12"
+                        Radius="28"
+                        Opacity="0.8" />
+                </Border.Shadow>
+
+                <VerticalStackLayout Spacing="16">
+
+                    <VerticalStackLayout Spacing="4">
+
+                        <Label
+                            Text="Odaberite uslugu"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource TextOnBrandBackground}" />
+
+                        <Label
+                            Text="Odaberite uslugu za brzu rezervaciju."
+                            FontSize="13"
+                            TextColor="{StaticResource TextOnBrandBackground}" />
+
+                    </VerticalStackLayout>
+
+                    <CollectionView
+                        ItemsSource="{Binding ServicePickerItems}"
+                        SelectionMode="None"
+                        MaximumHeightRequest="320">
+
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout
+                                Orientation="Vertical"
+                                ItemSpacing="8" />
+                        </CollectionView.ItemsLayout>
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="servicePicker:ServicePickerItem">
+
+                                <Border
+                                    BackgroundColor="{StaticResource TextBoxBackground}"
+                                    Stroke="{StaticResource Border}"
+                                    StrokeThickness="0.8"
+                                    StrokeShape="RoundRectangle 14"
+                                    Padding="14,12">
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.SelectServiceCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+
+                                        <Label
+                                            Text="{Binding Name}"
+                                            FontSize="15"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            VerticalOptions="Center"
+                                            LineBreakMode="TailTruncation" />
+
+                                        <Label
+                                            Grid.Column="1"
+                                            Text="{Binding Price, StringFormat='{}{0:0.00} KM'}"
+                                            FontSize="14"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource BrandBackground}"
+                                            VerticalOptions="Center" />
+
+                                        <Label
+                                            Grid.Column="2"
+                                            Text="›"
+                                            FontSize="24"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource AccentDark}"
+                                            VerticalOptions="Center" />
+
+                                    </Grid>
+
+                                </Border>
+
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                    </CollectionView>
+
+                    <Button
+                        Text="ZATVORI"
+                        Command="{Binding CloseServicePickerCommand}"
+                        BackgroundColor="{StaticResource BrandButton}"
+                        TextColor="{StaticResource BrandBackground}"
+                        FontAttributes="Bold"
+                        HeightRequest="48"
+                        CornerRadius="14" />
 
                 </VerticalStackLayout>
 

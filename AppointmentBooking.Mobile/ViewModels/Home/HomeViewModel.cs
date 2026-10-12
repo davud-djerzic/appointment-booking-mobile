@@ -3,6 +3,7 @@ using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Bookings.Requests;
 using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
+using AppointmentBooking.Mobile.Models.Profile.Responses;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
@@ -21,6 +22,12 @@ public partial class HomeViewModel : ObservableObject
 
     [ObservableProperty]
     private IReadOnlyList<ServiceResponse> services = [];
+
+    [ObservableProperty]
+    private IReadOnlyList<ServiceResponse> featuredServices = [];
+
+    [ObservableProperty]
+    private string greetingName = string.Empty;
 
     [ObservableProperty]
     private IReadOnlyList<ServicePickerItem> servicePickerItems = [];
@@ -44,6 +51,9 @@ public partial class HomeViewModel : ObservableObject
     private bool isAvailabilityModalVisible;
 
     [ObservableProperty]
+    private bool isServicePickerVisible;
+
+    [ObservableProperty]
     private bool isHoldConfirmationVisible;
 
     [ObservableProperty]
@@ -60,6 +70,30 @@ public partial class HomeViewModel : ObservableObject
     public DateTimeOffset? HoldStartsAtLocal => BookingHold?.StartsAt.ToLocalTime();
 
     public DateTimeOffset? HoldExpiresAtLocal => BookingHold?.ExpiresAt.ToLocalTime();
+
+    [RelayCommand]
+    private void OpenServicePicker()
+    {
+        IsServicePickerVisible = ServicePickerItems.Count > 0;
+    }
+
+    [RelayCommand]
+    private void CloseServicePicker()
+    {
+        IsServicePickerVisible = false;
+    }
+
+    [RelayCommand]
+    private void SelectService(ServicePickerItem? service)
+    {
+        if (service is null)
+        {
+            return;
+        }
+
+        SelectedService = service;
+    }
+
     public HomeViewModel(ISessionService sessionService, IApiClient apiClient, IErrorHandler errorHandler)
     {
         this.sessionService = sessionService;
@@ -74,11 +108,25 @@ public partial class HomeViewModel : ObservableObject
         {
             IsLoading = true;
 
+            try
+            {
+                MyProfileResponse? profile =
+                    await apiClient.GetAsync<MyProfileResponse>("api/profile/me");
+
+                GreetingName = profile?.FirstName?.Trim() ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                GreetingName = string.Empty;
+                await errorHandler.HandleAsync(ex);
+            }
+
             PagedResponse<ServiceResponse>? response =
                 await apiClient.GetAsync<PagedResponse<ServiceResponse>>(
                     "api/BookableServices?isActive=true&page=1&pageSize=20");
 
             Services = response?.Items.ToList() ?? [];
+            FeaturedServices = Services.Take(4).ToList();
 
             ServicePickerItems =
                 Services
@@ -264,6 +312,7 @@ public partial class HomeViewModel : ObservableObject
 
     partial void OnSelectedServiceChanged(ServicePickerItem? value)
     {
+        IsServicePickerVisible = false;
         SelectedTimeSlot = null;
         QuickAvailability = null;
         BookingHold = null;
