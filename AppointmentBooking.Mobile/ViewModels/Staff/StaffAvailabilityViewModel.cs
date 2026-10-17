@@ -123,16 +123,16 @@ public partial class StaffAvailabilityViewModel : ObservableObject
     public string FormTitle => IsEditing ? "Uredi odsustvo" : "Novo odsustvo";
 
     public Color BreakTypeBackground =>
-        IsBreakSelected ? GetColor("Primary") : GetColor("Surface");
+        IsBreakSelected ? GetColor("BrandButton") : Colors.Transparent;
 
     public Color VacationTypeBackground =>
-        IsVacationSelected ? GetColor("Primary") : GetColor("Surface");
+        IsVacationSelected ? GetColor("BrandButton") : Colors.Transparent;
 
     public Color BreakTypeTextColor =>
-        IsBreakSelected ? GetColor("TextOnPrimary") : GetColor("TextPrimary");
+        IsBreakSelected ? GetColor("BrandBackground") : GetColor("TextOnBrandBackground");
 
     public Color VacationTypeTextColor =>
-        IsVacationSelected ? GetColor("TextOnPrimary") : GetColor("TextPrimary");
+        IsVacationSelected ? GetColor("BrandBackground") : GetColor("TextOnBrandBackground");
 
     public StaffAvailabilityViewModel(
         IApiClient apiClient,

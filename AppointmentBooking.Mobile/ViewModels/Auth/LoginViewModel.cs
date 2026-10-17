@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.Auth;
+using AppointmentBooking.Mobile.Models.Auth;
 using AppointmentBooking.Mobile.Services.Authentication;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -53,8 +53,10 @@ public partial class LoginViewModel : ObservableObject
 
         try
         {
+            // Task.Run ensures the HTTP call is off the Android main thread,
+            // preventing Android.OS.NetworkOnMainThreadException.
             AuthResult result =
-                await authService.LoginAsync(request);
+                await Task.Run(() => authService.LoginAsync(request));
 
             if (!result.IsSuccess)
             {
@@ -71,6 +73,13 @@ public partial class LoginViewModel : ObservableObject
             await Shell.Current.DisplayAlertAsync(
                 "Greška mreže",
                 "Nije moguće povezati se sa serverom.",
+                "OK");
+        }
+        catch (Exception)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Greška",
+                "Prijava trenutno nije moguća. Pokušajte ponovo.",
                 "OK");
         }
         finally

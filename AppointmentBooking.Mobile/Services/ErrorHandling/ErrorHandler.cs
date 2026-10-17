@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.Api;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ namespace AppointmentBooking.Mobile.Services.ErrorHandling
             string message = GetUserMessage(exception);
 
             await MainThread.InvokeOnMainThreadAsync(
-                () => Shell.Current.DisplayAlert(
+                () => Shell.Current.DisplayAlertAsync(
                     "Greška",
                     message,
                     "U redu"));

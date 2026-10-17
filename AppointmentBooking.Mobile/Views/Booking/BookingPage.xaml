@@ -11,7 +11,8 @@
     x:Name="RootPage"
     x:DataType="viewModels:BookingViewModel"
     BackgroundColor="{StaticResource BrandBackground}"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    SafeAreaEdges="All">
 
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
@@ -44,8 +45,9 @@
             <!-- EMPLOYEE -->
 
             <Border
-                BackgroundColor="{StaticResource SurfaceSecondary}"
-                StrokeThickness="0"
+                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                Stroke="{StaticResource PanelBorder}"
+                StrokeThickness="0.8"
                 StrokeShape="RoundRectangle 14"
                 Padding="14,10"
                 Margin="0,6,0,0">
@@ -59,7 +61,8 @@
                         <Label
                             Text="Termin kod:"
                             FontSize="13"
-                            TextColor="{StaticResource TextSecondary}"
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.8"
                             VerticalOptions="Center" />
 
                         <Label
@@ -67,7 +70,7 @@
                             Text="{Binding EmployeeName}"
                             FontSize="14"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource BrandButton}"
                             HorizontalOptions="End"
                             VerticalOptions="Center" />
 
@@ -76,7 +79,7 @@
                     <Label
                         Text="Za odabrane usluge trenutno nema dostupnog zaposlenika."
                         FontSize="12"
-                        TextColor="{StaticResource TextSecondary}"
+                        TextColor="{StaticResource Warning}"
                         IsVisible="{Binding IsEmployeeUnavailable}" />
 
                 </VerticalStackLayout>
@@ -115,12 +118,26 @@
                                 x:DataType="serviceModels:ServiceSelectionItem">
 
                                 <Border
-                                    BackgroundColor="{StaticResource Surface}"
-                                    Stroke="{StaticResource Border}"
-                                    StrokeThickness="1"
+                                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                    Stroke="{StaticResource PanelBorder}"
+                                    StrokeThickness="0.8"
                                     StrokeShape="RoundRectangle 16"
-                                    Padding="14"
-                                    Margin="0,0,0,8">
+                                    Padding="14,12"
+                                    Margin="0,0,0,10">
+
+                                    <Border.Triggers>
+                                        <DataTrigger
+                                            TargetType="Border"
+                                            Binding="{Binding IsSelected}"
+                                            Value="True">
+                                            <Setter
+                                                Property="Stroke"
+                                                Value="{StaticResource BrandButton}" />
+                                            <Setter
+                                                Property="StrokeThickness"
+                                                Value="1.5" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
 
                                     <Grid
                                         ColumnDefinitions="*,Auto"
@@ -129,34 +146,48 @@
                                         <Label
                                             Grid.Row="0"
                                             Text="{Binding Service.Name}"
-                                            FontSize="17"
+                                            FontSize="16"
                                             FontAttributes="Bold"
-                                            TextColor="{StaticResource TextPrimary}" />
+                                            TextColor="{StaticResource TextOnBrandBackground}"
+                                            VerticalOptions="Center" />
 
                                         <CheckBox
                                             Grid.Row="0"
                                             Grid.Column="1"
                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                            Color="{StaticResource Accent}"
+                                            Color="{StaticResource BrandButton}"
                                             VerticalOptions="Center" />
 
                                         <Grid
                                             Grid.Row="1"
                                             Grid.ColumnSpan="2"
-                                            ColumnDefinitions="*,Auto"
-                                            Margin="0,6,0,0">
+                                            ColumnDefinitions="Auto,*"
+                                            Margin="0,8,0,0">
 
-                                            <Label
-                                                Text="{Binding Service.DurationMinutes, StringFormat='{}{0} min'}"
-                                                FontSize="12"
-                                                TextColor="{StaticResource TextMuted}" />
+                                            <Border
+                                                BackgroundColor="{StaticResource BrandButton}"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 9"
+                                                Padding="7,3"
+                                                VerticalOptions="Center">
+
+                                                <Label
+                                                    Text="{Binding Service.DurationMinutes, StringFormat='{}{0} min'}"
+                                                    FontSize="11"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandBackground}"
+                                                    VerticalOptions="Center" />
+
+                                            </Border>
 
                                             <Label
                                                 Grid.Column="1"
                                                 Text="{Binding Service.Price, StringFormat='{}{0:0.00} KM'}"
                                                 FontSize="15"
                                                 FontAttributes="Bold"
-                                                TextColor="{StaticResource AccentDark}" />
+                                                TextColor="{StaticResource BrandButton}"
+                                                HorizontalTextAlignment="End"
+                                                VerticalOptions="Center" />
 
                                         </Grid>
 
@@ -176,58 +207,73 @@
                 <!-- SUMMARY -->
 
                 <Border
-                    BackgroundColor="{StaticResource SurfaceSecondary}"
-                    StrokeThickness="0"
+                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                    Stroke="{StaticResource PanelBorder}"
+                    StrokeThickness="0.8"
                     StrokeShape="RoundRectangle 16"
-                    Padding="14">
+                    Padding="16,14">
 
-                    <Grid
-                        ColumnDefinitions="*,Auto"
-                        RowDefinitions="Auto,Auto,Auto"
-                        RowSpacing="5">
+                    <VerticalStackLayout Spacing="8">
 
-                        <Label
-                            Text="Odabrane usluge"
-                            FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                        <Grid ColumnDefinitions="*,Auto">
 
-                        <Label
-                            Grid.Column="1"
-                            Text="{Binding SelectedServiceCount}"
-                            FontSize="13"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            <Label
+                                Text="Odabrane usluge"
+                                FontSize="13"
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                Opacity="0.8" />
 
-                        <Label
-                            Grid.Row="1"
-                            Text="Trajanje"
-                            FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding SelectedServiceCount}"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextOnBrandBackground}" />
 
-                        <Label
-                            Grid.Row="1"
-                            Grid.Column="1"
-                            Text="{Binding TotalDurationMinutes, StringFormat='{}{0} min'}"
-                            FontSize="13"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                        </Grid>
 
-                        <Label
-                            Grid.Row="2"
-                            Text="Ukupna cijena"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                        <Grid ColumnDefinitions="*,Auto">
 
-                        <Label
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            Text="{Binding TotalPrice, StringFormat='{}{0:0.00} KM'}"
-                            FontSize="17"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource AccentDark}" />
+                            <Label
+                                Text="Trajanje"
+                                FontSize="13"
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                Opacity="0.8" />
 
-                    </Grid>
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding TotalDurationMinutes, StringFormat='{}{0} min'}"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextOnBrandBackground}" />
+
+                        </Grid>
+
+                        <BoxView
+                            HeightRequest="0.8"
+                            Color="{StaticResource PanelBorder}"
+                            Margin="0,2" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+
+                            <Label
+                                Text="Ukupna cijena"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding TotalPrice, StringFormat='{}{0:0.00} KM'}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandButton}"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </VerticalStackLayout>
 
                 </Border>
 
@@ -257,7 +303,8 @@
                             Padding="0"
                             FontSize="24"
                             BackgroundColor="{StaticResource BrandButton}"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource BrandBackground}"
+                            FontAttributes="Bold"
                             CornerRadius="12" />
 
                         <Label
@@ -278,7 +325,8 @@
                             Padding="0"
                             FontSize="24"
                             BackgroundColor="{StaticResource BrandButton}"
-                            TextColor="{StaticResource TextPrimary}"
+                            TextColor="{StaticResource BrandBackground}"
+                            FontAttributes="Bold"
                             CornerRadius="12" />
 
                     </Grid>
@@ -356,8 +404,9 @@
                                 <Border
                                     Padding="0"
                                     StrokeThickness="1"
-                                    Stroke="{StaticResource Border}"
-                                    StrokeShape="RoundRectangle 12">
+                                    Stroke="{StaticResource PanelBorder}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource QuickBookingPanelBackground}">
 
                                     <Border.Triggers>
 
@@ -368,11 +417,11 @@
 
                                             <Setter
                                                 Property="BackgroundColor"
-                                                Value="{StaticResource Accent}" />
+                                                Value="{StaticResource BrandButton}" />
 
                                             <Setter
                                                 Property="Stroke"
-                                                Value="{StaticResource Accent}" />
+                                                Value="{StaticResource BrandButton}" />
 
                                         </DataTrigger>
 
@@ -383,11 +432,11 @@
 
                                             <Setter
                                                 Property="Opacity"
-                                                Value="0.5" />
+                                                Value="0.35" />
 
                                             <Setter
                                                 Property="BackgroundColor"
-                                                Value="{StaticResource SurfaceSecondary}" />
+                                                Value="Transparent" />
 
                                         </DataTrigger>
 
@@ -398,11 +447,28 @@
                                         Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.SelectDateCommand}"
                                         CommandParameter="{Binding .}"
                                         HeightRequest="42"
-                                        BackgroundColor="{StaticResource BrandButton}"
-                                        TextColor="{StaticResource TextPrimary}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{StaticResource TextOnBrandBackground}"
                                         FontAttributes="Bold"
                                         IsEnabled="{Binding IsSelectable}"
-                                        Padding="0" />
+                                        Padding="0">
+
+                                        <Button.Triggers>
+
+                                            <DataTrigger
+                                                TargetType="Button"
+                                                Binding="{Binding IsSelected}"
+                                                Value="True">
+
+                                                <Setter
+                                                    Property="TextColor"
+                                                    Value="{StaticResource BrandBackground}" />
+
+                                            </DataTrigger>
+
+                                        </Button.Triggers>
+
+                                    </Button>
 
                                 </Border>
 
@@ -437,26 +503,21 @@
                                 <DataTemplate
                                     x:DataType="bookingResponses:AvailableTimeSlotResponse">
 
-                                    <Border
-                                        BackgroundColor="{StaticResource Surface}"
-                                        Stroke="{StaticResource Border}"
-                                        StrokeThickness="1"
-                                        StrokeShape="RoundRectangle 12"
+                                    <Button
+                                        Text="{Binding StartsAt, StringFormat='{}{0:HH:mm}'}"
+                                        Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.CreateHoldCommand}"
+                                        CommandParameter="{Binding .}"
+                                        HeightRequest="44"
+                                        WidthRequest="76"
                                         Padding="0"
-                                        Margin="0,0,8,8">
-
-                                        <Button
-                                            Text="{Binding StartsAt, StringFormat='{}{0:HH:mm}'}"
-                                            Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.CreateHoldCommand}"
-                                            CommandParameter="{Binding .}"
-                                            HeightRequest="44"
-                                            Padding="14,10"
-                                            BackgroundColor="{StaticResource BrandButton}"
-                                            TextColor="{StaticResource TextPrimary}"
-                                            FontSize="15"
-                                            FontAttributes="Bold" />
-
-                                    </Border>
+                                        Margin="0,0,8,8"
+                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                        BorderColor="{StaticResource PanelBorder}"
+                                        BorderWidth="1"
+                                        TextColor="{StaticResource TextOnBrandBackground}"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        CornerRadius="12" />
 
                                 </DataTemplate>
 
@@ -470,8 +531,9 @@
                     <!-- NO AVAILABLE TIMES -->
 
                     <Border
-                        BackgroundColor="{StaticResource SurfaceSecondary}"
-                        StrokeThickness="0"
+                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                        Stroke="{StaticResource PanelBorder}"
+                        StrokeThickness="0.8"
                         StrokeShape="RoundRectangle 14"
                         Padding="14"
                         IsVisible="{Binding HasNoAvailability}">
@@ -483,12 +545,13 @@
                                 Text="Nema slobodnih termina"
                                 FontSize="16"
                                 FontAttributes="Bold"
-                                TextColor="{StaticResource TextPrimary}" />
+                                TextColor="{StaticResource TextOnBrandBackground}" />
 
                             <Label
                                 Text="Za odabrane usluge nema slobodnih termina na odabrani datum. Molimo odaberite drugi datum."
                                 FontSize="13"
-                                TextColor="{StaticResource TextSecondary}" />
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                Opacity="0.8" />
 
                         </VerticalStackLayout>
 
@@ -517,8 +580,9 @@
 
             <Border
                 VerticalOptions="End"
-                BackgroundColor="{StaticResource Surface}"
-                StrokeThickness="0"
+                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                Stroke="{StaticResource PanelBorder}"
+                StrokeThickness="1"
                 StrokeShape="RoundRectangle 24,24,0,0"
                 Padding="20,22,20,24">
 
@@ -530,18 +594,19 @@
                         WidthRequest="42"
                         CornerRadius="2"
                         HorizontalOptions="Center"
-                        Color="{StaticResource Border}" />
+                        Color="{StaticResource PanelBorder}" />
 
                     <Label
                         Text="Potvrda termina"
                         FontSize="23"
                         FontAttributes="Bold"
-                        TextColor="{StaticResource TextPrimary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}" />
 
                     <Label
                         Text="Termin je privremeno zadržan. Potvrdite rezervaciju ili odustanite."
                         FontSize="14"
-                        TextColor="{StaticResource TextSecondary}" />
+                        TextColor="{StaticResource TextOnBrandBackground}"
+                        Opacity="0.8" />
 
                     <!-- EMPLOYEE -->
 
@@ -553,7 +618,8 @@
                         <Label
                             Text="Zaposlenik"
                             FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.7" />
 
                         <Label
                             Grid.Row="0"
@@ -561,13 +627,14 @@
                             Text="{Binding HoldEmployeeName}"
                             FontSize="14"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Row="1"
                             Text="Datum"
                             FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.7" />
 
                         <Label
                             Grid.Row="1"
@@ -575,13 +642,14 @@
                             Text="{Binding HoldStartsAtLocal, StringFormat='{}{0:dd.MM.yyyy.}'}"
                             FontSize="14"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Row="2"
                             Text="Vrijeme"
                             FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.7" />
 
                         <Label
                             Grid.Row="2"
@@ -589,13 +657,14 @@
                             Text="{Binding HoldStartsAtLocal, StringFormat='{}{0:HH:mm}'}"
                             FontSize="14"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                         <Label
                             Grid.Row="3"
                             Text="Trajanje"
                             FontSize="13"
-                            TextColor="{StaticResource TextSecondary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.7" />
 
                         <Label
                             Grid.Row="3"
@@ -603,7 +672,7 @@
                             Text="{Binding BookingHold.TotalDurationMinutes, StringFormat='{}{0} min'}"
                             FontSize="14"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource TextPrimary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}" />
 
                     </Grid>
 
@@ -611,8 +680,9 @@
                     <!-- PRICE -->
 
                     <Border
-                        BackgroundColor="{StaticResource SurfaceSecondary}"
-                        StrokeThickness="0"
+                        BackgroundColor="{StaticResource BrandBackground}"
+                        Stroke="{StaticResource PanelBorder}"
+                        StrokeThickness="0.8"
                         StrokeShape="RoundRectangle 14"
                         Padding="14">
 
@@ -623,14 +693,16 @@
                                 Text="Ukupna cijena"
                                 FontSize="14"
                                 FontAttributes="Bold"
-                                TextColor="{StaticResource TextPrimary}" />
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                VerticalOptions="Center" />
 
                             <Label
                                 Grid.Column="1"
                                 Text="{Binding BookingHold.TotalPrice, StringFormat='{}{0:0.00} KM'}"
                                 FontSize="18"
                                 FontAttributes="Bold"
-                                TextColor="{StaticResource AccentDark}" />
+                                TextColor="{StaticResource BrandButton}"
+                                VerticalOptions="Center" />
 
                         </Grid>
 
@@ -645,13 +717,14 @@
                         <Label
                             Text="Hold ističe"
                             FontSize="12"
-                            TextColor="{StaticResource TextSecondary}" />
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.7" />
 
                         <Label
                             Text="{Binding HoldExpiresAtLocal, StringFormat='{}{0:HH:mm}'}"
                             FontSize="16"
                             FontAttributes="Bold"
-                            TextColor="{StaticResource AccentDark}" />
+                            TextColor="{StaticResource BrandButton}" />
 
                     </VerticalStackLayout>
 
@@ -667,19 +740,21 @@
                             Command="{Binding CancelHoldCommand}"
                             HeightRequest="52"
                             CornerRadius="14"
-                            BackgroundColor="{StaticResource BrandButton}"
-                            TextColor="{StaticResource TextPrimary}"
+                            BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                            BorderColor="{StaticResource PanelBorder}"
+                            BorderWidth="1"
+                            TextColor="{StaticResource TextOnBrandBackground}"
                             FontAttributes="Bold" />
 
                         <Button
-            Grid.Column="1"
-            Text="POTVRDI REZERVACIJU"
-            Command="{Binding ConfirmBookingCommand}"
-            HeightRequest="52"
-            CornerRadius="14"
-            BackgroundColor="{StaticResource BrandButton}"
-            TextColor="{StaticResource BrandBackground}"
-            FontAttributes="Bold" />
+                            Grid.Column="1"
+                            Text="POTVRDI REZERVACIJU"
+                            Command="{Binding ConfirmBookingCommand}"
+                            HeightRequest="52"
+                            CornerRadius="14"
+                            BackgroundColor="{StaticResource BrandButton}"
+                            TextColor="{StaticResource BrandBackground}"
+                            FontAttributes="Bold" />
 
                     </Grid>     
 

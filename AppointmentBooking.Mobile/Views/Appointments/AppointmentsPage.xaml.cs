@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.Bookings.Responses;
+using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.ViewModels.Appointment;
 using System;
 using System.Collections.Generic;
@@ -126,15 +126,15 @@ namespace AppointmentBooking.Mobile.Views.Appointments
             bool cancelledSelected = tab == "cancelled";
 
             UpcomingTab.BackgroundColor = upcomingSelected
-                ? GetResourceColor("Primary")
+                ? GetResourceColor("BrandButton")
                 : Colors.Transparent;
 
             PreviousTab.BackgroundColor = previousSelected
-                ? GetResourceColor("Primary")
+                ? GetResourceColor("BrandButton")
                 : Colors.Transparent;
 
             CancelledTab.BackgroundColor = cancelledSelected
-                ? GetResourceColor("Primary")
+                ? GetResourceColor("BrandButton")
                 : Colors.Transparent;
 
             SetTabTextColor(UpcomingTab, upcomingSelected);
@@ -147,8 +147,9 @@ namespace AppointmentBooking.Mobile.Views.Appointments
             if (tab.Content is Label label)
             {
                 label.TextColor = selected
-                    ? Colors.White
-                    : GetResourceColor("TextSecondary");
+                    ? GetResourceColor("BrandBackground")
+                    : GetResourceColor("TextOnBrandBackground");
+                label.Opacity = selected ? 1.0 : 0.7;
             }
         }
 

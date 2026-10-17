@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Configuration;
+using AppointmentBooking.Mobile.Configuration;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.BookingCalendar;
 using AppointmentBooking.Mobile.Services.Authentication;
@@ -117,7 +117,7 @@ public static class MauiProgram
                             IOptions<ApiOptions>>()
                         .Value;
 
-                HttpClientHandler handler =
+                HttpMessageHandler handler =
                     CreateHttpClientHandler();
 
                 HttpClient httpClient =
@@ -140,7 +140,7 @@ public static class MauiProgram
                             IOptions<ApiOptions>>()
                         .Value;
 
-                HttpClientHandler innerHandler =
+                HttpMessageHandler innerHandler =
                     CreateHttpClientHandler();
 
                 BearerTokenHandler authHandler =
@@ -169,14 +169,12 @@ public static class MauiProgram
         return builder.Build();
     }
 
-    private static HttpClientHandler CreateHttpClientHandler()
+    private static HttpMessageHandler CreateHttpClientHandler()
     {
-        HttpClientHandler handler = new();
-
-#if DEBUG
-        if (DeviceInfo.Platform == DevicePlatform.Android)
+#if ANDROID && DEBUG
+        Xamarin.Android.Net.AndroidMessageHandler handler = new()
         {
-            handler.ServerCertificateCustomValidationCallback =
+            ServerCertificateCustomValidationCallback =
                 (_, certificate, _, errors) =>
                 {
                     if (certificate is not null &&
@@ -188,10 +186,14 @@ public static class MauiProgram
                     }
 
                     return errors == SslPolicyErrors.None;
-                };
-        }
-#endif
+                }
+        };
 
         return handler;
+#elif ANDROID
+        return new Xamarin.Android.Net.AndroidMessageHandler();
+#else
+        return new HttpClientHandler();
+#endif
     }
 }

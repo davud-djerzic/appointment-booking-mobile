@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.Bookings.Responses;
+using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
 using AppointmentBooking.Mobile.Models.Bookings.Requests;
 using AppointmentBooking.Mobile.Models.Enums;
@@ -152,22 +152,22 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         public Color UpcomingSegmentBackground =>
             IsShowingPassedToday
                 ? Colors.Transparent
-                : GetResourceColor("Primary");
+                : GetResourceColor("BrandButton");
 
         public Color PassedSegmentBackground =>
             IsShowingPassedToday
-                ? GetResourceColor("Primary")
+                ? GetResourceColor("BrandButton")
                 : Colors.Transparent;
 
         public Color UpcomingSegmentTextColor =>
             IsShowingPassedToday
-                ? GetResourceColor("TextSecondary")
-                : GetResourceColor("TextOnPrimary");
+                ? GetResourceColor("TextOnBrandBackground")
+                : GetResourceColor("BrandBackground");
 
         public Color PassedSegmentTextColor =>
             IsShowingPassedToday
-                ? GetResourceColor("TextOnPrimary")
-                : GetResourceColor("TextSecondary");
+                ? GetResourceColor("BrandBackground")
+                : GetResourceColor("TextOnBrandBackground");
 
         public string SelectedDateTitle => SelectedDate.ToString(
             "dddd",
