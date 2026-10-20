@@ -59,7 +59,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
         private async void OnLogoutClicked(object? sender, EventArgs e)
         {
             bool confirmed =
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Odjava",
                     "Da li ste sigurni da se želite odjaviti?",
                     "Odjavi se",

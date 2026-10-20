@@ -243,7 +243,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
                     if (BookingEmployees.Count == 0)
                     {
-                        await Shell.Current.DisplayAlertAsync(
+                        await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                             "Nema zaposlenika",
                             "Nema aktivnih zaposlenika za koje možete dodati termin.",
                             "U redu");
@@ -400,7 +400,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 !int.TryParse(TimeSelectorMinute, NumberStyles.None, CultureInfo.InvariantCulture, out int minute) ||
                 hour is < 0 or > 23 || minute is < 0 or > 59)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Neispravno vrijeme",
                     "Unesite sat od 00 do 23 i minute od 00 do 59.",
                     "U redu");

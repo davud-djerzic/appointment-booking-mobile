@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.Auth;
+using AppointmentBooking.Mobile.Models.Auth;
 using AppointmentBooking.Mobile.Services.Authentication;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -55,7 +55,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             string.IsNullOrWhiteSpace(Password) ||
             string.IsNullOrWhiteSpace(ConfirmPassword))
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Registracija",
                     "Popunite sva polja.",
                     "OK");
@@ -65,7 +65,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
             if (!string.Equals(Password, ConfirmPassword, StringComparison.Ordinal))
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Registracija",
                     "Lozinke se ne podudaraju.",
                     "OK");
@@ -89,7 +89,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
                 if (!result.IsSuccess)
                 {
-                    await Shell.Current.DisplayAlertAsync(
+                    await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                         "Registracija nije uspjela",
                         result.ErrorMessage
                             ?? "Registracija nije uspjela.",
@@ -104,7 +104,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             }
             catch (HttpRequestException)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Greška mreže",
                     "Nije moguće povezati se sa serverom.",
                     "OK");

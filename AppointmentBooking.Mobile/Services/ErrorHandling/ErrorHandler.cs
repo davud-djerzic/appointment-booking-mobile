@@ -18,7 +18,7 @@ namespace AppointmentBooking.Mobile.Services.ErrorHandling
             string message = GetUserMessage(exception);
 
             await MainThread.InvokeOnMainThreadAsync(
-                () => Shell.Current.DisplayAlertAsync(
+                () => AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Greška",
                     message,
                     "U redu"));

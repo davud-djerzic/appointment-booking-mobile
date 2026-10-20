@@ -23,7 +23,6 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
-
     [RelayCommand]
     private async Task LoginAsync()
     {
@@ -33,10 +32,10 @@ public partial class LoginViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(Email) ||
             string.IsNullOrWhiteSpace(Password))
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Prijava",
                 "Unesite email i lozinku.",
-                "OK");
+                "U redu");
 
             return;
         }
@@ -60,7 +59,7 @@ public partial class LoginViewModel : ObservableObject
 
             if (!result.IsSuccess)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Prijava nije uspjela",
                     result.ErrorMessage ?? "Prijava nije uspjela.",
                     "OK");
@@ -70,14 +69,14 @@ public partial class LoginViewModel : ObservableObject
         }
         catch (HttpRequestException)
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Greška mreže",
                 "Nije moguće povezati se sa serverom.",
                 "OK");
         }
         catch (Exception)
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Greška",
                 "Prijava trenutno nije moguća. Pokušajte ponovo.",
                 "OK");
@@ -102,4 +101,5 @@ public partial class LoginViewModel : ObservableObject
         Email = string.Empty;
         Password = string.Empty;
     }
+
 }

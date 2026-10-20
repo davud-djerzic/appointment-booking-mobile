@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.Profile.Requests;
+using AppointmentBooking.Mobile.Models.Profile.Requests;
 using AppointmentBooking.Mobile.Models.Profile.Responses;
 using AppointmentBooking.Mobile.Models.Salons.Responses;
 using AppointmentBooking.Mobile.Services.Api;
@@ -212,7 +212,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
             if (!hasChanges)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Nema izmjena",
                     "Niste promijenili nijedan podatak.",
                     "U redu");
@@ -248,7 +248,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
                 IsEditing = false;
 
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Profil ažuriran",
                     "Vaši podaci su uspješno ažurirani.",
                     "U redu");
@@ -285,7 +285,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
         private async Task LogoutAsync()
         {
             bool confirmed =
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Odjava",
                     "Da li ste sigurni da se želite odjaviti?",
                     "Odjavi se",

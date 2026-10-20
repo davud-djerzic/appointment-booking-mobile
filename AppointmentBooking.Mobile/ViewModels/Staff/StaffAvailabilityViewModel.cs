@@ -208,7 +208,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             !int.TryParse(TimeSelectorMinute, NumberStyles.None, CultureInfo.InvariantCulture, out int minute) ||
             hour is < 0 or > 23 || minute is < 0 or > 59)
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Neispravno vrijeme",
                 "Unesite sat od 00 do 23 i minute od 00 do 59.",
                 "U redu");
@@ -343,20 +343,20 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
         if (SelectedWorkingDay is null)
         {
-            await Shell.Current.DisplayAlertAsync("Provjera unosa", "Odaberite dan u sedmici.", "U redu");
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync("Provjera unosa", "Odaberite dan u sedmici.", "U redu");
             return;
         }
 
         if (RecurringBreakEndsAt <= RecurringBreakStartsAt)
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Provjera unosa",
                 "Vrijeme završetka pauze mora biti nakon vremena početka.",
                 "U redu");
             return;
         }
 
-        bool confirmed = await Shell.Current.DisplayAlertAsync(
+        bool confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
             "Stalna sedmična pauza",
             $"Pauza {SelectedWorkingDay.Label.ToLowerInvariant()}, " +
             $"{RecurringBreakStartsAt:hh\\:mm}–{RecurringBreakEndsAt:hh\\:mm}, " +
@@ -404,7 +404,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             }
 
             OnPropertyChanged(nameof(HasWorkingHours));
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Radno vrijeme ažurirano",
                 "Pauza je postavljena za svaku sedmicu. Raspored je odmah ažuriran.",
                 "U redu");
@@ -495,9 +495,9 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
         if (!TryBuildRequest(out SetEmployeeUnavailabilityRequest? request, out string? validationMessage))
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Provjera unosa",
-                validationMessage,
+                validationMessage ?? "Unos nije ispravan.",
                 "U redu");
             return;
         }
@@ -555,7 +555,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             return;
         }
 
-        bool confirmed = await Shell.Current.DisplayAlertAsync(
+        bool confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
             "Obriši odsustvo",
             $"Želite li obrisati: {block.TypeLabel.ToLowerInvariant()}?",
             "Obriši",

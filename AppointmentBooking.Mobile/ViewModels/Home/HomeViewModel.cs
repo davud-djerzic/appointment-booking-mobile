@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.BookableServices;
+using AppointmentBooking.Mobile.Models.BookableServices;
 using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Bookings.Requests;
 using AppointmentBooking.Mobile.Models.Bookings.Responses;
@@ -227,7 +227,7 @@ public partial class HomeViewModel : ObservableObject
             IsAvailabilityModalVisible = false;
 
             await MainThread.InvokeOnMainThreadAsync(
-                () => Shell.Current.DisplayAlertAsync(
+                () => AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Termin je upravo zauzet",
                     "Drugi korisnik je u međuvremenu rezervisao ovaj termin. Molimo odaberite drugi termin.",
                     "U redu"));

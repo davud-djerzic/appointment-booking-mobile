@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.Authentication;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -108,7 +108,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
                 IsCodeStep = true;
 
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Kod poslan",
                     "Provjerite email adresu. Poslali smo vam šestocifreni kod za potvrdu.",
                     "U redu");
@@ -121,7 +121,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             }
             catch (HttpRequestException)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Greška mreže",
                     "Nije moguće povezati se sa serverom.",
                     "U redu");
@@ -157,7 +157,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             }
             catch (HttpRequestException)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Greška mreže",
                     "Nije moguće povezati se sa serverom.",
                     "U redu");
@@ -176,7 +176,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
             if (NewPassword != ConfirmPassword)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Nova lozinka",
                     "Lozinke se ne podudaraju.",
                     "U redu");
@@ -197,7 +197,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
                 NewPassword = string.Empty;
                 ConfirmPassword = string.Empty;
 
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Lozinka promijenjena",
                     "Vaša lozinka je uspješno promijenjena. Sada se možete prijaviti sa novom lozinkom.",
                     "U redu");
@@ -212,7 +212,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             }
             catch (HttpRequestException)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Greška mreže",
                     "Nije moguće povezati se sa serverom.",
                     "U redu");
@@ -271,7 +271,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
                 _ => fallbackMessage
             };
 
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Promjena lozinke",
                 message,
                 "U redu");

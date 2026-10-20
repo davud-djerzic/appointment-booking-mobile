@@ -23,6 +23,9 @@ using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Security;
+#if ANDROID
+using AppointmentBooking.Mobile.Platforms.Android;
+#endif
 
 namespace AppointmentBooking.Mobile;
 
@@ -40,6 +43,13 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+#if ANDROID
+        builder.ConfigureMauiHandlers(handlers =>
+        {
+            handlers.AddHandler<Shell, CustomShellRenderer>();
+        });
+#endif
 
         // Pages / ViewModels
         builder.Services.AddTransient<LoginPage>();

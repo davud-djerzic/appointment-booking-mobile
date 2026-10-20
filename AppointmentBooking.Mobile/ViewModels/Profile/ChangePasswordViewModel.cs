@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.Profile.Requests;
+using AppointmentBooking.Mobile.Models.Profile.Requests;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
@@ -40,7 +40,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                 string.IsNullOrWhiteSpace(NewPassword) ||
                 string.IsNullOrWhiteSpace(ConfirmPassword))
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Promjena lozinke",
                     "Molimo popunite sva polja.",
                     "U redu");
@@ -50,7 +50,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
             if (NewPassword.Length < 8 || NewPassword.Length > 100)
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Neispravna lozinka",
                     "Nova lozinka mora sadržavati između 8 i 100 znakova.",
                     "U redu");
@@ -63,7 +63,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                     ConfirmPassword,
                     StringComparison.Ordinal))
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Neispravna lozinka",
                     "Lozinke se ne podudaraju.",
                     "U redu");
@@ -76,7 +76,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                     NewPassword,
                     StringComparison.Ordinal))
             {
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Promjena lozinke",
                     "Nije moguće promijeniti lozinku. Pokušajte ponovo.",
                     "U redu");
@@ -100,7 +100,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                 NewPassword = string.Empty;
                 ConfirmPassword = string.Empty;
 
-                await Shell.Current.DisplayAlertAsync(
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Lozinka promijenjena",
                     "Vaša lozinka je uspješno promijenjena.",
                     "U redu");

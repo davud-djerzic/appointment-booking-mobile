@@ -1,4 +1,4 @@
-﻿using AppointmentBooking.Mobile.Models.BookableServices;
+using AppointmentBooking.Mobile.Models.BookableServices;
 using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
@@ -293,7 +293,7 @@ public partial class BookingViewModel : ObservableObject
 
         if (serviceIds.Length == 0)
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Odaberite uslugu",
                 "Prije odabira datuma morate odabrati najmanje jednu uslugu.",
                 "U redu");
@@ -391,7 +391,7 @@ public partial class BookingViewModel : ObservableObject
 
         if (serviceIds.Length == 0)
         {
-            await Shell.Current.DisplayAlertAsync(
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Odaberite uslugu",
                 "Morate odabrati najmanje jednu uslugu.",
                 "U redu");
@@ -434,7 +434,7 @@ public partial class BookingViewModel : ObservableObject
         catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
         {
             await MainThread.InvokeOnMainThreadAsync(
-                () => Shell.Current.DisplayAlertAsync(
+                () => AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Termin je upravo zauzet",
                     "Drugi korisnik je u međuvremenu rezervisao ovaj termin. Molimo odaberite drugi termin.",
                     "U redu"));

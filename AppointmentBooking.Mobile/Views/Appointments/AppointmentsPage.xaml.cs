@@ -78,7 +78,7 @@ namespace AppointmentBooking.Mobile.Views.Appointments
                 return;
             }
 
-            bool confirmed = await DisplayAlertAsync(
+            bool confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Otkazivanje termina",
                 "Da li ste sigurni da želite otkazati ovaj termin?",
                 "Da, otkaži",

@@ -114,31 +114,36 @@ public partial class AppShell : Shell
         homeTab = new Tab
         {
             Title = "Početna",
-            Route = "home-tab"
+            Route = "home-tab",
+            Icon = "nav_home.svg"
         };
 
         bookingTab = new Tab
         {
             Title = "Rezerviši",
-            Route = "booking-tab"
+            Route = "booking-tab",
+            Icon = "nav_booking.svg"
         };
 
         appointmentsTab = new Tab
         {
             Title = "Termini",
-            Route = "appointments-tab"
+            Route = "appointments-tab",
+            Icon = "nav_appointments.svg"
         };
 
         galleryTab = new Tab
         {
             Title = "Galerija",
-            Route = "gallery-tab"
+            Route = "gallery-tab",
+            Icon = "nav_gallery.svg"
         };
 
         profileTab = new Tab
         {
             Title = "Profil",
-            Route = "profile-tab"
+            Route = "profile-tab",
+            Icon = "nav_profile.svg"
         };
 
         homeTab.Items.Add(homeItem);
@@ -182,13 +187,15 @@ public partial class AppShell : Shell
         staffAppointmentsTab = new Tab
         {
             Title = "Termini",
-            Route = "staff-appointments-tab"
+            Route = "staff-appointments-tab",
+            Icon = "nav_appointments.svg"
         };
 
         staffPanelTab = new Tab
         {
             Title = "Panel",
-            Route = "staff-panel-tab"
+            Route = "staff-panel-tab",
+            Icon = "nav_panel.svg"
         };
 
         staffAppointmentsTab.Items.Add(
