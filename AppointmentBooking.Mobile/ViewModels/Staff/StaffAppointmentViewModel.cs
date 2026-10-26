@@ -7,10 +7,15 @@ using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Employees.Responses;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.BookingCalendar;
+using AppointmentBooking.Mobile.Services.BookingCatalog;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
+using AppointmentBooking.Mobile.Views.Shared;
+using AppointmentBooking.Mobile.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,6 +30,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private readonly IErrorHandler errorHandler;
         private readonly ISessionService sessionService;
         private readonly IBookingCalendarService bookingCalendarService;
+        private readonly IBookingCatalogService bookingCatalogService;
+        private readonly StaffAvailabilityViewModel availabilityViewModel;
 
         [ObservableProperty]
         private bool isLoading;
@@ -72,6 +79,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private BookableEmployeeResponse? selectedBookingEmployee;
 
         private bool wasStaffBookingCreated;
+        private bool adminBookingDataLoaded;
+        private bool bookingServicesLoaded;
+        private long? bookingServicesEmployeeId;
 
         private bool selectNextWorkingDayOnLoad;
         private long? calendarEmployeeId;
@@ -83,8 +93,6 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         public ObservableCollection<EmployeeBookingSummaryResponse> CancelledAppointments { get; } = [];
 
-        public ObservableCollection<BookableEmployeeResponse> BookingEmployees { get; } = [];
-
         public ObservableCollection<ServiceSelectionItem> BookingServices { get; } = [];
 
         public bool IsAdmin => string.Equals(
@@ -95,6 +103,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         public bool IsEmployee => !IsAdmin;
 
         public DateTime StaffBookingToday => DateTime.Today;
+        public string StaffBookingDateDisplay => StaffBookingDate.ToString(
+            "d. MMMM yyyy.",
+            CultureInfo.GetCultureInfo("bs-BA"));
 
         public string StaffBookingTimeDisplay => StaffBookingTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
 
@@ -182,12 +193,16 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             IApiClient apiClient,
             IErrorHandler errorHandler,
             ISessionService sessionService,
-            IBookingCalendarService bookingCalendarService)
+            IBookingCalendarService bookingCalendarService,
+            IBookingCatalogService bookingCatalogService,
+            StaffAvailabilityViewModel availabilityViewModel)
         {
             this.apiClient = apiClient;
             this.errorHandler = errorHandler;
             this.sessionService = sessionService;
             this.bookingCalendarService = bookingCalendarService;
+            this.bookingCatalogService = bookingCatalogService;
+            this.availabilityViewModel = availabilityViewModel;
         }
 
         partial void OnCustomerFirstNameChanged(string value) =>
@@ -196,8 +211,11 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         partial void OnCustomerLastNameChanged(string value) =>
             OnPropertyChanged(nameof(CanCreateStaffBooking));
 
-        partial void OnStaffBookingDateChanged(DateTime value) =>
+        partial void OnStaffBookingDateChanged(DateTime value)
+        {
             OnPropertyChanged(nameof(CanCreateStaffBooking));
+            OnPropertyChanged(nameof(StaffBookingDateDisplay));
+        }
 
         partial void OnStaffBookingTimeChanged(TimeSpan value)
         {
@@ -226,47 +244,43 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 StaffBookingDate = DateTime.Today;
                 StaffBookingTime = new TimeSpan(16, 0, 0);
                 StaffBookingNotes = string.Empty;
-                SelectedBookingEmployee = null;
-                BookingEmployees.Clear();
-                ClearBookingServices();
 
                 if (IsAdmin)
                 {
-                    PagedResponse<BookableEmployeeResponse>? response =
-                        await apiClient.GetAsync<PagedResponse<BookableEmployeeResponse>>(
-                            "api/employees?isActive=true&page=1&pageSize=100");
-
-                    foreach (BookableEmployeeResponse employee in response?.Items ?? [])
-                    {
-                        BookingEmployees.Add(employee);
-                    }
-
-                    if (BookingEmployees.Count == 0)
-                    {
-                        await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
-                            "Nema zaposlenika",
-                            "Nema aktivnih zaposlenika za koje možete dodati termin.",
-                            "U redu");
-                        return false;
-                    }
-
-                    return true;
+                    await EnsureAdminBookingDataLoadedAsync();
                 }
-
-                BookableEmployeeResponse? currentEmployee =
-                    await apiClient.GetAsync<BookableEmployeeResponse>(
-                        "api/employees/me");
-
-                if (currentEmployee is null)
+                else if (SelectedBookingEmployee is null)
                 {
-                    throw new InvalidOperationException(
-                        "API nije vratio profil zaposlenika.");
+                    BookableEmployeeResponse? currentEmployee =
+                        await apiClient.GetAsync<BookableEmployeeResponse>(
+                            "api/employees/me");
+
+                    if (currentEmployee is null)
+                    {
+                        throw new InvalidOperationException(
+                            "API nije vratio profil zaposlenika.");
+                    }
+
+                    SelectedBookingEmployee = currentEmployee;
                 }
 
-                BookingEmployees.Add(currentEmployee);
-                SelectedBookingEmployee = currentEmployee;
+                if (SelectedBookingEmployee is null)
+                {
+                    await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                        "Nema zaposlenika",
+                        "Nema aktivnog zaposlenika za kojeg možete dodati termin.",
+                        "U redu");
+                    return false;
+                }
+
                 await LoadServicesForSelectedEmployeeAsync();
-                return BookingServices.Count > 0;
+
+                foreach (ServiceSelectionItem service in BookingServices)
+                {
+                    service.IsSelected = false;
+                }
+
+                return IsAdmin || BookingServices.Count > 0;
             }
             catch (Exception ex)
             {
@@ -281,14 +295,18 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         public async Task LoadServicesForSelectedEmployeeAsync()
         {
-            ClearBookingServices();
-
             if (SelectedBookingEmployee is null)
             {
                 return;
             }
 
             long employeeId = SelectedBookingEmployee.Id;
+            if (bookingServicesLoaded && bookingServicesEmployeeId == employeeId)
+            {
+                return;
+            }
+
+            ClearBookingServices();
 
             try
             {
@@ -314,6 +332,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                     BookingServices.Add(item);
                 }
 
+                bookingServicesEmployeeId = employeeId;
+                bookingServicesLoaded = true;
                 NotifyBookingServiceSelectionChanged();
             }
             catch (Exception ex)
@@ -338,7 +358,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 DateTime localStart = CreateLocalStaffBookingStart();
                 DateTimeOffset startsAt = new(
                     localStart,
-                    TimeZoneInfo.Local.GetUtcOffset(localStart));
+                    SalonTimeZone.Info.GetUtcOffset(localStart));
 
                 CreateStaffBookingRequest request = new(
                     CustomerFirstName.Trim(),
@@ -462,6 +482,23 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             IsShowingPassedToday = false;
         }
 
+        public void ResetCachedData()
+        {
+            adminBookingDataLoaded = false;
+            bookingServicesLoaded = false;
+            bookingServicesEmployeeId = null;
+            calendarEmployeeId = null;
+            workingDates.Clear();
+            SelectedBookingEmployee = null;
+            ClearBookingServices();
+            Appointments.Clear();
+            VisibleAppointments.Clear();
+            CancelledAppointments.Clear();
+            OnPropertyChanged(nameof(HasAppointments));
+            OnPropertyChanged(nameof(HasCancelledAppointments));
+            OnPropertyChanged(nameof(CancelledAppointmentsTitle));
+        }
+
         partial void OnIsShowingPassedTodayChanged(bool value)
         {
             OnPropertyChanged(nameof(UpcomingSegmentBackground));
@@ -479,6 +516,11 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             try
             {
                 IsLoading = true;
+
+                if (IsAdmin)
+                {
+                    await EnsureAdminBookingDataLoadedAsync();
+                }
 
                 await EnsureStaffWorkingDatesAsync();
 
@@ -596,15 +638,27 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 return;
             }
 
-            string? cancellationChoice = await Shell.Current.DisplayActionSheetAsync(
-                $"Otkaži termin {booking.TimeRange}",
-                "Nazad",
-                null,
-                "Otkaži bez pauze",
-                "Otkaži i napravi pauzu");
+            Page? currentPage = Shell.Current?.CurrentPage;
+            if (currentPage is null)
+            {
+                return;
+            }
 
-            if (cancellationChoice is not "Otkaži bez pauze" and
-                not "Otkaži i napravi pauzu")
+            var choiceResult = await currentPage.ShowPopupAsync<StaffBookingCancellationChoice?>(
+                new CancelStaffBookingPopup(booking.TimeRange),
+                new CommunityToolkit.Maui.PopupOptions
+                {
+                    PageOverlayColor = Color.FromArgb("#99000000"),
+                    Shape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
+                    {
+                        CornerRadius = 24,
+                        Fill = Color.FromArgb("#14264A"),
+                        Stroke = Colors.Transparent,
+                        StrokeThickness = 0
+                    }
+                });
+
+            if (choiceResult.Result is not StaffBookingCancellationChoice cancellationChoice)
             {
                 return;
             }
@@ -612,9 +666,14 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             try
             {
                 await apiClient.PostAsync<object?>(
-                    cancellationChoice == "Otkaži bez pauze"
+                    cancellationChoice == StaffBookingCancellationChoice.CancelWithoutBreak
                         ? $"api/bookings/{booking.Id}/cancel"
                         : $"api/bookings/{booking.Id}/cancel-and-block");
+
+                if (cancellationChoice == StaffBookingCancellationChoice.CancelAndCreateBreak)
+                {
+                    await availabilityViewModel.LoadBlocksCommand.ExecuteAsync(null);
+                }
 
                 await LoadAppointmentsCommand.ExecuteAsync(null);
             }
@@ -717,10 +776,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                     BookableEmployeeResponse? employee;
                     if (IsAdmin)
                     {
-                        PagedResponse<BookableEmployeeResponse>? employees =
-                            await apiClient.GetAsync<PagedResponse<BookableEmployeeResponse>>(
-                                "api/employees?isActive=true&page=1&pageSize=100");
-                        employee = employees?.Items?.FirstOrDefault();
+                        await EnsureAdminBookingDataLoadedAsync();
+                        employee = SelectedBookingEmployee;
                     }
                     else
                     {
@@ -745,6 +802,66 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             {
                 await errorHandler.HandleAsync(ex);
             }
+        }
+
+        private async Task EnsureAdminBookingDataLoadedAsync()
+        {
+            if (!IsAdmin || adminBookingDataLoaded)
+            {
+                return;
+            }
+
+            IReadOnlyList<ServiceResponse> activeServices =
+                await bookingCatalogService.GetActiveServicesAsync();
+
+            if (activeServices.Count == 0)
+            {
+                throw new UserMessageException(
+                    "Nema aktivnih usluga. Dodajte uslugu u tabu „Usluge“ pa pokušajte ponovo.",
+                    "Nema usluga");
+            }
+
+            IReadOnlyList<BookableEmployeeResponse> bookableEmployees =
+                await bookingCatalogService.GetBookableEmployeesAsync(
+                    activeServices.Select(service => service.Id).ToArray());
+
+            // Prefer an employee who provides every active service. A newly added service
+            // is often not assigned to anyone yet, so fall back to the employee who
+            // provides the most active services instead of failing.
+            BookableEmployeeResponse? employee =
+                bookableEmployees.FirstOrDefault() ??
+                await FindEmployeeProvidingMostServicesAsync(activeServices);
+
+            if (employee is null)
+            {
+                throw new UserMessageException(
+                    "Nijedan aktivni uposlenik nema dodijeljenu aktivnu uslugu. " +
+                    "Dodijelite usluge uposlenicima pa pokušajte ponovo.",
+                    "Nema uposlenika");
+            }
+
+            SelectedBookingEmployee = employee;
+            calendarEmployeeId = employee.Id;
+            await LoadServicesForSelectedEmployeeAsync();
+            adminBookingDataLoaded = bookingServicesLoaded &&
+                bookingServicesEmployeeId == SelectedBookingEmployee?.Id;
+        }
+
+        private async Task<BookableEmployeeResponse?> FindEmployeeProvidingMostServicesAsync(
+            IReadOnlyList<ServiceResponse> activeServices)
+        {
+            IReadOnlyList<BookableEmployeeResponse>[] employeesPerService =
+                await Task.WhenAll(
+                    activeServices.Select(service =>
+                        bookingCatalogService.GetBookableEmployeesAsync([service.Id])));
+
+            return employeesPerService
+                .SelectMany(employees => employees)
+                .GroupBy(employee => employee.Id)
+                .OrderByDescending(group => group.Count())
+                .ThenBy(group => group.Key)
+                .Select(group => group.First())
+                .FirstOrDefault();
         }
 
         private void SortAppointments()
@@ -777,7 +894,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 DateTimeKind.Unspecified);
 
             TimeSpan offset =
-                TimeZoneInfo.Local.GetUtcOffset(localDate);
+                SalonTimeZone.Info.GetUtcOffset(localDate);
 
             return new DateTimeOffset(
                 localDate,

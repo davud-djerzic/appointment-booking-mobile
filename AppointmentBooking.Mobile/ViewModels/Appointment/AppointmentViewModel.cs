@@ -1,10 +1,12 @@
-﻿using AppointmentBooking.Mobile.Models.Bookings.Responses;
+﻿using AppointmentBooking.Mobile.Messages;
+using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
 using AppointmentBooking.Mobile.Models.Enums;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +18,11 @@ namespace AppointmentBooking.Mobile.ViewModels.Appointment
     {
         private readonly IApiClient apiClient;
         private readonly IErrorHandler errorHandler;
+        private readonly SemaphoreSlim loadLock = new(1, 1);
+
+        // The list is loaded once (at app start) and reloaded only after the customer
+        // books or cancels an appointment, not on every visit to the tab.
+        private bool hasLoaded;
 
         [ObservableProperty]
         private bool isLoading;
@@ -41,6 +48,43 @@ namespace AppointmentBooking.Mobile.ViewModels.Appointment
         {
             this.apiClient = apiClient;
             this.errorHandler = errorHandler;
+
+            WeakReferenceMessenger.Default.Register<AppointmentViewModel, CustomerBookingsChangedMessage>(
+                this,
+                static (viewModel, message) =>
+                {
+                    // Fire and forget: the reload shows its own errors.
+                    _ = viewModel.ReloadAsync();
+                });
+        }
+
+        /// <summary>Loads the list if it has not been loaded successfully yet.</summary>
+        public Task EnsureLoadedAsync() =>
+            hasLoaded ? Task.CompletedTask : ReloadAsync();
+
+        /// <summary>Loads the list from the API (one load at a time).</summary>
+        public async Task ReloadAsync()
+        {
+            await loadLock.WaitAsync();
+            try
+            {
+                hasLoaded = await LoadAppointmentsCoreAsync();
+            }
+            finally
+            {
+                loadLock.Release();
+            }
+        }
+
+        public void ResetCachedData()
+        {
+            hasLoaded = false;
+            UpcomingAppointments.Clear();
+            PreviousAppointments.Clear();
+            CancelledAppointments.Clear();
+            OnPropertyChanged(nameof(HasUpcomingAppointments));
+            OnPropertyChanged(nameof(HasPreviousAppointments));
+            OnPropertyChanged(nameof(HasCancelledAppointments));
         }
 
         public async Task<BookingDetailsResponse?> GetBookingDetailsAsync(long bookingId)
@@ -90,7 +134,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Appointment
         }
 
         [RelayCommand]
-        private async Task LoadAppointmentsAsync()
+        private Task LoadAppointmentsAsync() => ReloadAsync();
+
+        private async Task<bool> LoadAppointmentsCoreAsync()
         {
             try
             {
@@ -130,10 +176,12 @@ namespace AppointmentBooking.Mobile.ViewModels.Appointment
                 OnPropertyChanged(nameof(HasUpcomingAppointments));
                 OnPropertyChanged(nameof(HasPreviousAppointments));
                 OnPropertyChanged(nameof(HasCancelledAppointments));
+                return true;
             }
             catch (Exception ex)
             {
                 await errorHandler.HandleAsync(ex);
+                return false;
             }
             finally
             {

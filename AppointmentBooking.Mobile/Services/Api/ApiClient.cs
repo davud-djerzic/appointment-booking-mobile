@@ -110,6 +110,23 @@ public sealed class ApiClient(HttpClient httpClient) : IApiClient
             cancellationToken);
     }
 
+    public async Task DeleteAsync<TRequest>(
+        string endpoint,
+        TRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using HttpRequestMessage httpRequest = new(HttpMethod.Delete, endpoint)
+        {
+            Content = JsonContent.Create(request, options: JsonOptions)
+        };
+
+        using HttpResponseMessage response = await httpClient.SendAsync(
+            httpRequest,
+            cancellationToken);
+
+        await HandleResponseAsync(response, cancellationToken);
+    }
+
     private static async Task<TResponse?> HandleResponseAsync<TResponse>(
         HttpResponseMessage response,
         CancellationToken cancellationToken)

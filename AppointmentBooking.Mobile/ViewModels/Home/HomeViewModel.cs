@@ -1,14 +1,18 @@
+using AppointmentBooking.Mobile.Messages;
 using AppointmentBooking.Mobile.Models.BookableServices;
 using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Bookings.Requests;
 using AppointmentBooking.Mobile.Models.Bookings.Responses;
 using AppointmentBooking.Mobile.Models.Common;
-using AppointmentBooking.Mobile.Models.Profile.Responses;
 using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.BookingCatalog;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
+using AppointmentBooking.Mobile.Services.ProfileData;
 using AppointmentBooking.Mobile.Services.Session;
+using AppointmentBooking.Mobile.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Net;
 
 namespace AppointmentBooking.Mobile.ViewModels.Home;
@@ -17,6 +21,8 @@ public partial class HomeViewModel : ObservableObject
 {
     private readonly ISessionService sessionService;
     private readonly IApiClient apiClient;
+    private readonly ProfileDataCache profileDataCache;
+    private readonly IBookingCatalogService bookingCatalogService;
 
     private readonly IErrorHandler errorHandler;
 
@@ -67,14 +73,20 @@ public partial class HomeViewModel : ObservableObject
         SelectedTimeSlot is not null &&
         !IsLoading;
 
-    public DateTimeOffset? HoldStartsAtLocal => BookingHold?.StartsAt.ToLocalTime();
+    public DateTimeOffset? HoldStartsAtLocal => BookingHold is null ? null : SalonTimeZone.ToLocal(BookingHold.StartsAt);
 
-    public DateTimeOffset? HoldExpiresAtLocal => BookingHold?.ExpiresAt.ToLocalTime();
+    public DateTimeOffset? HoldExpiresAtLocal => BookingHold is null ? null : SalonTimeZone.ToLocal(BookingHold.ExpiresAt);
 
     [RelayCommand]
     private void OpenServicePicker()
     {
-        IsServicePickerVisible = ServicePickerItems.Count > 0;
+        if (ServicePickerItems.Count == 0)
+        {
+            return;
+        }
+
+        SelectedService = null;
+        IsServicePickerVisible = true;
     }
 
     [RelayCommand]
@@ -94,11 +106,18 @@ public partial class HomeViewModel : ObservableObject
         SelectedService = service;
     }
 
-    public HomeViewModel(ISessionService sessionService, IApiClient apiClient, IErrorHandler errorHandler)
+    public HomeViewModel(
+        ISessionService sessionService,
+        IApiClient apiClient,
+        IErrorHandler errorHandler,
+        ProfileDataCache profileDataCache,
+        IBookingCatalogService bookingCatalogService)
     {
         this.sessionService = sessionService;
         this.apiClient = apiClient;
         this.errorHandler = errorHandler;
+        this.profileDataCache = profileDataCache;
+        this.bookingCatalogService = bookingCatalogService;
     }
 
     [RelayCommand]
@@ -110,10 +129,8 @@ public partial class HomeViewModel : ObservableObject
 
             try
             {
-                MyProfileResponse? profile =
-                    await apiClient.GetAsync<MyProfileResponse>("api/profile/me");
-
-                GreetingName = profile?.FirstName?.Trim() ?? string.Empty;
+                await profileDataCache.EnsureProfileLoadedAsync();
+                GreetingName = profileDataCache.Profile?.FirstName?.Trim() ?? string.Empty;
             }
             catch (Exception ex)
             {
@@ -121,12 +138,19 @@ public partial class HomeViewModel : ObservableObject
                 await errorHandler.HandleAsync(ex);
             }
 
-            PagedResponse<ServiceResponse>? response =
-                await apiClient.GetAsync<PagedResponse<ServiceResponse>>(
-                    "api/BookableServices?isActive=true&page=1&pageSize=20");
+            try
+            {
+                await profileDataCache.EnsureSalonLoadedAsync();
+            }
+            catch (Exception ex)
+            {
+                await errorHandler.HandleAsync(ex);
+            }
 
-            Services = response?.Items.ToList() ?? [];
-            FeaturedServices = Services.Take(4).ToList();
+            // Loaded from the API once per app start (all pages), then served from memory,
+            // so returning to the home page does not load the services again.
+            Services = (await bookingCatalogService.GetActiveServicesAsync()).ToList();
+            FeaturedServices = Services;
 
             ServicePickerItems =
                 Services
@@ -264,6 +288,12 @@ public partial class HomeViewModel : ObservableObject
 
             BookingHold = null;
             IsHoldConfirmationVisible = false;
+
+            WeakReferenceMessenger.Default.Send(new CustomerBookingsChangedMessage());
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            await HandleExpiredHoldAsync();
         }
         catch (Exception ex)
         {
@@ -293,6 +323,10 @@ public partial class HomeViewModel : ObservableObject
             BookingHold = null;
             IsHoldConfirmationVisible = false;
         }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            await HandleExpiredHoldAsync();
+        }
         catch (Exception ex)
         {
             await errorHandler.HandleAsync(ex);
@@ -300,6 +334,23 @@ public partial class HomeViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task HandleExpiredHoldAsync()
+    {
+        BookingHold = null;
+        IsHoldConfirmationVisible = false;
+        SelectedTimeSlot = null;
+
+        await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+            "Termin više nije zadržan",
+            "Privremeni hold je istekao ili termin više nije dostupan. Odaberite novi termin.",
+            "U redu");
+
+        if (SelectedService is not null)
+        {
+            await LoadQuickAvailabilityAsync();
         }
     }
 

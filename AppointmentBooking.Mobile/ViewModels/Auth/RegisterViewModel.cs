@@ -32,11 +32,37 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
         [ObservableProperty]
         private string password = string.Empty;
 
+    [ObservableProperty]
+    private bool isPasswordHidden = true;
+
+    public string PasswordVisibilityIcon =>
+        IsPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
         [ObservableProperty]
         private string confirmPassword = string.Empty;
 
+    [ObservableProperty]
+    private bool isConfirmPasswordHidden = true;
+
+    public string ConfirmPasswordVisibilityIcon =>
+        IsConfirmPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
         [ObservableProperty]
         private bool isBusy;
+
+    [RelayCommand]
+    private void TogglePasswordVisibility() =>
+        IsPasswordHidden = !IsPasswordHidden;
+
+    [RelayCommand]
+    private void ToggleConfirmPasswordVisibility() =>
+        IsConfirmPasswordHidden = !IsConfirmPasswordHidden;
+
+    partial void OnIsPasswordHiddenChanged(bool value) =>
+        OnPropertyChanged(nameof(PasswordVisibilityIcon));
+
+    partial void OnIsConfirmPasswordHiddenChanged(bool value) =>
+        OnPropertyChanged(nameof(ConfirmPasswordVisibilityIcon));
 
         [RelayCommand]
         private async Task RegisterAsync()
@@ -58,7 +84,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Registracija",
                     "Popunite sva polja.",
-                    "OK");
+                    "U redu");
 
                 return;
             }
@@ -68,7 +94,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Registracija",
                     "Lozinke se ne podudaraju.",
-                    "OK");
+                    "U redu");
 
                 return;
             }
@@ -93,10 +119,12 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
                         "Registracija nije uspjela",
                         result.ErrorMessage
                             ?? "Registracija nije uspjela.",
-                        "OK");
+                        "U redu");
 
                     return;
                 }
+
+                ClearFields();
 
                 // SessionService has already stored the tokens
                 // and changed the authentication state.
@@ -107,12 +135,22 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Greška mreže",
                     "Nije moguće povezati se sa serverom.",
-                    "OK");
+                    "U redu");
             }
             finally
             {
                 IsBusy = false;
             }
+        }
+
+        private void ClearFields()
+        {
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            Email = string.Empty;
+            Phone = string.Empty;
+            Password = string.Empty;
+            ConfirmPassword = string.Empty;
         }
 
         [RelayCommand]

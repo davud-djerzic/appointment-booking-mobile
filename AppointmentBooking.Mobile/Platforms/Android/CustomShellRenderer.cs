@@ -84,6 +84,8 @@ internal sealed class CustomBottomNavViewAppearanceTracker : ShellBottomNavViewA
         if (view is TextView textView)
         {
             textView.SetTextSize(ComplexUnitType.Sp, 9);
+            if (GetAppTypeface(textView) is global::Android.Graphics.Typeface typeface)
+                textView.Typeface = typeface;
             textView.TranslationY = labelOffset;
             return;
         }
@@ -96,6 +98,30 @@ internal sealed class CustomBottomNavViewAppearanceTracker : ShellBottomNavViewA
                     SetIconAndLabelLayout(child, densityContext);
             }
         }
+    }
+
+    private const string AppFontAssetName = "PlayfairDisplay-Regular.ttf";
+    private static global::Android.Graphics.Typeface? appTypeface;
+    private static bool appTypefaceLoadFailed;
+
+    // Bottom navigation labels are native views, so the app font from Styles.xaml
+    // does not reach them; load the same font file from the Android assets.
+    private static global::Android.Graphics.Typeface? GetAppTypeface(global::Android.Views.View view)
+    {
+        if (appTypeface is not null || appTypefaceLoadFailed)
+            return appTypeface;
+
+        try
+        {
+            if (view.Context?.Assets is { } assets)
+                appTypeface = global::Android.Graphics.Typeface.CreateFromAsset(assets, AppFontAssetName);
+        }
+        catch (Java.Lang.RuntimeException)
+        {
+            appTypefaceLoadFailed = true;
+        }
+
+        return appTypeface;
     }
 
     private static int ToPixels(global::Android.Views.View view, int densityIndependentPixels) =>

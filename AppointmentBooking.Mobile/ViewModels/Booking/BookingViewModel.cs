@@ -1,13 +1,17 @@
+using System.Globalization;
+using AppointmentBooking.Mobile.Messages;
 using AppointmentBooking.Mobile.Models.BookableServices;
 using AppointmentBooking.Mobile.Models.BookableServices.Responses;
 using AppointmentBooking.Mobile.Models.Bookings.Responses;
-using AppointmentBooking.Mobile.Models.Common;
 using AppointmentBooking.Mobile.Models.Employees.Responses;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.BookingCalendar;
+using AppointmentBooking.Mobile.Services.BookingCatalog;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using AppointmentBooking.Mobile.Utilities;
 using System.Collections.ObjectModel;
 using System.Net;
 
@@ -18,6 +22,7 @@ public partial class BookingViewModel : ObservableObject
     private readonly IApiClient apiClient;
     private readonly IErrorHandler errorHandler;
     private readonly IBookingCalendarService bookingCalendarService;
+    private readonly IBookingCatalogService bookingCatalogService;
 
     [ObservableProperty]
     private ObservableCollection<ServiceSelectionItem> serviceItems = [];
@@ -27,8 +32,8 @@ public partial class BookingViewModel : ObservableObject
 
     [ObservableProperty]
     private DateTime displayedMonth = new(
-        DateTime.Today.Year,
-        DateTime.Today.Month,
+        SalonTimeZone.Today.Year,
+        SalonTimeZone.Today.Month,
         1);
 
     [ObservableProperty]
@@ -53,9 +58,13 @@ public partial class BookingViewModel : ObservableObject
     private bool isHoldConfirmationVisible;
 
     private bool employeeLookupCompleted;
+    private bool servicesLoaded;
+    private bool isResettingServices;
+    private readonly SemaphoreSlim servicesLoadLock = new(1, 1);
 
     private HashSet<DateOnly> workingDates = [];
     private long? calendarEmployeeId;
+    private CalendarDayItem? selectedCalendarDay;
 
     public ObservableCollection<CalendarDayItem> CalendarDays { get; } = [];
 
@@ -92,7 +101,11 @@ public partial class BookingViewModel : ObservableObject
         BookableEmployee is null;
 
     public string DisplayedMonthTitle =>
-        DisplayedMonth.ToString("MMMM yyyy");
+        BosnianCulture.TextInfo.ToTitleCase(
+            DisplayedMonth.ToString("MMMM yyyy", BosnianCulture));
+
+    private static readonly CultureInfo BosnianCulture =
+        CultureInfo.GetCultureInfo("bs-BA");
 
     public bool HasAvailability =>
         AvailableSlots.Count > 0;
@@ -101,23 +114,28 @@ public partial class BookingViewModel : ObservableObject
         Availability is not null &&
         AvailableSlots.Count == 0;
 
+    public bool HasNoSelectedDate =>
+        SelectedDate is null;
+
     public DateTimeOffset? HoldStartsAtLocal =>
-        BookingHold?.StartsAt.ToLocalTime();
+        BookingHold is null ? null : SalonTimeZone.ToLocal(BookingHold.StartsAt);
 
     public DateTimeOffset? HoldEndsAtLocal =>
-        BookingHold?.EndsAt.ToLocalTime();
+        BookingHold is null ? null : SalonTimeZone.ToLocal(BookingHold.EndsAt);
 
     public DateTimeOffset? HoldExpiresAtLocal =>
-        BookingHold?.ExpiresAt.ToLocalTime();
+        BookingHold is null ? null : SalonTimeZone.ToLocal(BookingHold.ExpiresAt);
 
     public BookingViewModel(
         IApiClient apiClient,
         IErrorHandler errorHandler,
-        IBookingCalendarService bookingCalendarService)
+        IBookingCalendarService bookingCalendarService,
+        IBookingCatalogService bookingCatalogService)
     {
         this.apiClient = apiClient;
         this.errorHandler = errorHandler;
         this.bookingCalendarService = bookingCalendarService;
+        this.bookingCatalogService = bookingCatalogService;
 
         BuildCalendar();
     }
@@ -125,12 +143,29 @@ public partial class BookingViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadServicesAsync()
     {
+        await servicesLoadLock.WaitAsync();
+        try
+        {
+            if (servicesLoaded)
+            {
+                return;
+            }
+
+            await LoadServicesCoreAsync();
+        }
+        finally
+        {
+            servicesLoadLock.Release();
+        }
+    }
+
+    private async Task LoadServicesCoreAsync()
+    {
         try
         {
             IsLoading = true;
 
             employeeLookupCompleted = false;
-            BookableEmployee = null;
 
             Availability = null;
             BookingHold = null;
@@ -138,9 +173,10 @@ public partial class BookingViewModel : ObservableObject
 
             AvailableSlots.Clear();
 
-            PagedResponse<ServiceResponse>? response =
-                await apiClient.GetAsync<PagedResponse<ServiceResponse>>(
-                    "api/BookableServices?isActive=true&page=1&pageSize=20");
+            IReadOnlyList<ServiceResponse> services =
+                await bookingCatalogService.GetActiveServicesAsync();
+
+            servicesLoaded = true;
 
             foreach (ServiceSelectionItem item in ServiceItems)
             {
@@ -150,7 +186,7 @@ public partial class BookingViewModel : ObservableObject
 
             ServiceItems.Clear();
 
-            foreach (ServiceResponse service in response?.Items ?? [])
+            foreach (ServiceResponse service in services)
             {
                 ServiceSelectionItem item =
                     new(service);
@@ -187,7 +223,7 @@ public partial class BookingViewModel : ObservableObject
                     .Select(x => x.Service.Id)
                     .ToArray();
 
-            if (serviceIds.Length > 0)
+            if (!employeeLookupCompleted && serviceIds.Length > 0)
             {
                 try
                 {
@@ -205,26 +241,16 @@ public partial class BookingViewModel : ObservableObject
         }
     }
 
+    public Task EnsureLoadedAsync() => LoadServicesAsync();
+
     private async Task LoadBookableEmployeeAsync(
         IReadOnlyCollection<long> serviceIds)
     {
-        string queryString =
-            string.Join(
-                "&",
-                serviceIds.Select(
-                    serviceId =>
-                        $"serviceIds={serviceId}"));
-
-        string endpoint =
-            $"api/bookings/bookable-employees?{queryString}";
-
-        IReadOnlyList<BookableEmployeeResponse>? employees =
-            await apiClient.GetAsync<
-                IReadOnlyList<BookableEmployeeResponse>>(
-                endpoint);
+        IReadOnlyList<BookableEmployeeResponse> employees =
+            await bookingCatalogService.GetBookableEmployeesAsync(serviceIds);
 
         BookableEmployee =
-            employees?.FirstOrDefault();
+            employees.FirstOrDefault();
 
         employeeLookupCompleted = true;
 
@@ -240,8 +266,8 @@ public partial class BookingViewModel : ObservableObject
     {
         DateTime currentMonth =
             new(
-                DateTime.Today.Year,
-                DateTime.Today.Month,
+                SalonTimeZone.Today.Year,
+                SalonTimeZone.Today.Month,
                 1);
 
         DateTime previousMonth =
@@ -308,13 +334,15 @@ public partial class BookingViewModel : ObservableObject
 
         SelectedDate = day.Date;
 
-        foreach (CalendarDayItem item in CalendarDays)
+        if (selectedCalendarDay != day)
         {
-            if (!item.IsEmpty)
+            if (selectedCalendarDay is not null)
             {
-                item.IsSelected =
-                    item.Date.Date == SelectedDate.Value.Date;
+                selectedCalendarDay.IsSelected = false;
             }
+
+            day.IsSelected = true;
+            selectedCalendarDay = day;
         }
 
         await LoadAvailabilityAsync(
@@ -501,6 +529,10 @@ public partial class BookingViewModel : ObservableObject
                 }
             }
         }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            await HandleExpiredHoldAsync();
+        }
         catch (Exception ex)
         {
             await errorHandler.HandleAsync(ex);
@@ -532,14 +564,22 @@ public partial class BookingViewModel : ObservableObject
             BookingHold = null;
             IsHoldConfirmationVisible = false;
 
-            AvailableSlots.Clear();
-            Availability = null;
+            WeakReferenceMessenger.Default.Send(new CustomerBookingsChangedMessage());
 
-            OnPropertyChanged(nameof(HasAvailability));
-            OnPropertyChanged(nameof(HasNoAvailability));
+            ResetBookingSelection();
+
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                "Rezervacija uspješna",
+                "Vaš termin je uspješno rezervisan.",
+                "U redu");
+
             OnPropertyChanged(nameof(HoldStartsAtLocal));
             OnPropertyChanged(nameof(HoldEndsAtLocal));
             OnPropertyChanged(nameof(HoldExpiresAtLocal));
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            await HandleExpiredHoldAsync();
         }
         catch (Exception ex)
         {
@@ -548,6 +588,33 @@ public partial class BookingViewModel : ObservableObject
         finally
         {
             IsCreatingHold = false;
+        }
+    }
+
+    private async Task HandleExpiredHoldAsync()
+    {
+        BookingHold = null;
+        IsHoldConfirmationVisible = false;
+        OnPropertyChanged(nameof(HoldStartsAtLocal));
+        OnPropertyChanged(nameof(HoldEndsAtLocal));
+        OnPropertyChanged(nameof(HoldExpiresAtLocal));
+
+        await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+            "Termin više nije zadržan",
+            "Privremeni hold je istekao ili termin više nije dostupan. Odaberite novi termin.",
+            "U redu");
+
+        if (SelectedDate is DateTime selectedDate && BookableEmployee is not null)
+        {
+            long[] serviceIds = ServiceItems
+                .Where(item => item.IsSelected)
+                .Select(item => item.Service.Id)
+                .ToArray();
+
+            if (serviceIds.Length > 0)
+            {
+                await LoadAvailabilityAsync(selectedDate, serviceIds);
+            }
         }
     }
 
@@ -560,9 +627,45 @@ public partial class BookingViewModel : ObservableObject
         OnPropertyChanged(nameof(HasNoAvailability));
     }
 
+    private void ResetBookingSelection()
+    {
+        isResettingServices = true;
+        try
+        {
+            foreach (ServiceSelectionItem item in ServiceItems)
+            {
+                item.IsSelected = false;
+            }
+        }
+        finally
+        {
+            isResettingServices = false;
+        }
+
+        OnPropertyChanged(nameof(TotalPrice));
+        OnPropertyChanged(nameof(TotalDurationMinutes));
+        OnPropertyChanged(nameof(SelectedServiceCount));
+
+        SelectedDate = null;
+        ClearSelectedCalendarDay();
+        ClearAvailability();
+    }
+
+    private void ClearSelectedCalendarDay()
+    {
+        if (selectedCalendarDay is null)
+        {
+            return;
+        }
+
+        selectedCalendarDay.IsSelected = false;
+        selectedCalendarDay = null;
+    }
+
     private void BuildCalendar()
     {
         CalendarDays.Clear();
+        selectedCalendarDay = null;
 
         DateTime firstDay =
             new(
@@ -592,7 +695,7 @@ public partial class BookingViewModel : ObservableObject
         }
 
         DateTime today =
-            DateTime.Today;
+            SalonTimeZone.Today.ToDateTime(TimeOnly.MinValue);
 
         for (int day = 1; day <= daysInMonth; day++)
         {
@@ -607,15 +710,20 @@ public partial class BookingViewModel : ObservableObject
                 continue;
             }
 
-            CalendarDays.Add(
-                new CalendarDayItem
-                {
-                    Date = date,
-                    IsSelectable = date >= today && workingDates.Contains(DateOnly.FromDateTime(date)),
-                    IsSelected =
-                        SelectedDate.HasValue &&
-                        SelectedDate.Value.Date == date.Date
-                });
+            CalendarDayItem calendarDay = new()
+            {
+                Date = date,
+                IsSelectable = date >= today && workingDates.Contains(DateOnly.FromDateTime(date)),
+                IsSelected = SelectedDate.HasValue &&
+                    SelectedDate.Value.Date == date.Date
+            };
+
+            CalendarDays.Add(calendarDay);
+
+            if (calendarDay.IsSelected)
+            {
+                selectedCalendarDay = calendarDay;
+            }
         }
 
         while (CalendarDays.Count % 5 != 0)
@@ -662,7 +770,8 @@ public partial class BookingViewModel : ObservableObject
         System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName !=
-            nameof(ServiceSelectionItem.IsSelected))
+                nameof(ServiceSelectionItem.IsSelected) ||
+            isResettingServices)
         {
             return;
         }
@@ -671,6 +780,8 @@ public partial class BookingViewModel : ObservableObject
         OnPropertyChanged(nameof(TotalDurationMinutes));
         OnPropertyChanged(nameof(SelectedServiceCount));
 
+        SelectedDate = null;
+        ClearSelectedCalendarDay();
         ClearAvailability();
     }
 
@@ -681,6 +792,7 @@ public partial class BookingViewModel : ObservableObject
 
     partial void OnSelectedDateChanged(DateTime? value)
     {
+        OnPropertyChanged(nameof(HasNoSelectedDate));
     }
 
     partial void OnBookableEmployeeChanged(

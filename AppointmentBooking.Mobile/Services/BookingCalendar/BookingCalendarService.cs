@@ -37,4 +37,6 @@ public sealed class BookingCalendarService(IApiClient apiClient) : IBookingCalen
             loadLock.Release();
         }
     }
+
+    public void Invalidate(long employeeId) => cache.TryRemove(employeeId, out _);
 }

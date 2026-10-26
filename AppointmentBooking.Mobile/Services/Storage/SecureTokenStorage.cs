@@ -19,7 +19,7 @@ namespace AppointmentBooking.Mobile.Services.Storage
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 throw new ArgumentException(
-                    "Refresh token cannot be empty.",
+                    "Token za osvježavanje ne može biti prazan.",
                     nameof(refreshToken));
             }
 

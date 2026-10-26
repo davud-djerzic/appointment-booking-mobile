@@ -1,7 +1,9 @@
 using AppointmentBooking.Mobile.Models.EmployeeUnavailability;
 using AppointmentBooking.Mobile.Models.EmployeeWorkingHours;
 using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.BookingCalendar;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
+using AppointmentBooking.Mobile.Utilities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -11,11 +13,13 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff;
 
 public partial class StaffAvailabilityViewModel : ObservableObject
 {
+    private static readonly CultureInfo BosnianCulture = CultureInfo.GetCultureInfo("bs-BA");
     private const string Endpoint = "api/employees/me/availability-blocks";
     private const string WorkingHoursEndpoint = "api/employees/me/working-hours";
 
     private readonly IApiClient apiClient;
     private readonly IErrorHandler errorHandler;
+    private readonly IBookingCalendarService bookingCalendarService;
 
     [ObservableProperty]
     private bool isLoading;
@@ -57,9 +61,6 @@ public partial class StaffAvailabilityViewModel : ObservableObject
     private bool isApplyingRecurringBreak;
 
     [ObservableProperty]
-    private WorkingDayOption? selectedWorkingDay;
-
-    [ObservableProperty]
     private TimeSpan recurringBreakStartsAt = new(12, 0, 0);
 
     [ObservableProperty]
@@ -83,6 +84,22 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
     public ObservableCollection<EmployeeUnavailabilityResponse> Blocks { get; } = [];
 
+    public IReadOnlyList<EmployeeUnavailabilityResponse> UpcomingBreaks => GetBlocks(
+        EmployeeUnavailabilityType.Break,
+        includePast: false);
+
+    public IReadOnlyList<EmployeeUnavailabilityResponse> PastBreaks => GetBlocks(
+        EmployeeUnavailabilityType.Break,
+        includePast: true);
+
+    public IReadOnlyList<EmployeeUnavailabilityResponse> UpcomingVacations => GetBlocks(
+        EmployeeUnavailabilityType.Vacation,
+        includePast: false);
+
+    public IReadOnlyList<EmployeeUnavailabilityResponse> PastVacations => GetBlocks(
+        EmployeeUnavailabilityType.Vacation,
+        includePast: true);
+
     public ObservableCollection<WorkingDayOption> WorkingDays { get; } =
     [
         new(WeekDay.Monday, "Ponedjeljak"),
@@ -92,21 +109,44 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         new(WeekDay.Friday, "Petak")
     ];
 
-    public ObservableCollection<WeeklyWorkingHoursDayDisplay> WeeklyWorkingHours { get; } = [];
+    public ObservableCollection<RecurringBreakDayOption> RecurringBreakDays { get; } =
+    [
+        new(WeekDay.Monday, "Ponedjeljak", "Pon"),
+        new(WeekDay.Tuesday, "Utorak", "Uto"),
+        new(WeekDay.Wednesday, "Srijeda", "Sri"),
+        new(WeekDay.Thursday, "Četvrtak", "Čet"),
+        new(WeekDay.Friday, "Petak", "Pet")
+    ];
 
-    public bool HasBlocks => Blocks.Count > 0;
+    public ObservableCollection<WeeklyWorkingHoursDayDisplay> WeeklyBreaks { get; } = [];
 
-    public bool HasNoBlocks => !IsLoading && Blocks.Count == 0;
+    public bool HasNoUpcomingBreaks => !IsLoading && UpcomingBreaks.Count == 0;
+
+    public bool HasNoPastBreaks => !IsLoading && PastBreaks.Count == 0;
+
+    public bool HasNoUpcomingVacations => !IsLoading && UpcomingVacations.Count == 0;
+
+    public bool HasNoPastVacations => !IsLoading && PastVacations.Count == 0;
 
     public bool CanSave => !IsSaving;
 
-    public bool CanApplyRecurringBreak => !IsApplyingRecurringBreak;
+    public bool CanApplyRecurringBreak =>
+        !IsApplyingRecurringBreak && RecurringBreakDays.Any(day => day.IsSelected);
 
-    public bool HasWorkingHours => WeeklyWorkingHours.Count > 0;
+    public string RecurringBreakDaySelectionDisplay =>
+        $"Odabrano dana: {RecurringBreakDays.Count(day => day.IsSelected)}";
+
+    public bool HasWeeklyBreaks => WeeklyBreaks.Count > 0;
 
     public string BreakStartsAtDisplay => FormatTime(BreakStartsAt);
 
     public string BreakEndsAtDisplay => FormatTime(BreakEndsAt);
+
+    public string BreakDateDisplay => FormatDate(BreakDate);
+
+    public string VacationStartsOnDisplay => FormatDate(VacationStartsOn);
+
+    public string VacationEndsOnDisplay => FormatDate(VacationEndsOn);
 
     public string RecurringBreakStartsAtDisplay => FormatTime(RecurringBreakStartsAt);
 
@@ -115,6 +155,16 @@ public partial class StaffAvailabilityViewModel : ObservableObject
     public DateTime Today => DateTime.Today;
 
     public DateTime Tomorrow => DateTime.Today.AddDays(1);
+
+    /// <summary>Time selector shown on the staff panel page (recurring breaks).</summary>
+    public bool IsPageTimeSelectorVisible =>
+        IsTimeSelectorVisible &&
+        timeSelectorTarget is TimeSelectorTarget.RecurringStart or TimeSelectorTarget.RecurringEnd;
+
+    /// <summary>Time selector shown inside the break/vacation editor popup.</summary>
+    public bool IsFormTimeSelectorVisible =>
+        IsTimeSelectorVisible &&
+        timeSelectorTarget is TimeSelectorTarget.DateBreakStart or TimeSelectorTarget.DateBreakEnd;
 
     public bool IsBreakSelected => SelectedType == EmployeeUnavailabilityType.Break;
 
@@ -136,11 +186,20 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
     public StaffAvailabilityViewModel(
         IApiClient apiClient,
-        IErrorHandler errorHandler)
+        IErrorHandler errorHandler,
+        IBookingCalendarService bookingCalendarService)
     {
         this.apiClient = apiClient;
         this.errorHandler = errorHandler;
-        SelectedWorkingDay = WorkingDays[0];
+        this.bookingCalendarService = bookingCalendarService;
+    }
+
+    public void ResetCachedData()
+    {
+        Blocks.Clear();
+        WeeklyBreaks.Clear();
+        OnBlocksChanged();
+        OnPropertyChanged(nameof(HasWeeklyBreaks));
     }
 
     partial void OnSelectedTypeChanged(EmployeeUnavailabilityType value)
@@ -153,6 +212,12 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         OnPropertyChanged(nameof(VacationTypeTextColor));
     }
 
+    partial void OnIsTimeSelectorVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsPageTimeSelectorVisible));
+        OnPropertyChanged(nameof(IsFormTimeSelectorVisible));
+    }
+
     partial void OnIsEditingChanged(bool value)
     {
         OnPropertyChanged(nameof(FormTitle));
@@ -160,7 +225,10 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
     partial void OnIsLoadingChanged(bool value)
     {
-        OnPropertyChanged(nameof(HasNoBlocks));
+        OnPropertyChanged(nameof(HasNoUpcomingBreaks));
+        OnPropertyChanged(nameof(HasNoPastBreaks));
+        OnPropertyChanged(nameof(HasNoUpcomingVacations));
+        OnPropertyChanged(nameof(HasNoPastVacations));
     }
 
     partial void OnIsSavingChanged(bool value)
@@ -173,11 +241,40 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         OnPropertyChanged(nameof(CanApplyRecurringBreak));
     }
 
+    [RelayCommand]
+    private void ToggleRecurringBreakDay(RecurringBreakDayOption? day)
+    {
+        if (day is null)
+        {
+            return;
+        }
+
+        day.IsSelected = !day.IsSelected;
+        OnPropertyChanged(nameof(CanApplyRecurringBreak));
+        OnPropertyChanged(nameof(RecurringBreakDaySelectionDisplay));
+    }
+
     partial void OnBreakStartsAtChanged(TimeSpan value) =>
         OnPropertyChanged(nameof(BreakStartsAtDisplay));
 
     partial void OnBreakEndsAtChanged(TimeSpan value) =>
         OnPropertyChanged(nameof(BreakEndsAtDisplay));
+
+    partial void OnBreakDateChanged(DateTime value) =>
+        OnPropertyChanged(nameof(BreakDateDisplay));
+
+    partial void OnVacationStartsOnChanged(DateTime value)
+    {
+        if (VacationEndsOn.Date < value.Date)
+        {
+            VacationEndsOn = value.Date;
+        }
+        OnPropertyChanged(nameof(VacationStartsOnDisplay));
+        OnPropertyChanged(nameof(VacationEndsOnDisplay));
+    }
+
+    partial void OnVacationEndsOnChanged(DateTime value) =>
+        OnPropertyChanged(nameof(VacationEndsOnDisplay));
 
     partial void OnRecurringBreakStartsAtChanged(TimeSpan value) =>
         OnPropertyChanged(nameof(RecurringBreakStartsAtDisplay));
@@ -303,25 +400,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
                 await apiClient.GetAsync<IReadOnlyCollection<EmployeeWorkingHoursResponse>>(
                     WorkingHoursEndpoint);
 
-            Dictionary<WeekDay, EmployeeWorkingHoursResponse[]> hoursByDay =
-                (response ?? [])
-                .GroupBy(hour => hour.DayOfWeek)
-                .ToDictionary(group => group.Key, group => group.OrderBy(hour => hour.StartsAt).ToArray());
-
-            WeeklyWorkingHours.Clear();
-
-            foreach (WorkingDayOption day in WorkingDays)
-            {
-                string hoursLabel = hoursByDay.TryGetValue(day.DayOfWeek, out EmployeeWorkingHoursResponse[]? intervals) &&
-                                    intervals.Length > 0
-                    ? string.Join("  ·  ", intervals.Select(interval =>
-                        $"{interval.StartsAt:HH:mm}–{interval.EndsAt:HH:mm}"))
-                    : "Neradni dan";
-
-                WeeklyWorkingHours.Add(new WeeklyWorkingHoursDayDisplay(day.Label, hoursLabel));
-            }
-
-            OnPropertyChanged(nameof(HasWorkingHours));
+            UpdateWeeklyBreaks(response ?? []);
         }
         catch (Exception ex)
         {
@@ -341,9 +420,16 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             return;
         }
 
-        if (SelectedWorkingDay is null)
+        RecurringBreakDayOption[] selectedDays = RecurringBreakDays
+            .Where(day => day.IsSelected)
+            .ToArray();
+
+        if (selectedDays.Length == 0)
         {
-            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync("Provjera unosa", "Odaberite dan u sedmici.", "U redu");
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                "Odaberite dane",
+                "Odaberite barem jedan dan u sedmici.",
+                "U redu");
             return;
         }
 
@@ -358,9 +444,9 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
         bool confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
             "Stalna sedmična pauza",
-            $"Pauza {SelectedWorkingDay.Label.ToLowerInvariant()}, " +
-            $"{RecurringBreakStartsAt:hh\\:mm}–{RecurringBreakEndsAt:hh\\:mm}, " +
-            "ponavljat će se svake sedmice i izmijeniti radno vrijeme tog dana. Nastaviti?",
+            $"Pauza {RecurringBreakStartsAt:hh\\:mm}–{RecurringBreakEndsAt:hh\\:mm} " +
+            $"ponavljat će se svake sedmice za: {string.Join(", ", selectedDays.Select(day => day.Label.ToLowerInvariant()))}. " +
+            "Nastaviti?",
             "Primijeni",
             "Odustani");
 
@@ -373,40 +459,67 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         {
             IsApplyingRecurringBreak = true;
 
-            IReadOnlyCollection<EmployeeWorkingHoursResponse>? updated =
-                await apiClient.PutAsync<ApplyRecurringBreakRequest, IReadOnlyCollection<EmployeeWorkingHoursResponse>>(
-                    $"{WorkingHoursEndpoint}/recurring-break",
-                    new ApplyRecurringBreakRequest(
-                        SelectedWorkingDay.DayOfWeek,
-                        TimeOnly.FromTimeSpan(RecurringBreakStartsAt),
-                        TimeOnly.FromTimeSpan(RecurringBreakEndsAt)));
+            IReadOnlyCollection<EmployeeWorkingHoursResponse>? latestSchedule = null;
+            List<string> appliedDays = [];
+            List<string> failedDays = [];
 
-            if (updated is null)
+            foreach (RecurringBreakDayOption day in selectedDays)
             {
-                throw new InvalidOperationException("API nije vratio ažurirano radno vrijeme.");
+                try
+                {
+                    IReadOnlyCollection<EmployeeWorkingHoursResponse>? updated =
+                        await apiClient.PutAsync<ApplyRecurringBreakRequest, IReadOnlyCollection<EmployeeWorkingHoursResponse>>(
+                            $"{WorkingHoursEndpoint}/recurring-break",
+                            new ApplyRecurringBreakRequest(
+                                day.DayOfWeek,
+                                TimeOnly.FromTimeSpan(RecurringBreakStartsAt),
+                                TimeOnly.FromTimeSpan(RecurringBreakEndsAt)));
+
+                    if (updated is null)
+                    {
+                        throw new InvalidOperationException("API nije vratio ažurirano radno vrijeme.");
+                    }
+
+                    latestSchedule = updated;
+                    appliedDays.Add(day.Label);
+                    day.IsSelected = false;
+                }
+                catch
+                {
+                    failedDays.Add(day.Label);
+                }
             }
 
-            Dictionary<WeekDay, EmployeeWorkingHoursResponse[]> hoursByDay = updated
-                .GroupBy(hour => hour.DayOfWeek)
-                .ToDictionary(group => group.Key, group => group.OrderBy(hour => hour.StartsAt).ToArray());
-
-            WeeklyWorkingHours.Clear();
-
-            foreach (WorkingDayOption day in WorkingDays)
+            if (latestSchedule is not null)
             {
-                string hoursLabel = hoursByDay.TryGetValue(day.DayOfWeek, out EmployeeWorkingHoursResponse[]? intervals) &&
-                                    intervals.Length > 0
-                    ? string.Join("  ·  ", intervals.Select(interval =>
-                        $"{interval.StartsAt:HH:mm}–{interval.EndsAt:HH:mm}"))
-                    : "Neradni dan";
-
-                WeeklyWorkingHours.Add(new WeeklyWorkingHoursDayDisplay(day.Label, hoursLabel));
+                UpdateWeeklyBreaks(latestSchedule);
+                if (latestSchedule.FirstOrDefault() is { } updatedHour)
+                {
+                    bookingCalendarService.Invalidate(updatedHour.EmployeeId);
+                }
             }
 
-            OnPropertyChanged(nameof(HasWorkingHours));
+            OnPropertyChanged(nameof(CanApplyRecurringBreak));
+            OnPropertyChanged(nameof(RecurringBreakDaySelectionDisplay));
+
+            string title = failedDays.Count == 0
+                ? "Stalne pauze ažurirane"
+                : appliedDays.Count == 0
+                    ? "Pauze nisu promijenjene"
+                    : "Pauze su djelimično ažurirane";
+            string message = appliedDays.Count > 0
+                ? $"Pauza {RecurringBreakStartsAt:hh\\:mm}–{RecurringBreakEndsAt:hh\\:mm} postavljena je za: {string.Join(", ", appliedDays)}."
+                : string.Empty;
+
+            if (failedDays.Count > 0)
+            {
+                message += (message.Length > 0 ? "\n\n" : string.Empty) +
+                    $"Nije primijenjena za: {string.Join(", ", failedDays)}. Provjerite postojeće radno vrijeme i zakazane termine.";
+            }
+
             await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
-                "Radno vrijeme ažurirano",
-                "Pauza je postavljena za svaku sedmicu. Raspored je odmah ažuriran.",
+                title,
+                message,
                 "U redu");
         }
         catch (Exception ex)
@@ -417,6 +530,36 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         {
             IsApplyingRecurringBreak = false;
         }
+    }
+
+    private void UpdateWeeklyBreaks(IEnumerable<EmployeeWorkingHoursResponse> workingHours)
+    {
+        Dictionary<WeekDay, string> breaksByDay = workingHours
+            .GroupBy(hour => hour.DayOfWeek)
+            .Select(group => new
+            {
+                Day = group.Key,
+                Intervals = group.OrderBy(hour => hour.StartsAt).ToArray()
+            })
+            .Where(day => day.Intervals.Length > 1)
+            .ToDictionary(
+                day => day.Day,
+                day => string.Join("  ·  ", day.Intervals
+                    .Zip(day.Intervals.Skip(1), (before, after) =>
+                        $"{before.EndsAt:HH:mm}–{after.StartsAt:HH:mm}")));
+
+        WeeklyBreaks.Clear();
+        foreach (WorkingDayOption day in WorkingDays.Where(day => breaksByDay.ContainsKey(day.DayOfWeek)))
+        {
+            WeeklyBreaks.Add(new WeeklyWorkingHoursDayDisplay(day.Label, breaksByDay[day.DayOfWeek]));
+        }
+
+        if (WeeklyBreaks.Count == 0)
+        {
+            WeeklyBreaks.Add(new WeeklyWorkingHoursDayDisplay("Raspored", "Nema postavljenih stalnih pauza"));
+        }
+
+        OnPropertyChanged(nameof(HasWeeklyBreaks));
     }
 
     [RelayCommand]
@@ -449,6 +592,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
     [RelayCommand]
     private void CancelForm()
     {
+        IsTimeSelectorVisible = false;
         IsFormVisible = false;
         editingId = null;
         IsEditing = false;
@@ -533,7 +677,6 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             }
 
             Blocks.Add(saved);
-            SortBlocks();
             OnBlocksChanged();
             CancelForm();
         }
@@ -647,34 +790,38 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
         return new DateTimeOffset(
             localDateTime,
-            TimeZoneInfo.Local.GetUtcOffset(localDateTime));
-    }
-
-    private void SortBlocks()
-    {
-        DateTimeOffset now = DateTimeOffset.Now;
-
-        EmployeeUnavailabilityResponse[] sorted = Blocks
-            .OrderBy(x => x.EndsAt <= now)
-            .ThenBy(x => x.StartsAt)
-            .ToArray();
-
-        Blocks.Clear();
-
-        foreach (EmployeeUnavailabilityResponse block in sorted)
-        {
-            Blocks.Add(block);
-        }
+            SalonTimeZone.Info.GetUtcOffset(localDateTime));
     }
 
     private void OnBlocksChanged()
     {
-        OnPropertyChanged(nameof(HasBlocks));
-        OnPropertyChanged(nameof(HasNoBlocks));
+        OnPropertyChanged(nameof(UpcomingBreaks));
+        OnPropertyChanged(nameof(PastBreaks));
+        OnPropertyChanged(nameof(UpcomingVacations));
+        OnPropertyChanged(nameof(PastVacations));
+        OnPropertyChanged(nameof(HasNoUpcomingBreaks));
+        OnPropertyChanged(nameof(HasNoPastBreaks));
+        OnPropertyChanged(nameof(HasNoUpcomingVacations));
+        OnPropertyChanged(nameof(HasNoPastVacations));
+    }
+
+    private IReadOnlyList<EmployeeUnavailabilityResponse> GetBlocks(
+        EmployeeUnavailabilityType type,
+        bool includePast)
+    {
+        DateTimeOffset now = DateTimeOffset.Now;
+
+        return Blocks
+            .Where(block => block.Type == type && (block.EndsAt <= now) == includePast)
+            .OrderBy(block => includePast ? block.EndsAt : block.StartsAt)
+            .ToArray();
     }
 
     private static string FormatTime(TimeSpan time) =>
         time.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+
+    private static string FormatDate(DateTime date) =>
+        date.ToString("dddd, d. MMMM yyyy.", BosnianCulture);
 
     private enum TimeSelectorTarget
     {

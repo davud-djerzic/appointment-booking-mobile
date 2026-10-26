@@ -58,3 +58,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Files saved by the Claude desktop app (not part of the project)
+Claude outputs/

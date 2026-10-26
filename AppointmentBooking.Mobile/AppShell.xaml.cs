@@ -1,4 +1,6 @@
-﻿using AppointmentBooking.Mobile.Services.Session;
+﻿using AppointmentBooking.Mobile.Services.BookingCatalog;
+using AppointmentBooking.Mobile.Services.ProfileData;
+using AppointmentBooking.Mobile.Services.Session;
 using AppointmentBooking.Mobile.Views.Appointments;
 using AppointmentBooking.Mobile.Views.Auth;
 using AppointmentBooking.Mobile.Views.Booking;
@@ -12,7 +14,23 @@ namespace AppointmentBooking.Mobile;
 
 public partial class AppShell : Shell
 {
+    // While true, authentication changes raised during session restore are ignored;
+    // PrepareStartupAsync applies the final state when it is done.
+    private bool isStartupPanelVisible = true;
+
+    // Upper limit for loading data behind the startup panel, so a slow network
+    // does not keep the panel on screen; loading then continues in the background.
+    private static readonly TimeSpan StartupPreloadTimeout = TimeSpan.FromSeconds(10);
+
+    private readonly ProfileDataCache profileDataCache;
+    private readonly IBookingCatalogService bookingCatalogService;
+
     private readonly ISessionService sessionService;
+    private readonly BookingPage bookingPage;
+    private readonly AppointmentsPage appointmentsPage;
+    private readonly StaffAppointmentsPage staffAppointmentsPage;
+    private readonly StaffPanelPage staffPanelPage;
+    private readonly StaffServicesPage staffServicesPage;
 
     private readonly ShellContent loadingItem;
     private readonly ShellContent loginItem;
@@ -28,6 +46,7 @@ public partial class AppShell : Shell
     // STAFF
     private readonly TabBar staffTabBar;
     private readonly Tab staffAppointmentsTab;
+    private readonly Tab staffServicesTab;
     private readonly Tab staffPanelTab;
 
     public AppShell(
@@ -39,16 +58,26 @@ public partial class AppShell : Shell
         ProfilePage profilePage,
         StaffAppointmentsPage staffAppointmentsPage,
         StaffPanelPage staffPanelPage,
+        StaffServicesPage staffServicesPage,
         LoadingPage loadingPage,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        ProfileDataCache profileDataCache,
+        IBookingCatalogService bookingCatalogService)
     {
         InitializeComponent();
+        this.bookingPage = bookingPage;
+        this.appointmentsPage = appointmentsPage;
+        this.staffAppointmentsPage = staffAppointmentsPage;
+        this.staffPanelPage = staffPanelPage;
+        this.staffServicesPage = staffServicesPage;
 
         Routing.RegisterRoute(
             "forgot-password",
             typeof(ForgotPasswordPage));
 
         this.sessionService = sessionService;
+        this.profileDataCache = profileDataCache;
+        this.bookingCatalogService = bookingCatalogService;
 
         // =========================
         // LOADING
@@ -177,6 +206,13 @@ public partial class AppShell : Shell
             Content = staffAppointmentsPage
         };
 
+        ShellContent staffServicesItem = new()
+        {
+            Title = "Usluge",
+            Route = "staff-services",
+            Content = staffServicesPage
+        };
+
         ShellContent staffPanelItem = new()
         {
             Title = "Panel",
@@ -191,6 +227,13 @@ public partial class AppShell : Shell
             Icon = "nav_appointments.svg"
         };
 
+        staffServicesTab = new Tab
+        {
+            Title = "Usluge",
+            Route = "staff-services-tab",
+            Icon = "nav_services.svg"
+        };
+
         staffPanelTab = new Tab
         {
             Title = "Panel",
@@ -200,6 +243,9 @@ public partial class AppShell : Shell
 
         staffAppointmentsTab.Items.Add(
     staffAppointmentsItem);
+
+        staffServicesTab.Items.Add(
+            staffServicesItem);
 
         staffPanelTab.Items.Add(
             staffPanelItem);
@@ -212,6 +258,9 @@ public partial class AppShell : Shell
 
         staffTabBar.Items.Add(
             staffAppointmentsTab);
+
+        staffTabBar.Items.Add(
+            staffServicesTab);
 
         staffTabBar.Items.Add(
             staffPanelTab);
@@ -236,38 +285,82 @@ public partial class AppShell : Shell
         sessionService.AuthenticationStateChanged +=
             OnAuthenticationStateChanged;
 
-        Loaded += OnShellLoaded;
     }
 
-    private async void OnShellLoaded(
-    object? sender,
-    EventArgs e)
+    /// <summary>
+    /// Restores the session and loads the data for the first screens. Called by App while
+    /// the startup panel (LoadingPage) is the window's page, before this Shell is shown.
+    /// </summary>
+    public async Task PrepareStartupAsync()
     {
-        Loaded -= OnShellLoaded;
+        bool isAuthenticated = false;
+        bool restoreFailed = false;
 
-        await InitializeSessionAsync();
-    }
-
-    private async Task InitializeSessionAsync()
-    {
         try
         {
-            bool isAuthenticated =
+            isAuthenticated =
                 await sessionService.RestoreSessionAsync();
-
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                SetAuthenticationState(isAuthenticated);
-            });
         }
         catch
         {
-            await MainThread.InvokeOnMainThreadAsync(() =>
+            restoreFailed = true;
+        }
+
+        if (isAuthenticated && !restoreFailed)
+        {
+            // Load what the first screens need while the startup panel is visible.
+            await Task.WhenAny(
+                PreloadSignedInDataAsync(),
+                Task.Delay(StartupPreloadTimeout));
+        }
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            isStartupPanelVisible = false;
+
+            if (restoreFailed)
             {
                 ShowLogin();
-            });
+                return;
+            }
+
+            SetAuthenticationState(isAuthenticated);
+        });
+    }
+
+    private Task PreloadSignedInDataAsync()
+    {
+        if (IsStaffSession())
+        {
+            return Task.WhenAll(
+                staffAppointmentsPage.PreloadAsync(),
+                staffPanelPage.PreloadAsync(),
+                staffServicesPage.PreloadAsync());
+        }
+
+        return Task.WhenAll(
+            IgnoreErrorsAsync(profileDataCache.EnsureProfileLoadedAsync()),
+            IgnoreErrorsAsync(profileDataCache.EnsureSalonLoadedAsync()),
+            IgnoreErrorsAsync(bookingCatalogService.GetActiveServicesAsync()),
+            bookingPage.PreloadAsync(),
+            appointmentsPage.PreloadAsync());
+    }
+
+    // Errors are shown by the page itself when it loads the same data.
+    private static async Task IgnoreErrorsAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch
+        {
         }
     }
+
+    private bool IsStaffSession() =>
+        string.Equals(sessionService.Role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(sessionService.Role, "Employee", StringComparison.OrdinalIgnoreCase);
 
     private void OnAuthenticationStateChanged(
         object? sender,
@@ -275,6 +368,11 @@ public partial class AppShell : Shell
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
+            if (isStartupPanelVisible)
+            {
+                return;
+            }
+
             SetAuthenticationState(isAuthenticated);
         });
     }
@@ -288,14 +386,7 @@ public partial class AppShell : Shell
             return;
         }
 
-        if (string.Equals(
-                sessionService.Role,
-                "Admin",
-                StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(
-                sessionService.Role,
-                "Employee",
-                StringComparison.OrdinalIgnoreCase))
+        if (IsStaffSession())
         {
             ShowStaffPanel();
             return;
@@ -309,6 +400,10 @@ public partial class AppShell : Shell
         staffTabBar.IsVisible = false;
         mainTabBar.IsVisible = true;
 
+        // Start loading booking data as soon as a customer session is ready.
+        // The page and view model keep the result for later tab visits.
+        _ = bookingPage.PreloadAsync();
+
         mainTabBar.CurrentItem = homeTab;
         CurrentItem = mainTabBar;
     }
@@ -318,16 +413,38 @@ public partial class AppShell : Shell
         mainTabBar.IsVisible = false;
         staffTabBar.IsVisible = true;
 
+        // Load staff availability alongside the initial staff session so the panel is ready on first visit.
+        _ = staffPanelPage.PreloadAsync();
+        _ = staffServicesPage.PreloadAsync();
+
         staffTabBar.CurrentItem = staffAppointmentsTab;
         CurrentItem = staffTabBar;
     }
 
     private void ShowLogin()
     {
+        staffAppointmentsPage.ResetCachedData();
+        staffPanelPage.ResetCachedData();
+        staffServicesPage.ResetCachedData();
+        appointmentsPage.ResetCachedData();
         mainTabBar.IsVisible = false;
         staffTabBar.IsVisible = false;
 
         CurrentItem = loginItem;
+
+        // A registration page can remain pushed above the login ShellContent.
+        // Reset to the absolute login route so sign-out always lands on login.
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            try
+            {
+                await GoToAsync("//login");
+            }
+            catch
+            {
+                // CurrentItem is already set to the login root as a fallback.
+            }
+        });
     }
 
     public void ShowBookingTab()

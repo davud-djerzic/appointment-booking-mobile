@@ -24,7 +24,46 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
         private string confirmPassword = string.Empty;
 
         [ObservableProperty]
+        private bool isCurrentPasswordHidden = true;
+
+        [ObservableProperty]
+        private bool isNewPasswordHidden = true;
+
+        [ObservableProperty]
+        private bool isConfirmPasswordHidden = true;
+
+        public string CurrentPasswordVisibilityIcon =>
+            IsCurrentPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
+        public string NewPasswordVisibilityIcon =>
+            IsNewPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
+        public string ConfirmPasswordVisibilityIcon =>
+            IsConfirmPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
+        [ObservableProperty]
         private bool isSaving;
+
+        [RelayCommand]
+        private void ToggleCurrentPasswordVisibility() =>
+            IsCurrentPasswordHidden = !IsCurrentPasswordHidden;
+
+        [RelayCommand]
+        private void ToggleNewPasswordVisibility() =>
+            IsNewPasswordHidden = !IsNewPasswordHidden;
+
+        [RelayCommand]
+        private void ToggleConfirmPasswordVisibility() =>
+            IsConfirmPasswordHidden = !IsConfirmPasswordHidden;
+
+        partial void OnIsCurrentPasswordHiddenChanged(bool value) =>
+            OnPropertyChanged(nameof(CurrentPasswordVisibilityIcon));
+
+        partial void OnIsNewPasswordHiddenChanged(bool value) =>
+            OnPropertyChanged(nameof(NewPasswordVisibilityIcon));
+
+        partial void OnIsConfirmPasswordHiddenChanged(bool value) =>
+            OnPropertyChanged(nameof(ConfirmPasswordVisibilityIcon));
 
         public ChangePasswordViewModel(IApiClient apiClient, IErrorHandler errorHandler, ISessionService sessionService)
         {
@@ -104,6 +143,18 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                     "Lozinka promijenjena",
                     "Vaša lozinka je uspješno promijenjena.",
                     "U redu");
+
+                // Pop the change-password page from the profile tab's navigation stack
+                // before ending the session, so it cannot reappear on the next login.
+                try
+                {
+                    await Shell.Current.GoToAsync("//main/profile-tab/profile");
+                }
+                catch (Exception navigationException)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Nije moguće resetovati navigaciju profila nakon promjene lozinke: {navigationException}");
+                }
 
                 await sessionService.SignOutAsync();
             }

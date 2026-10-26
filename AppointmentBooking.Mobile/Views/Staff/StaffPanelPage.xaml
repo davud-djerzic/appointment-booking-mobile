@@ -13,6 +13,36 @@
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
+    <ContentPage.Resources>
+        <DataTemplate x:Key="UnavailabilityTemplate" x:DataType="availabilityModels:EmployeeUnavailabilityResponse">
+            <Border
+                Padding="0"
+                BackgroundColor="{StaticResource BrandBackground}"
+                Stroke="{StaticResource PanelBorder}"
+                StrokeThickness="0.8"
+                StrokeShape="RoundRectangle 16">
+                <Grid ColumnDefinitions="5,*">
+                    <BoxView Grid.Column="0" Color="{StaticResource BrandButton}" VerticalOptions="Fill" />
+                    <VerticalStackLayout Grid.Column="1" Padding="14" Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Label Text="{Binding TypeLabel}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" VerticalOptions="Center" />
+                            <Border Grid.Column="1" Padding="10,5" BackgroundColor="{StaticResource QuickBookingPanelBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 10" VerticalOptions="Center">
+                                <Label Text="{Binding StateLabel}" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource BrandButton}" />
+                            </Border>
+                        </Grid>
+                        <Label Text="{Binding PeriodDisplay}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource BrandButton}" />
+                        <Label Text="{Binding NoteDisplay}" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" LineBreakMode="TailTruncation" />
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                            <Label Grid.Row="0" Grid.ColumnSpan="3" Text="Izmjene su dostupne prije početka odsustva" IsVisible="{Binding IsEditVisible}" FontSize="11" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.5" VerticalOptions="Center" />
+                            <Button Grid.Row="1" Grid.Column="1" Text="Uredi" Clicked="OnEditClicked" CommandParameter="{Binding .}" IsEnabled="{Binding CanEdit}" IsVisible="{Binding IsEditVisible}" BackgroundColor="{StaticResource QuickBookingPanelBackground}" BorderColor="{StaticResource PanelBorder}" BorderWidth="1" TextColor="{StaticResource TextOnBrandBackground}" FontAttributes="Bold" FontSize="12" HeightRequest="38" CornerRadius="11" Padding="13,0" />
+                            <Button Grid.Row="1" Grid.Column="2" Text="Obriši" Clicked="OnDeleteClicked" CommandParameter="{Binding .}" BackgroundColor="{StaticResource QuickBookingPanelBackground}" BorderColor="{StaticResource Error}" BorderWidth="1" TextColor="{StaticResource Error}" FontAttributes="Bold" FontSize="12" HeightRequest="38" CornerRadius="11" Padding="13,0" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </ContentPage.Resources>
+
     <Grid Padding="20,18,20,0" RowDefinitions="Auto,*">
         <!-- Header -->
         <Grid
@@ -22,15 +52,10 @@
             Margin="0,0,0,18">
             <VerticalStackLayout Spacing="3" VerticalOptions="Center">
                 <Label
-                    Text="Panel"
+                    Text="Pauze"
                     FontSize="28"
                     FontAttributes="Bold"
                     TextColor="{StaticResource TextOnBrandBackground}" />
-                <Label
-                    Text="Upravljajte pauzama i godišnjim odmorima"
-                    FontSize="14"
-                    TextColor="{StaticResource TextOnBrandBackground}"
-                    Opacity="0.7" />
             </VerticalStackLayout>
 
             <Button
@@ -49,7 +74,7 @@
                 VerticalOptions="Center" />
         </Grid>
 
-        <ScrollView x:Name="ContentScroll" Grid.Row="1">
+        <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="16" Padding="0,0,0,28">
                 <!-- Stalne pauze -->
                 <Border
@@ -65,24 +90,40 @@
                                 FontSize="21"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource TextOnBrandBackground}" />
-                            <Label
-                                Text="Pauza se ponavlja svake sedmice i dijeli radno vrijeme odabranog dana."
-                                FontSize="13"
-                                TextColor="{StaticResource TextOnBrandBackground}"
-                                Opacity="0.7" />
                         </VerticalStackLayout>
 
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="DAN U SEDMICI" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.6" />
-                            <Border Padding="12,2" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 13">
-                                <Picker
-                                    Title="Odaberite dan"
-                                    ItemsSource="{Binding WorkingDays}"
-                                    SelectedItem="{Binding SelectedWorkingDay}"
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    TitleColor="{StaticResource TextOnBrandBackground}"
-                                    BackgroundColor="Transparent" />
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="DANI U SEDMICI" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.6" />
+                
+                            <Border Padding="10" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 16">
+                                <Grid
+                                    BindableLayout.ItemsSource="{Binding RecurringBreakDays}"
+                                    ColumnDefinitions="*,*,*,*,*"
+                                    ColumnSpacing="6">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="workingHoursModels:RecurringBreakDayOption">
+                                            <Button
+                                                Grid.Column="{Binding ColumnIndex}"
+                                                Text="{Binding DisplayLabel}"
+                                                Clicked="OnRecurringBreakDayClicked"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{Binding BackgroundColor}"
+                                                TextColor="{Binding TextColor}"
+                                                BorderColor="{Binding BorderColor}"
+                                                BorderWidth="1"
+                                                FontAttributes="Bold"
+                                                FontSize="12"
+                                                HeightRequest="44"
+                                                CornerRadius="13"
+                                                Padding="4,0"
+                                                Margin="0"
+                                                HorizontalOptions="Fill"
+                                                VerticalOptions="Center" />
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </Grid>
                             </Border>
+                            <Label Text="{Binding RecurringBreakDaySelectionDisplay}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandButton}" />
                         </VerticalStackLayout>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
@@ -117,7 +158,7 @@
                         </Grid>
 
                         <Button
-                            Text="Primijeni stalnu pauzu"
+                            Text="Primijeni za odabrane dane"
                             Command="{Binding ApplyRecurringBreakCommand}"
                             IsEnabled="{Binding CanApplyRecurringBreak}"
                             BackgroundColor="{StaticResource BrandButton}"
@@ -132,7 +173,7 @@
                             Color="{StaticResource BrandButton}"
                             HorizontalOptions="Center" />
 
-                        <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding WeeklyWorkingHours}">
+                        <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding WeeklyBreaks}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="workingHoursModels:WeeklyWorkingHoursDayDisplay">
                                     <Border
@@ -152,220 +193,7 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Form Card / Editor -->
-                <Border
-                    x:Name="EditorCard"
-                    IsVisible="{Binding IsFormVisible}"
-                    Padding="18"
-                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                    Stroke="{StaticResource BrandButton}"
-                    StrokeThickness="1.2"
-                    StrokeShape="RoundRectangle 20">
-                    <VerticalStackLayout Spacing="16">
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                            <VerticalStackLayout Spacing="3">
-                                <Label
-                                    Text="{Binding FormTitle}"
-                                    FontSize="21"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource TextOnBrandBackground}" />
-                                <Label
-                                    Text="Odaberite vrstu odsustva i unesite period."
-                                    FontSize="13"
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    Opacity="0.7" />
-                            </VerticalStackLayout>
-                            <Border
-                                Grid.Column="1"
-                                Padding="10,6"
-                                BackgroundColor="{StaticResource BrandBackground}"
-                                Stroke="{StaticResource PanelBorder}"
-                                StrokeThickness="0.8"
-                                StrokeShape="RoundRectangle 10"
-                                VerticalOptions="Start">
-                                <Label
-                                    Text="UREĐIVANJE"
-                                    IsVisible="{Binding IsEditing}"
-                                    FontSize="10"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource BrandButton}" />
-                            </Border>
-                        </Grid>
-
-                        <!-- Break / Vacation Type Buttons -->
-                        <Border
-                            BackgroundColor="{StaticResource BrandBackground}"
-                            Stroke="{StaticResource PanelBorder}"
-                            StrokeThickness="0.8"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="4">
-                            <Grid
-                                ColumnDefinitions="*,*"
-                                ColumnSpacing="6">
-                                <Button
-                                    Grid.Column="0"
-                                    Text="Pauza"
-                                    Command="{Binding SelectBreakCommand}"
-                                    BackgroundColor="{Binding BreakTypeBackground}"
-                                    TextColor="{Binding BreakTypeTextColor}"
-                                    FontAttributes="Bold"
-                                    FontSize="14"
-                                    HeightRequest="42"
-                                    CornerRadius="10" />
-                                <Button
-                                    Grid.Column="1"
-                                    Text="Godišnji odmor"
-                                    Command="{Binding SelectVacationCommand}"
-                                    BackgroundColor="{Binding VacationTypeBackground}"
-                                    TextColor="{Binding VacationTypeTextColor}"
-                                    FontAttributes="Bold"
-                                    FontSize="14"
-                                    HeightRequest="42"
-                                    CornerRadius="10" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Vrijeme pauze -->
-                        <VerticalStackLayout IsVisible="{Binding IsBreakSelected}" Spacing="12">
-                            <Label
-                                Text="VRIJEME PAUZE"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                CharacterSpacing="1"
-                                TextColor="{StaticResource TextOnBrandBackground}"
-                                Opacity="0.6" />
-                            <Border
-                                Padding="14,0"
-                                BackgroundColor="{StaticResource BrandBackground}"
-                                Stroke="{StaticResource PanelBorder}"
-                                StrokeThickness="0.8"
-                                StrokeShape="RoundRectangle 13">
-                                <DatePicker
-                                    Date="{Binding BreakDate}"
-                                    MinimumDate="{Binding Today}"
-                                    Format="dddd, dd.MM.yyyy."
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    BackgroundColor="Transparent"
-                                    HeightRequest="46" />
-                            </Border>
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                <VerticalStackLayout Spacing="6">
-                                    <Label Text="Početak" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                                    <Button
-                                        Text="{Binding BreakStartsAtDisplay}"
-                                        Command="{Binding OpenBreakStartTimeSelectorCommand}"
-                                        BackgroundColor="{StaticResource BrandBackground}"
-                                        TextColor="{StaticResource BrandButton}"
-                                        BorderColor="{StaticResource PanelBorder}"
-                                        BorderWidth="1"
-                                        FontSize="16"
-                                        FontAttributes="Bold"
-                                        HeightRequest="48"
-                                        CornerRadius="12" />
-                                </VerticalStackLayout>
-                                <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                    <Label Text="Završetak" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                                    <Button
-                                        Text="{Binding BreakEndsAtDisplay}"
-                                        Command="{Binding OpenBreakEndTimeSelectorCommand}"
-                                        BackgroundColor="{StaticResource BrandBackground}"
-                                        TextColor="{StaticResource BrandButton}"
-                                        BorderColor="{StaticResource PanelBorder}"
-                                        BorderWidth="1"
-                                        FontSize="16"
-                                        FontAttributes="Bold"
-                                        HeightRequest="48"
-                                        CornerRadius="12" />
-                                </VerticalStackLayout>
-                            </Grid>
-                        </VerticalStackLayout>
-
-                        <!-- Period godišnjeg odmora -->
-                        <VerticalStackLayout IsVisible="{Binding IsVacationSelected}" Spacing="12">
-                            <Label
-                                Text="PERIOD GODIŠNJEG ODMORA"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                CharacterSpacing="1"
-                                TextColor="{StaticResource TextOnBrandBackground}"
-                                Opacity="0.6" />
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                                <VerticalStackLayout Spacing="6">
-                                    <Label Text="Od" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                                    <Border Padding="10,0" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 13">
-                                        <DatePicker Date="{Binding VacationStartsOn}" MinimumDate="{Binding Tomorrow}" Format="dd.MM.yyyy." TextColor="{StaticResource TextOnBrandBackground}" BackgroundColor="Transparent" HeightRequest="46" />
-                                    </Border>
-                                </VerticalStackLayout>
-                                <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                    <Label Text="Do (uključujući datum)" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                                    <Border Padding="10,0" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 13">
-                                        <DatePicker Date="{Binding VacationEndsOn}" MinimumDate="{Binding VacationStartsOn}" Format="dd.MM.yyyy." TextColor="{StaticResource TextOnBrandBackground}" BackgroundColor="Transparent" HeightRequest="46" />
-                                    </Border>
-                                </VerticalStackLayout>
-                            </Grid>
-                        </VerticalStackLayout>
-
-                        <!-- Napomena -->
-                        <VerticalStackLayout Spacing="6">
-                            <Label
-                                Text="NAPOMENA  ·  OPCIONALNO"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                CharacterSpacing="1"
-                                TextColor="{StaticResource TextOnBrandBackground}"
-                                Opacity="0.6" />
-                            <Border
-                                Padding="12,8"
-                                BackgroundColor="{StaticResource BrandBackground}"
-                                Stroke="{StaticResource PanelBorder}"
-                                StrokeThickness="0.8"
-                                StrokeShape="RoundRectangle 13">
-                                <Editor
-                                    Text="{Binding Note}"
-                                    Placeholder="Dodajte kratku napomenu"
-                                    AutoSize="TextChanges"
-                                    MaxLength="500"
-                                    MinimumHeightRequest="76"
-                                    BackgroundColor="Transparent"
-                                    PlaceholderColor="#8A9BB5"
-                                    TextColor="{StaticResource TextOnBrandBackground}" />
-                            </Border>
-                        </VerticalStackLayout>
-
-                        <!-- Buttons -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Button
-                                Grid.Column="0"
-                                Text="Sačuvaj"
-                                Command="{Binding SaveBlockCommand}"
-                                IsEnabled="{Binding CanSave}"
-                                BackgroundColor="{StaticResource BrandButton}"
-                                TextColor="{StaticResource BrandBackground}"
-                                FontAttributes="Bold"
-                                HeightRequest="48"
-                                CornerRadius="13" />
-                            <Button
-                                Grid.Column="1"
-                                Text="Odustani"
-                                Command="{Binding CancelFormCommand}"
-                                BackgroundColor="{StaticResource BrandBackground}"
-                                BorderColor="{StaticResource PanelBorder}"
-                                BorderWidth="1"
-                                TextColor="{StaticResource TextOnBrandBackground}"
-                                FontAttributes="Bold"
-                                HeightRequest="48"
-                                CornerRadius="13" />
-                        </Grid>
-
-                        <ActivityIndicator
-                            IsRunning="{Binding IsSaving}"
-                            IsVisible="{Binding IsSaving}"
-                            Color="{StaticResource BrandButton}"
-                            HorizontalOptions="Center" />
-                    </VerticalStackLayout>
-                </Border>
-
-                <!-- Moja odsustva -->
+                <!-- Pauze -->
                 <Border
                     Padding="18"
                     BackgroundColor="{StaticResource QuickBookingPanelBackground}"
@@ -376,19 +204,14 @@
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <VerticalStackLayout Spacing="4">
                                 <Label
-                                    Text="Moja odsustva"
+                                    Text="Pauze"
                                     FontSize="21"
                                     FontAttributes="Bold"
                                     TextColor="{StaticResource TextOnBrandBackground}" />
-                                <Label
-                                    Text="Pauze i godišnji odmori utiču na dostupnost termina."
-                                    FontSize="13"
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    Opacity="0.7" />
                             </VerticalStackLayout>
                             <Button
                                 Grid.Column="1"
-                                Text="＋  Dodaj"
+                                Text="＋  Dodaj pauzu"
                                 Clicked="OnAddClicked"
                                 BackgroundColor="{StaticResource BrandButton}"
                                 TextColor="{StaticResource BrandBackground}"
@@ -407,124 +230,39 @@
                             HorizontalOptions="Center"
                             Margin="0,8" />
 
-                        <Border
-                            IsVisible="{Binding HasNoBlocks}"
-                            Padding="16"
-                            BackgroundColor="{StaticResource BrandBackground}"
-                            Stroke="{StaticResource PanelBorder}"
-                            StrokeThickness="0.8"
-                            StrokeShape="RoundRectangle 14">
-                            <VerticalStackLayout Spacing="5">
-                                <Label
-                                    Text="Još nema evidentiranih odsustava"
-                                    FontSize="15"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource TextOnBrandBackground}" />
-                                <Label
-                                    Text="Dodajte pauzu ili planirani godišnji odmor."
-                                    FontSize="13"
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    Opacity="0.7" />
-                            </VerticalStackLayout>
-                        </Border>
+                        <Label Text="AKTUELNE I BUDUĆE PAUZE" FontSize="12" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.65" />
+                        <Label IsVisible="{Binding HasNoUpcomingBreaks}" Text="Nema budućih pauza." FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding UpcomingBreaks}" BindableLayout.ItemTemplate="{StaticResource UnavailabilityTemplate}" Spacing="12" />
 
-                        <VerticalStackLayout
-                            BindableLayout.ItemsSource="{Binding Blocks}"
-                            Spacing="12">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="availabilityModels:EmployeeUnavailabilityResponse">
-                                    <Border
-                                        Padding="0"
-                                        BackgroundColor="{StaticResource BrandBackground}"
-                                        Stroke="{StaticResource PanelBorder}"
-                                        StrokeThickness="0.8"
-                                        StrokeShape="RoundRectangle 16">
-                                        <Grid ColumnDefinitions="5,*">
-                                            <BoxView
-                                                Grid.Column="0"
-                                                Color="{StaticResource BrandButton}"
-                                                VerticalOptions="Fill" />
-                                            <VerticalStackLayout Grid.Column="1" Padding="14" Spacing="10">
-                                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                    <Label
-                                                        Text="{Binding TypeLabel}"
-                                                        FontSize="16"
-                                                        FontAttributes="Bold"
-                                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                                        VerticalOptions="Center" />
-                                                    <Border
-                                                        Grid.Column="1"
-                                                        Padding="10,5"
-                                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                                                        Stroke="{StaticResource PanelBorder}"
-                                                        StrokeThickness="0.8"
-                                                        StrokeShape="RoundRectangle 10"
-                                                        VerticalOptions="Center">
-                                                        <Label
-                                                            Text="{Binding StateLabel}"
-                                                            FontSize="11"
-                                                            FontAttributes="Bold"
-                                                            TextColor="{StaticResource BrandButton}" />
-                                                    </Border>
-                                                </Grid>
-                                                <Label
-                                                    Text="{Binding PeriodDisplay}"
-                                                    FontSize="14"
-                                                    FontAttributes="Bold"
-                                                    TextColor="{StaticResource BrandButton}" />
-                                                <Label
-                                                    Text="{Binding NoteDisplay}"
-                                                    FontSize="13"
-                                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                                    Opacity="0.7"
-                                                    LineBreakMode="TailTruncation" />
-                                                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
-                                                    <Label
-                                                        Grid.Row="0"
-                                                        Grid.ColumnSpan="3"
-                                                        Text="Izmjene su dostupne prije početka odsustva"
-                                                        FontSize="11"
-                                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                                        Opacity="0.5"
-                                                        VerticalOptions="Center" />
-                                                    <Button
-                                                        Grid.Row="1"
-                                                        Grid.Column="1"
-                                                        Text="Uredi"
-                                                        Clicked="OnEditClicked"
-                                                        CommandParameter="{Binding .}"
-                                                        IsEnabled="{Binding CanEdit}"
-                                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                                                        BorderColor="{StaticResource PanelBorder}"
-                                                        BorderWidth="1"
-                                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                                        FontAttributes="Bold"
-                                                        FontSize="12"
-                                                        HeightRequest="38"
-                                                        CornerRadius="11"
-                                                        Padding="13,0" />
-                                                    <Button
-                                                        Grid.Row="1"
-                                                        Grid.Column="2"
-                                                        Text="Obriši"
-                                                        Clicked="OnDeleteClicked"
-                                                        CommandParameter="{Binding .}"
-                                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                                                        BorderColor="{StaticResource Error}"
-                                                        BorderWidth="1"
-                                                        TextColor="{StaticResource Error}"
-                                                        FontAttributes="Bold"
-                                                        FontSize="12"
-                                                        HeightRequest="38"
-                                                        CornerRadius="11"
-                                                        Padding="13,0" />
-                                                </Grid>
-                                            </VerticalStackLayout>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
+                        <Label Text="PROŠLE PAUZE" FontSize="12" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.65" Margin="0,8,0,0" />
+                        <Label IsVisible="{Binding HasNoPastBreaks}" Text="Nema prošlih pauza." FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding PastBreaks}" BindableLayout.ItemTemplate="{StaticResource UnavailabilityTemplate}" Spacing="12" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Godišnji odmori -->
+                <Border
+                    Padding="18"
+                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                    Stroke="{StaticResource PanelBorder}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 20">
+                    <VerticalStackLayout Spacing="16">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Godišnji odmori" FontSize="21" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+                             
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="＋  Dodaj godišnji" Clicked="OnAddVacationClicked" BackgroundColor="{StaticResource BrandButton}" TextColor="{StaticResource BrandBackground}" FontAttributes="Bold" FontSize="14" HeightRequest="44" CornerRadius="13" Padding="14,0" VerticalOptions="Center" />
+                        </Grid>
+
+                        <Label Text="AKTUELNI I BUDUĆI GODIŠNJI ODMORI" FontSize="12" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.65" />
+                        <Label IsVisible="{Binding HasNoUpcomingVacations}" Text="Nema budućih godišnjih odmora." FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding UpcomingVacations}" BindableLayout.ItemTemplate="{StaticResource UnavailabilityTemplate}" Spacing="12" />
+
+                        <Label Text="PROŠLI GODIŠNJI ODMORI" FontSize="12" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.65" Margin="0,8,0,0" />
+                        <Label IsVisible="{Binding HasNoPastVacations}" Text="Nema prošlih godišnjih odmora." FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding PastVacations}" BindableLayout.ItemTemplate="{StaticResource UnavailabilityTemplate}" Spacing="12" />
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>
@@ -533,7 +271,7 @@
         <!-- Time selector popup -->
         <Grid
             Grid.RowSpan="2"
-            IsVisible="{Binding IsTimeSelectorVisible}"
+            IsVisible="{Binding IsPageTimeSelectorVisible}"
             BackgroundColor="#B3000000"
             Padding="24">
             <Border

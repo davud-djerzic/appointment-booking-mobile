@@ -39,12 +39,6 @@
                     FontAttributes="Bold"
                     TextColor="{StaticResource TextOnBrandBackground}" />
 
-                <Label
-                    Text="Upravljajte svojim podacima"
-                    FontSize="14"
-                    TextColor="{StaticResource TextOnBrandBackground}"
-                    Opacity="0.7" />
-
             </VerticalStackLayout>
 
             <Border
@@ -137,12 +131,6 @@
 
                 <!-- ACCOUNT SECTION -->
                 <VerticalStackLayout Spacing="10">
-
-                    <Label
-                        Text="Moji podaci"
-                        FontSize="20"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource TextOnBrandBackground}" />
 
                     <!-- CUSTOMER INFO CARD -->
                     <Border
@@ -487,6 +475,53 @@
 
                 </VerticalStackLayout>
 
+                <!-- SECURITY -->
+                <VerticalStackLayout Spacing="10">
+
+
+                    <Border
+                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                        Stroke="{StaticResource PanelBorder}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="16">
+
+                        <!-- OPEN CHANGE PASSWORD -->
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenChangePasswordCommand}" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="*,Auto">
+
+                            <VerticalStackLayout Spacing="3">
+
+                                <Label
+                                    Text="Lozinka"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextOnBrandBackground}" />
+
+                                <Label
+                                    Text="Promijenite lozinku svog naloga."
+                                    FontSize="12"
+                                    TextColor="{StaticResource TextOnBrandBackground}"
+                                    Opacity="0.7" />
+
+                            </VerticalStackLayout>
+
+                            <Label
+                                Grid.Column="1"
+                                Text="›"
+                                FontSize="28"
+                                TextColor="{StaticResource BrandButton}"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
+
+                </VerticalStackLayout>
+
                 <!-- SALON -->
                 <VerticalStackLayout Spacing="10">
 
@@ -519,10 +554,11 @@
                                     StrokeShape="RoundRectangle 26"
                                     VerticalOptions="Center">
 
-                                    <Label
-                                        Text="✂"
-                                        FontSize="25"
-                                        TextColor="{StaticResource BrandButton}"
+                                    <Image
+                                        Source="salon.jpg"
+                                        Aspect="AspectFill"
+                                        WidthRequest="40"
+                                        HeightRequest="40"
                                         HorizontalOptions="Center"
                                         VerticalOptions="Center" />
 
@@ -539,11 +575,6 @@
                                         FontAttributes="Bold"
                                         TextColor="{StaticResource TextOnBrandBackground}" />
 
-                                    <Label
-                                        Text="Informacije o salonu"
-                                        FontSize="12"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        Opacity="0.7" />
 
                                 </VerticalStackLayout>
 
@@ -793,58 +824,6 @@
 
                 </VerticalStackLayout>
 
-                <!-- SECURITY -->
-                <VerticalStackLayout Spacing="10">
-
-                    <Label
-                        Text="Sigurnost"
-                        FontSize="20"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource TextOnBrandBackground}" />
-
-                    <Border
-                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                        Stroke="{StaticResource PanelBorder}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 18"
-                        Padding="16">
-
-                        <!-- OPEN CHANGE PASSWORD -->
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenChangePasswordCommand}" />
-                        </Border.GestureRecognizers>
-
-                        <Grid ColumnDefinitions="*,Auto">
-
-                            <VerticalStackLayout Spacing="3">
-
-                                <Label
-                                    Text="Lozinka"
-                                    FontSize="16"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource TextOnBrandBackground}" />
-
-                                <Label
-                                    Text="Promijenite lozinku svog naloga."
-                                    FontSize="12"
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    Opacity="0.7" />
-
-                            </VerticalStackLayout>
-
-                            <Label
-                                Grid.Column="1"
-                                Text="›"
-                                FontSize="28"
-                                TextColor="{StaticResource BrandButton}"
-                                VerticalOptions="Center" />
-
-                        </Grid>
-
-                    </Border>
-
-                </VerticalStackLayout>
-
                 <!-- LOGOUT -->
                 <Button
                     Text="ODJAVI SE"
@@ -859,6 +838,20 @@
                     CornerRadius="14"
                     Margin="0,6,0,0" />
 
+                <Button
+                    Text="IZBRIŠI NALOG"
+                    Command="{Binding DeleteAccountCommand}"
+                    IsEnabled="{Binding CanDeleteAccount}"
+                    BackgroundColor="Transparent"
+                    BorderWidth="0"
+                    TextColor="#FF6B6B"
+                    FontSize="12"
+                    HeightRequest="34"
+                    Padding="10,0"
+                    CornerRadius="10"
+                    Opacity="1"
+                    Margin="0,0,0,0" />
+
                 <!-- LOADING -->
                 <ActivityIndicator
                     IsRunning="{Binding IsLoading}"
@@ -871,6 +864,13 @@
                     IsRunning="{Binding IsSaving}"
                     IsVisible="{Binding IsSaving}"
                     Color="{StaticResource BrandButton}"
+                    HorizontalOptions="Center"
+                    Margin="0,4,0,0" />
+
+                <ActivityIndicator
+                    IsRunning="{Binding IsDeletingAccount}"
+                    IsVisible="{Binding IsDeletingAccount}"
+                    Color="{StaticResource Error}"
                     HorizontalOptions="Center"
                     Margin="0,4,0,0" />
 

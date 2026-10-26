@@ -92,6 +92,7 @@
         <!-- CONTENT -->
 
         <ScrollView
+            x:Name="BookingScrollView"
             Grid.Row="1">
 
             <VerticalStackLayout
@@ -444,8 +445,7 @@
 
                                     <Button
                                         Text="{Binding DayNumber}"
-                                        Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.SelectDateCommand}"
-                                        CommandParameter="{Binding .}"
+                                        Clicked="OnCalendarDateClicked"
                                         HeightRequest="42"
                                         BackgroundColor="Transparent"
                                         TextColor="{StaticResource TextOnBrandBackground}"
@@ -483,7 +483,7 @@
 
                     <VerticalStackLayout
                         Spacing="12"
-                        IsVisible="{Binding HasAvailability}">
+                        VerticalOptions="Start">
 
                         <Label
                             Text="Slobodni termini"
@@ -491,71 +491,86 @@
                             FontAttributes="Bold"
                             TextColor="{StaticResource TextOnBrandBackground}" />
 
-                        <FlexLayout
-                            Direction="Row"
-                            Wrap="Wrap"
-                            JustifyContent="Start"
-                            AlignItems="Center"
-                            BindableLayout.ItemsSource="{Binding AvailableSlots}">
-
-                            <BindableLayout.ItemTemplate>
-
-                                <DataTemplate
-                                    x:DataType="bookingResponses:AvailableTimeSlotResponse">
-
-                                    <Button
-                                        Text="{Binding StartsAt, StringFormat='{}{0:HH:mm}'}"
-                                        Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.CreateHoldCommand}"
-                                        CommandParameter="{Binding .}"
-                                        HeightRequest="44"
-                                        WidthRequest="76"
-                                        Padding="0"
-                                        Margin="0,0,8,8"
-                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                                        BorderColor="{StaticResource PanelBorder}"
-                                        BorderWidth="1"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        FontSize="15"
-                                        FontAttributes="Bold"
-                                        CornerRadius="12" />
-
-                                </DataTemplate>
-
-                            </BindableLayout.ItemTemplate>
-
-                        </FlexLayout>
-
-                    </VerticalStackLayout>
-
-
-                    <!-- NO AVAILABLE TIMES -->
-
-                    <Border
+                        <Border
+                            HeightRequest="285"
                         BackgroundColor="{StaticResource QuickBookingPanelBackground}"
                         Stroke="{StaticResource PanelBorder}"
                         StrokeThickness="0.8"
                         StrokeShape="RoundRectangle 14"
-                        Padding="14"
-                        IsVisible="{Binding HasNoAvailability}">
+                            Padding="12">
 
-                        <VerticalStackLayout
-                            Spacing="4">
+                            <Grid>
+                                <ActivityIndicator
+                                    IsRunning="{Binding IsLoadingAvailability}"
+                                    IsVisible="{Binding IsLoadingAvailability}"
+                                    Color="{StaticResource BrandButton}"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    SemanticProperties.Description="Učitavanje slobodnih termina" />
 
-                            <Label
-                                Text="Nema slobodnih termina"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource TextOnBrandBackground}" />
+                                <Label
+                                    Text="Odaberite usluge i datum za prikaz termina."
+                                    FontSize="14"
+                                    TextColor="{StaticResource TextOnBrandBackground}"
+                                    HorizontalTextAlignment="Center"
+                                    VerticalTextAlignment="Center"
+                                    IsVisible="{Binding HasNoSelectedDate}" />
 
-                            <Label
-                                Text="Za odabrane usluge nema slobodnih termina na odabrani datum. Molimo odaberite drugi datum."
-                                FontSize="13"
-                                TextColor="{StaticResource TextOnBrandBackground}"
-                                Opacity="0.8" />
+                                <VerticalStackLayout
+                                    Spacing="4"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    IsVisible="{Binding HasNoAvailability}">
+                                    <Label
+                                        Text="Nema slobodnih termina"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource TextOnBrandBackground}"
+                                        HorizontalTextAlignment="Center" />
+                                    <Label
+                                        Text="Odaberite drugi datum."
+                                        FontSize="13"
+                                        TextColor="{StaticResource TextOnBrandBackground}"
+                                        Opacity="0.8"
+                                        HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
 
-                        </VerticalStackLayout>
+                                <CollectionView
+                                    ItemsSource="{Binding AvailableSlots}"
+                                    IsVisible="{Binding HasAvailability}"
+                                    VerticalOptions="Fill"
+                                    HeightRequest="250"
+                                    SelectionMode="None">
+                                    <CollectionView.ItemsLayout>
+                                        <GridItemsLayout
+                                            Orientation="Vertical"
+                                            Span="3"
+                                            VerticalItemSpacing="6"
+                                            HorizontalItemSpacing="6" />
+                                    </CollectionView.ItemsLayout>
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate
+                                            x:DataType="bookingResponses:AvailableTimeSlotResponse">
+                                            <Button
+                                                Text="{Binding StartsAt, StringFormat='{}{0:HH:mm}'}"
+                                                Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.CreateHoldCommand}"
+                                                CommandParameter="{Binding .}"
+                                                HeightRequest="44"
+                                                Padding="0"
+                                                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                                BorderColor="{StaticResource PanelBorder}"
+                                                BorderWidth="1"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                FontSize="15"
+                                                FontAttributes="Bold"
+                                                CornerRadius="12" />
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </Grid>
+                        </Border>
 
-                    </Border>
+                    </VerticalStackLayout>
 
                 </VerticalStackLayout>
 

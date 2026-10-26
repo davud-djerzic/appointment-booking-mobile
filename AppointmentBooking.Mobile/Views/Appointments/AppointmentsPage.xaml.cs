@@ -9,8 +9,8 @@ namespace AppointmentBooking.Mobile.Views.Appointments
     public partial class AppointmentsPage : ContentPage
     {
         private readonly AppointmentViewModel viewModel;
-        private bool hasLoaded;
         private bool isDetailsModalOpen;
+        private bool isCancellationConfirmationOpen;
 
         public AppointmentsPage(AppointmentViewModel viewModel)
         {
@@ -50,25 +50,14 @@ namespace AppointmentBooking.Mobile.Views.Appointments
                 return;
             }
 
-            if (hasLoaded)
-            {
-                return;
-            }
-
-            await viewModel.LoadAppointmentsCommand.ExecuteAsync(null);
-
-            hasLoaded = true;
+            // Loaded at app start; only loads here if that failed.
+            await viewModel.EnsureLoadedAsync();
         }
 
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
+        /// <summary>Loads the customer's appointments while the startup panel is shown.</summary>
+        public Task PreloadAsync() => viewModel.EnsureLoadedAsync();
 
-            if (!isDetailsModalOpen)
-            {
-                hasLoaded = false;
-            }
-        }
+        public void ResetCachedData() => viewModel.ResetCachedData();
 
         private async void OnCancelClicked(object? sender, EventArgs e)
         {
@@ -78,11 +67,20 @@ namespace AppointmentBooking.Mobile.Views.Appointments
                 return;
             }
 
-            bool confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
-                "Otkazivanje termina",
-                "Da li ste sigurni da želite otkazati ovaj termin?",
-                "Da, otkaži",
-                "Ne");
+            isCancellationConfirmationOpen = true;
+            bool confirmed;
+            try
+            {
+                confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                    "Otkazivanje termina",
+                    "Da li ste sigurni da želite otkazati ovaj termin?",
+                    "Da, otkaži",
+                    "Ne");
+            }
+            finally
+            {
+                isCancellationConfirmationOpen = false;
+            }
 
             if (!confirmed)
             {

@@ -1,5 +1,6 @@
 ﻿using AppointmentBooking.Mobile.Models.Employees.Responses;
 using AppointmentBooking.Mobile.Models.Enums;
+using AppointmentBooking.Mobile.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,9 +19,9 @@ namespace AppointmentBooking.Mobile.Models.Bookings.Responses
         DateTimeOffset CreatedAt)
     {
        public DateTimeOffset LocalStartsAt =>
-            StartsAt.ToLocalTime();
+            SalonTimeZone.ToLocal(StartsAt);
 
         public DateTimeOffset LocalEndsAt =>
-            EndsAt.ToLocalTime();
+            SalonTimeZone.ToLocal(EndsAt);
     }
 }

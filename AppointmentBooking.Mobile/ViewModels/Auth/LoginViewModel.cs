@@ -21,7 +21,24 @@ public partial class LoginViewModel : ObservableObject
     private string password = string.Empty;
 
     [ObservableProperty]
+    private bool isPasswordHidden = true;
+
+    public string PasswordVisibilityIcon =>
+        IsPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
+    [ObservableProperty]
     private bool isBusy;
+
+    [RelayCommand]
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordHidden = !IsPasswordHidden;
+    }
+
+    partial void OnIsPasswordHiddenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(PasswordVisibilityIcon));
+    }
 
     [RelayCommand]
     private async Task LoginAsync()
@@ -44,42 +61,41 @@ public partial class LoginViewModel : ObservableObject
             Email.Trim(),
             Password);
 
-        // Password više ne treba ostati u UI-u
-        // nakon što je request napravljen.
-        Password = string.Empty;
-
         IsBusy = true;
 
         try
         {
-            // Task.Run ensures the HTTP call is off the Android main thread,
-            // preventing Android.OS.NetworkOnMainThreadException.
-            AuthResult result =
-                await Task.Run(() => authService.LoginAsync(request));
+            // HTTP I/O is asynchronous; keep the UI responsive without
+            // moving the request to a background thread.
+            AuthResult result = await authService.LoginAsync(request);
 
             if (!result.IsSuccess)
             {
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Prijava nije uspjela",
                     result.ErrorMessage ?? "Prijava nije uspjela.",
-                    "OK");
+                    "U redu");
 
                 return;
             }
+
+            // Clear credentials only after authentication succeeds. Keeping
+            // the password on failure lets the user correct or retry easily.
+            Password = string.Empty;
         }
         catch (HttpRequestException)
         {
             await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Greška mreže",
                 "Nije moguće povezati se sa serverom.",
-                "OK");
+                "U redu");
         }
         catch (Exception)
         {
             await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Greška",
                 "Prijava trenutno nije moguća. Pokušajte ponovo.",
-                "OK");
+                "U redu");
         }
         finally
         {

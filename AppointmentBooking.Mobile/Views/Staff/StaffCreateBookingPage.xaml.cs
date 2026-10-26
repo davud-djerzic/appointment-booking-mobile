@@ -1,4 +1,7 @@
 using AppointmentBooking.Mobile.ViewModels.Staff;
+using AppointmentBooking.Mobile.Views.Shared;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 
 namespace AppointmentBooking.Mobile.Views.Staff;
 
@@ -13,14 +16,23 @@ public partial class StaffCreateBookingPage : ContentPage
         BindingContext = viewModel;
     }
 
-    private async void OnEmployeeSelectionChanged(object? sender, EventArgs e)
-    {
-        await viewModel.LoadServicesForSelectedEmployeeAsync();
-    }
-
     private async void OnCancelClicked(object? sender, EventArgs e)
     {
         await Navigation.PopModalAsync();
+    }
+
+    private async void OnStaffBookingDateClicked(object? sender, EventArgs e)
+    {
+        var result = await this.ShowPopupAsync<DateTime?>(
+            new CalendarDatePickerPopup(
+                viewModel.StaffBookingDate,
+                viewModel.StaffBookingToday,
+                "Odaberite datum termina"));
+
+        if (result.WasDismissedByTappingOutsideOfPopup is false && result.Result is DateTime date)
+        {
+            viewModel.StaffBookingDate = date;
+        }
     }
 
     private async void OnSaveClicked(object? sender, EventArgs e)

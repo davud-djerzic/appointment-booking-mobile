@@ -201,21 +201,12 @@
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 16"
                     Padding="16,8">
-
-                    <Grid>
-
-                        <VerticalStackLayout
-                            Grid.Column="0"
-                            Spacing="0">
-
-                            <Label
-                                Text="Lozinka"
-                                Style="{StaticResource CaptionLabel}"
-                                TextColor="#68562C" />
-
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <VerticalStackLayout Grid.Column="0" Spacing="0">
+                            <Label Text="Lozinka" Style="{StaticResource CaptionLabel}" TextColor="#68562C" />
                             <Entry
                                 Placeholder="Unesite lozinku"
-                                IsPassword="True"
+                                IsPassword="{Binding IsPasswordHidden}"
                                 Text="{Binding Password}"
                                 TextColor="{StaticResource TextPrimary}"
                                 PlaceholderColor="#75643C"
@@ -224,11 +215,19 @@
                                 HeightRequest="52"
                                 Margin="-4,0,0,0"
                                 ReturnType="Next" />
-
                         </VerticalStackLayout>
-
+                        <ImageButton
+                            Grid.Column="1"
+                            Source="{Binding PasswordVisibilityIcon}"
+                            Command="{Binding TogglePasswordVisibilityCommand}"
+                            BackgroundColor="Transparent"
+                            WidthRequest="34"
+                            HeightRequest="40"
+                            Padding="7"
+                            Aspect="AspectFit"
+                            VerticalOptions="Center"
+                            SemanticProperties.Description="Prikaži ili sakrij lozinku" />
                     </Grid>
-
                 </Border>
 
 
@@ -240,21 +239,12 @@
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 16"
                     Padding="16,8">
-
-                    <Grid>
-
-                        <VerticalStackLayout
-                            Grid.Column="0"
-                            Spacing="0">
-
-                            <Label
-                                Text="Potvrdi lozinku"
-                                Style="{StaticResource CaptionLabel}"
-                                TextColor="#68562C" />
-
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <VerticalStackLayout Grid.Column="0" Spacing="0">
+                            <Label Text="Potvrdi lozinku" Style="{StaticResource CaptionLabel}" TextColor="#68562C" />
                             <Entry
                                 Placeholder="Ponovite lozinku"
-                                IsPassword="True"
+                                IsPassword="{Binding IsConfirmPasswordHidden}"
                                 Text="{Binding ConfirmPassword}"
                                 TextColor="{StaticResource TextPrimary}"
                                 PlaceholderColor="#75643C"
@@ -263,11 +253,19 @@
                                 HeightRequest="52"
                                 Margin="-4,0,0,0"
                                 ReturnType="Done" />
-
                         </VerticalStackLayout>
-
+                        <ImageButton
+                            Grid.Column="1"
+                            Source="{Binding ConfirmPasswordVisibilityIcon}"
+                            Command="{Binding ToggleConfirmPasswordVisibilityCommand}"
+                            BackgroundColor="Transparent"
+                            WidthRequest="34"
+                            HeightRequest="40"
+                            Padding="7"
+                            Aspect="AspectFit"
+                            VerticalOptions="Center"
+                            SemanticProperties.Description="Prikaži ili sakrij potvrdu lozinke" />
                     </Grid>
-
                 </Border>
 
 
@@ -283,7 +281,7 @@
                 <!-- REGISTER -->
 
                 <Button
-                    Text="REGISTRUJ SE   →"
+                    Text="REGISTRUJ SE"
                     Style="{StaticResource PrimaryButton}"
                     BackgroundColor="{StaticResource BrandButton}"
                     TextColor="{StaticResource BrandBackground}"

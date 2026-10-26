@@ -12,5 +12,12 @@ namespace AppointmentBooking.Mobile.Models.Appointments.Responses
         int DurationMinutes,
         decimal Price,
         DateTimeOffset StartsAt,
-        DateTimeOffset EndsAt);
+        DateTimeOffset EndsAt)
+    {
+        public string DurationText =>
+            AppointmentBooking.Mobile.Utilities.DisplayFormat.Duration(DurationMinutes);
+
+        public string PriceText =>
+            AppointmentBooking.Mobile.Utilities.DisplayFormat.Price(Price);
+    }
 }

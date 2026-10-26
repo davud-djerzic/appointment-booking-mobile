@@ -54,24 +54,9 @@
                     <VerticalStackLayout Spacing="8">
                         <Label Text="Zaposlenik" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
 
-                        <VerticalStackLayout IsVisible="{Binding IsAdmin}" Spacing="6">
-                            <Label Text="Odaberite zaposlenika" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                            <Border
-                                Padding="12,2"
-                                BackgroundColor="{StaticResource BrandBackground}"
-                                Stroke="{StaticResource PanelBorder}"
-                                StrokeThickness="0.8"
-                                StrokeShape="RoundRectangle 12">
-                                <Picker
-                                    Title="Zaposlenik"
-                                    ItemsSource="{Binding BookingEmployees}"
-                                    ItemDisplayBinding="{Binding FullName}"
-                                    SelectedItem="{Binding SelectedBookingEmployee}"
-                                    SelectedIndexChanged="OnEmployeeSelectionChanged"
-                                    TitleColor="{StaticResource TextOnBrandBackground}"
-                                    TextColor="{StaticResource TextOnBrandBackground}"
-                                    BackgroundColor="Transparent" />
-                            </Border>
+                        <VerticalStackLayout IsVisible="{Binding IsAdmin}" Spacing="3">
+                            <Label Text="Termin dodajete za" FontSize="12" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                            <Label Text="{Binding SelectedBookingEmployee.FullName}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource BrandButton}" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout IsVisible="{Binding IsEmployee}" Spacing="3">
@@ -223,13 +208,15 @@
                             <VerticalStackLayout Spacing="5">
                                 <Label Text="Datum" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
                                 <Border Padding="10,0" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 12">
-                                    <DatePicker
-                                        Date="{Binding StaffBookingDate}"
-                                        MinimumDate="{Binding StaffBookingToday}"
-                                        Format="dd.MM.yyyy."
-                                        TextColor="{StaticResource TextOnBrandBackground}"
+                                    <Button
+                                        Text="{Binding StaffBookingDateDisplay}"
+                                        Clicked="OnStaffBookingDateClicked"
                                         BackgroundColor="Transparent"
-                                        HeightRequest="46" />
+                                        TextColor="{StaticResource TextOnBrandBackground}"
+                                        FontAttributes="Bold"
+                                        HorizontalOptions="Fill"
+                                        HeightRequest="46"
+                                        Padding="0" />
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="5">

@@ -64,7 +64,7 @@
                     StrokeShape="RoundRectangle 16"
                     Padding="16,8">
 
-                    <Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
 
                         <VerticalStackLayout
                             Grid.Column="0"
@@ -102,12 +102,9 @@
                     StrokeShape="RoundRectangle 16"
                     Padding="16,8">
 
-                    <Grid>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
 
-                        <VerticalStackLayout
-                            Grid.Column="0"
-                            Spacing="0">
-
+                        <VerticalStackLayout Grid.Column="0" Spacing="0">
                             <Label
                                 Text="Lozinka"
                                 Style="{StaticResource CaptionLabel}"
@@ -115,19 +112,30 @@
 
                             <Entry
                                 Placeholder="Unesite lozinku"
-                                IsPassword="True"
+                                IsPassword="{Binding IsPasswordHidden}"
                                 Text="{Binding Password}"
                                 TextColor="{StaticResource TextPrimary}"
                                 PlaceholderColor="#75643C"
                                 BackgroundColor="{StaticResource TextBoxBackground}"
                                 FontSize="15"
                                 HeightRequest="52"
-                                Margin="-4,0,0,0" />      
-
+                                Margin="-4,0,0,0"
+                                ReturnType="Done" />
                         </VerticalStackLayout>
 
-                    </Grid>
+                        <ImageButton
+                            Grid.Column="1"
+                            Source="{Binding PasswordVisibilityIcon}"
+                            Command="{Binding TogglePasswordVisibilityCommand}"
+                            BackgroundColor="Transparent"
+                            WidthRequest="34"
+                            HeightRequest="40"
+                            Padding="7"
+                            Aspect="AspectFit"
+                            VerticalOptions="Center"
+                            SemanticProperties.Description="Prikaži ili sakrij lozinku" />
 
+                    </Grid>
                 </Border>
 
             </VerticalStackLayout>
@@ -160,6 +168,13 @@
                     BorderWidth="0"
                     Command="{Binding LoginCommand}"
                     HorizontalOptions="Fill" />  
+
+                <ActivityIndicator
+                    IsRunning="{Binding IsBusy}"
+                    IsVisible="{Binding IsBusy}"
+                    Color="{StaticResource BrandButton}"
+                    HorizontalOptions="Center"
+                    SemanticProperties.Description="Prijava je u toku" />
 
             </VerticalStackLayout>
 

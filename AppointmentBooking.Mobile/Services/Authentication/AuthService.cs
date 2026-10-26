@@ -152,8 +152,7 @@ namespace AppointmentBooking.Mobile.Services.Authentication
 
                         if (firstError.ValueKind == JsonValueKind.String)
                         {
-                            return firstError.GetString()
-                                ?? "Podaci za prijavu nisu ispravni.";
+                            return LocalizeValidationMessage(firstError.GetString());
                         }
                     }
                 }
@@ -163,6 +162,30 @@ namespace AppointmentBooking.Mobile.Services.Authentication
             }
 
             return "Podaci za prijavu nisu ispravni.";
+        }
+
+        private static string LocalizeValidationMessage(string? message)
+        {
+            string normalized = message?.Trim().ToLowerInvariant() ?? string.Empty;
+
+            return normalized switch
+            {
+                "first name is required." => "Ime je obavezno.",
+                "first name must contain between 2 and 50 characters." =>
+                    "Ime mora sadržavati između 2 i 50 znakova.",
+                "last name is required." => "Prezime je obavezno.",
+                "last name must contain between 2 and 50 characters." =>
+                    "Prezime mora sadržavati između 2 i 50 znakova.",
+                "email is required." => "Email adresa je obavezna.",
+                "email format is invalid." => "Unesite ispravnu email adresu.",
+                "phone is required." => "Broj telefona je obavezan.",
+                "phone must contain between 6 and 30 characters." =>
+                    "Broj telefona mora sadržavati između 6 i 30 znakova.",
+                "password is required." => "Lozinka je obavezna.",
+                "password must contain between 8 and 100 characters." =>
+                    "Lozinka mora sadržavati između 8 i 100 znakova.",
+                _ => "Podaci koje ste unijeli nisu ispravni. Provjerite unos i pokušajte ponovo."
+            };
         }
 
         public async Task RequestPasswordResetAsync(

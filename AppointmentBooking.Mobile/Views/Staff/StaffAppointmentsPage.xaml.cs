@@ -7,6 +7,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
     {
         private readonly StaffAppointmentsViewModel viewModel;
         private bool hasLoaded;
+        private Task? preloadTask;
         private bool isDetailsModalOpen;
 
         public StaffAppointmentsPage(StaffAppointmentsViewModel viewModel)
@@ -85,6 +86,13 @@ namespace AppointmentBooking.Mobile.Views.Staff
                 return;
             }
 
+            if (preloadTask is { IsCompleted: false })
+            {
+                // Still loading from the startup panel; don't load twice.
+                await preloadTask;
+                return;
+            }
+
             if (hasLoaded)
             {
                 return;
@@ -104,6 +112,24 @@ namespace AppointmentBooking.Mobile.Views.Staff
             {
                 hasLoaded = false;
             }
+        }
+
+        /// <summary>Loads the appointments while the startup panel is shown.</summary>
+        public Task PreloadAsync() => preloadTask ??= PreloadCoreAsync();
+
+        private async Task PreloadCoreAsync()
+        {
+            viewModel.ResetToNextWorkingDay();
+            await viewModel.LoadAppointmentsCommand.ExecuteAsync(null);
+            hasLoaded = true;
+        }
+
+        public void ResetCachedData()
+        {
+            preloadTask = null;
+            hasLoaded = false;
+            isDetailsModalOpen = false;
+            viewModel.ResetCachedData();
         }
     }
 }

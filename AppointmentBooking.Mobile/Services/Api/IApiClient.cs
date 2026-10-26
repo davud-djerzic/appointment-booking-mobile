@@ -20,6 +20,8 @@ namespace AppointmentBooking.Mobile.Services.Api
 
         Task DeleteAsync(string endpoint, CancellationToken cancellationToken = default);
 
+        Task DeleteAsync<TRequest>(string endpoint, TRequest request, CancellationToken cancellationToken = default);
+
         Task<TResponse?> PatchAsync<TRequest, TResponse>(string endpoint, TRequest request, CancellationToken cancellationToken = default);
     }
 }

@@ -1,9 +1,11 @@
 using AppointmentBooking.Mobile.Configuration;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.BookingCalendar;
+using AppointmentBooking.Mobile.Services.BookingCatalog;
 using AppointmentBooking.Mobile.Services.Authentication;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
+using AppointmentBooking.Mobile.Services.ProfileData;
 using AppointmentBooking.Mobile.Services.Storage;
 using AppointmentBooking.Mobile.ViewModels.Appointment;
 using AppointmentBooking.Mobile.ViewModels.Auth;
@@ -22,6 +24,7 @@ using AppointmentBooking.Mobile.Views.Startup;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 using System.Net.Security;
 #if ANDROID
 using AppointmentBooking.Mobile.Platforms.Android;
@@ -42,6 +45,8 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("PlayfairDisplay-Regular.ttf", "PlayfairDisplay");
+                fonts.AddFont("PlayfairDisplay-Bold.ttf", "PlayfairDisplayBold");
             });
 
 #if ANDROID
@@ -63,8 +68,10 @@ public static class MauiProgram
 
         builder.Services.AddTransient<StaffAppointmentsPage>();
         builder.Services.AddTransient<StaffAppointmentsViewModel>();
-        builder.Services.AddTransient<StaffAvailabilityViewModel>();
+        builder.Services.AddSingleton<StaffAvailabilityViewModel>();
         builder.Services.AddTransient<StaffPanelPage>();
+        builder.Services.AddTransient<StaffServicesViewModel>();
+        builder.Services.AddTransient<StaffServicesPage>();
 
 
         builder.Services.AddTransientWithShellRoute<
@@ -88,10 +95,26 @@ public static class MauiProgram
         builder.Services.AddTransient<ProfileViewModel>();
 
 #if DEBUG
+#if DOCKER_API
+        string? configuredDockerHost = typeof(MauiProgram)
+            .Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(attribute => attribute.Key == "DockerApiHost")
+            ?.Value;
+
+        string apiHost = !string.IsNullOrWhiteSpace(configuredDockerHost)
+            ? configuredDockerHost
+            : DeviceInfo.Platform == DevicePlatform.Android
+                ? "10.0.2.2"
+                : "localhost";
+
+        string apiBaseUrl = $"http://{apiHost}:8080/";
+#else
         string apiBaseUrl =
             DeviceInfo.Platform == DevicePlatform.Android
                 ? "https://10.0.2.2:7236/"
                 : "https://localhost:7236/";
+#endif
 #else
         string apiBaseUrl =
             throw new InvalidOperationException(
@@ -110,6 +133,7 @@ public static class MauiProgram
         // Authentication / Session
         builder.Services.AddSingleton<ISessionService, SessionService>();
         builder.Services.AddSingleton<IAuthService, AuthService>();
+        builder.Services.AddSingleton<ProfileDataCache>();
 
         // Authorization handler
         builder.Services.AddSingleton<BearerTokenHandler>();
@@ -171,6 +195,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddSingleton<IBookingCalendarService, BookingCalendarService>();
+        builder.Services.AddSingleton<IBookingCatalogService, BookingCatalogService>();
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -12,7 +12,7 @@ namespace AppointmentBooking.Mobile.Services.Api
         public string ResponseBody { get; }
 
         public ApiException(HttpStatusCode statusCode, string responseBody)
-            : base($"API request failed with status code {(int)statusCode}.")
+            : base($"Zahtjev prema API-ju nije uspio. HTTP status: {(int)statusCode}.")
         {
             StatusCode = statusCode;
             ResponseBody = responseBody;

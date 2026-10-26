@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppointmentBooking.SplashTheme" parent="Maui.SplashTheme">
+        <item name="bottomNavigationViewStyle">@style/AppointmentBooking.BottomNavigationView</item>
+    </style>
+
+    <style name="AppointmentBooking.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemTextAppearanceActive">@style/AppointmentBooking.BottomNavigationText</item>
+        <item name="itemTextAppearanceInactive">@style/AppointmentBooking.BottomNavigationText</item>
+    </style>
+
+    <style name="AppointmentBooking.BottomNavigationText" parent="TextAppearance.MaterialComponents.Caption" />
+</resources>

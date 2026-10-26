@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="AppointmentBooking.Mobile.Views.Staff.StaffServicesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Staff"
+    xmlns:serviceModels="clr-namespace:AppointmentBooking.Mobile.Models.BookableServices"
+    x:DataType="viewModels:StaffServicesViewModel"
+    BackgroundColor="{StaticResource BrandBackground}"
+    Shell.NavBarIsVisible="False"
+    SafeAreaEdges="All">
+
+    <Grid Padding="20,18,20,0" RowDefinitions="Auto,*" RowSpacing="18">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <VerticalStackLayout Spacing="3" VerticalOptions="Center">
+                <Label
+                    Text="Usluge"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource TextOnBrandBackground}" />
+                <Label
+                    Text="{Binding SummaryText}"
+                    FontSize="13"
+                    TextColor="{StaticResource TextOnBrandBackground}"
+                    Opacity="0.65" />
+            </VerticalStackLayout>
+
+            <Button
+                Grid.Column="1"
+                Text="＋  Nova usluga"
+                Clicked="OnAddClicked"
+                BackgroundColor="{StaticResource BrandButton}"
+                TextColor="{StaticResource BrandBackground}"
+                FontAttributes="Bold"
+                FontSize="14"
+                HeightRequest="44"
+                CornerRadius="13"
+                Padding="14,0"
+                VerticalOptions="Center" />
+        </Grid>
+
+        <!-- List -->
+        <Grid Grid.Row="1">
+            <RefreshView
+                IsRefreshing="{Binding IsRefreshing}"
+                Command="{Binding RefreshCommand}"
+                RefreshColor="{StaticResource BrandButton}">
+                <CollectionView
+                    ItemsSource="{Binding VisibleServices}"
+                    SelectionMode="None"
+                    ItemSizingStrategy="MeasureAllItems">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.Footer>
+                        <BoxView HeightRequest="28" Color="Transparent" />
+                    </CollectionView.Footer>
+
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout
+                            Padding="24,48"
+                            Spacing="8"
+                            HorizontalOptions="Center"
+                            IsVisible="{Binding HasNoVisibleServices}">
+                            <Label
+                                Text="Nema usluga"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="Center"
+                                TextColor="{StaticResource TextOnBrandBackground}" />
+                            <Label
+                                Text="Dodajte prvu uslugu dugmetom „Nova usluga“."
+                                FontSize="13"
+                                HorizontalTextAlignment="Center"
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                Opacity="0.65" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="serviceModels:StaffServiceItem">
+                            <Border
+                                Padding="0"
+                                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                Stroke="{StaticResource PanelBorder}"
+                                StrokeThickness="0.8"
+                                StrokeShape="RoundRectangle 18">
+                                <Grid ColumnDefinitions="5,*">
+                                    <BoxView Grid.Column="0" Color="{StaticResource BrandButton}" VerticalOptions="Fill" />
+                                    <VerticalStackLayout Grid.Column="1" Padding="16,14" Spacing="10">
+
+                                        <Label
+                                            Text="{Binding Name}"
+                                            FontSize="17"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource TextOnBrandBackground}"
+                                            LineBreakMode="WordWrap"
+                                            VerticalOptions="Center" />
+
+                                        <Label
+                                            Text="{Binding DescriptionText}"
+                                            FontSize="13"
+                                            MaxLines="3"
+                                            LineBreakMode="TailTruncation"
+                                            TextColor="{StaticResource TextOnBrandBackground}"
+                                            Opacity="0.7" />
+
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Border
+                                                Padding="10,6"
+                                                BackgroundColor="{StaticResource BrandBackground}"
+                                                Stroke="{StaticResource PanelBorder}"
+                                                StrokeThickness="0.8"
+                                                StrokeShape="RoundRectangle 10">
+                                                <Label
+                                                    Text="{Binding DurationText}"
+                                                    FontSize="13"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource TextOnBrandBackground}" />
+                                            </Border>
+                                            <Border
+                                                Padding="10,6"
+                                                BackgroundColor="{StaticResource BrandBackground}"
+                                                Stroke="{StaticResource PanelBorder}"
+                                                StrokeThickness="0.8"
+                                                StrokeShape="RoundRectangle 10">
+                                                <Label
+                                                    Text="{Binding PriceText}"
+                                                    FontSize="13"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandButton}" />
+                                            </Border>
+                                        </HorizontalStackLayout>
+
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                            <Button
+                                                Grid.Column="1"
+                                                Text="Uredi"
+                                                Clicked="OnEditClicked"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource BrandBackground}"
+                                                BorderColor="{StaticResource PanelBorder}"
+                                                BorderWidth="1"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                FontAttributes="Bold"
+                                                FontSize="12"
+                                                HeightRequest="38"
+                                                CornerRadius="11"
+                                                Padding="13,0" />
+                                            <Button
+                                                Grid.Column="2"
+                                                Text="Obriši"
+                                                Clicked="OnDeleteClicked"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource BrandBackground}"
+                                                BorderColor="{StaticResource Error}"
+                                                BorderWidth="1"
+                                                TextColor="{StaticResource Error}"
+                                                FontAttributes="Bold"
+                                                FontSize="12"
+                                                HeightRequest="38"
+                                                CornerRadius="11"
+                                                Padding="13,0" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <ActivityIndicator
+                IsRunning="{Binding IsLoading}"
+                IsVisible="{Binding IsLoading}"
+                Color="{StaticResource BrandButton}"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Margin="0,24" />
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -44,6 +44,10 @@ public sealed record EmployeeUnavailabilityResponse(
 
     public bool CanEdit => StartsAt > DateTimeOffset.Now;
 
+    public bool IsPast => EndsAt <= DateTimeOffset.Now;
+
+    public bool IsEditVisible => !IsPast;
+
     public string StateLabel
     {
         get

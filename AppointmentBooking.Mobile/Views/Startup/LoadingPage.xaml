@@ -5,30 +5,27 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="AppointmentBooking.Mobile.Views.Startup.LoadingPage"
     BackgroundColor="{StaticResource BrandBackground}"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    SafeAreaEdges="None">
 
+    <!-- Startup panel: salon logo on the app background, shown for ~2 s (AppShell). -->
     <Grid>
 
-        <VerticalStackLayout
-            Spacing="16"
+        <Border
+            WidthRequest="240"
+            HeightRequest="240"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 32"
+            BackgroundColor="{StaticResource BrandBackground}"
             HorizontalOptions="Center"
             VerticalOptions="Center">
 
-            <Label
-                Text="SALON"
-                FontSize="28"
-                FontAttributes="Bold"
-                CharacterSpacing="8"
-                TextColor="{StaticResource TextOnBrandBackground}"
-                HorizontalOptions="Center" />
+            <Image
+                Source="salon.jpg"
+                Aspect="AspectFill"
+                SemanticProperties.Description="Logo salona" />
 
-            <ActivityIndicator
-                IsRunning="True"
-                Color="{StaticResource Accent}"
-                WidthRequest="32"
-                HeightRequest="32" />
-
-        </VerticalStackLayout>
+        </Border>
 
     </Grid>
 
