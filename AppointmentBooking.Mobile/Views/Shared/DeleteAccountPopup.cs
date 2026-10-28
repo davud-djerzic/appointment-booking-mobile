@@ -19,7 +19,8 @@ public sealed class DeleteAccountPopup : Popup<string?>
             IsPassword = true,
             TextColor = Colors.White,
             PlaceholderColor = Color.FromArgb("#AAB7CC"),
-            BackgroundColor = Color.FromArgb("#07152F"),
+            BackgroundColor = Colors.Transparent,
+            HeightRequest = 48,
             ClearButtonVisibility = ClearButtonVisibility.WhileEditing
         };
         passwordEntry.TextChanged += (_, _) =>
@@ -58,7 +59,15 @@ public sealed class DeleteAccountPopup : Popup<string?>
                     FontSize = 14,
                     TextColor = Colors.White
                 },
-                passwordEntry,
+                new Border
+                {
+                    BackgroundColor = Color.FromArgb("#07152F"),
+                    Stroke = Color.FromArgb("#2B3D5C"),
+                    StrokeThickness = 0.8,
+                    StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 16 },
+                    Padding = new Thickness(12, 0),
+                    Content = passwordEntry
+                },
                 new Grid
                 {
                     ColumnDefinitions = new ColumnDefinitionCollection

@@ -290,6 +290,11 @@ public partial class HomeViewModel : ObservableObject
             IsHoldConfirmationVisible = false;
 
             WeakReferenceMessenger.Default.Send(new CustomerBookingsChangedMessage());
+
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                "Rezervacija uspješna",
+                "Vaš termin je uspješno rezervisan.",
+                "U redu");
         }
         catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
         {

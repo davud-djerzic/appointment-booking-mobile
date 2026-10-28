@@ -1,6 +1,7 @@
 ﻿using AppointmentBooking.Mobile.Services.BookingCatalog;
 using AppointmentBooking.Mobile.Services.ProfileData;
 using AppointmentBooking.Mobile.Services.Session;
+using AppointmentBooking.Mobile.Utilities;
 using AppointmentBooking.Mobile.Views.Appointments;
 using AppointmentBooking.Mobile.Views.Auth;
 using AppointmentBooking.Mobile.Views.Booking;
@@ -445,6 +446,19 @@ public partial class AppShell : Shell
                 // CurrentItem is already set to the login root as a fallback.
             }
         });
+    }
+
+    protected override void OnNavigated(ShellNavigatedEventArgs args)
+    {
+        base.OnNavigated(args);
+
+        // Every tab opens at the top instead of where the user left it.
+        // Pushed pages (e.g. booking details -> back) keep their position.
+        if (args.Source is ShellNavigationSource.ShellSectionChanged
+            or ShellNavigationSource.ShellItemChanged)
+        {
+            ScrollPositionReset.ResetToTop(CurrentPage);
+        }
     }
 
     public void ShowBookingTab()
