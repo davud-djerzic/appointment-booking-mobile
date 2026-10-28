@@ -58,7 +58,9 @@ public partial class BookingViewModel : ObservableObject
     private bool isHoldConfirmationVisible;
 
     private bool employeeLookupCompleted;
-    private bool servicesLoaded;
+    // The list the service picker was built from. The catalog returns a new
+    // instance when the services change, so a different reference means reload.
+    private IReadOnlyList<ServiceResponse>? loadedServices;
     private bool isResettingServices;
     private readonly SemaphoreSlim servicesLoadLock = new(1, 1);
 
@@ -146,9 +148,25 @@ public partial class BookingViewModel : ObservableObject
         await servicesLoadLock.WaitAsync();
         try
         {
-            if (servicesLoaded)
+            if (loadedServices is not null)
             {
-                return;
+                IReadOnlyList<ServiceResponse> currentServices;
+
+                try
+                {
+                    currentServices = await bookingCatalogService.GetActiveServicesAsync();
+                }
+                catch (Exception ex)
+                {
+                    await errorHandler.HandleAsync(ex);
+                    return;
+                }
+
+                // Unchanged: keep the customer's current selection.
+                if (ReferenceEquals(currentServices, loadedServices))
+                {
+                    return;
+                }
             }
 
             await LoadServicesCoreAsync();
@@ -176,7 +194,7 @@ public partial class BookingViewModel : ObservableObject
             IReadOnlyList<ServiceResponse> services =
                 await bookingCatalogService.GetActiveServicesAsync();
 
-            servicesLoaded = true;
+            loadedServices = services;
 
             foreach (ServiceSelectionItem item in ServiceItems)
             {

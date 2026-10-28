@@ -5,12 +5,16 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Mail;
 using System.Text;
 
 namespace AppointmentBooking.Mobile.ViewModels.Auth
 {
     public partial class ForgotPasswordViewModel : ObservableObject
     {
+        private const string AlertTitle = "Zaboravljena lozinka";
+        private const int CodeLength = 6;
+
         private readonly IAuthService authService;
 
         public ForgotPasswordViewModel(IAuthService authService)
@@ -42,45 +46,13 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
         public bool IsEmailStep =>
             !IsCodeStep && !IsPasswordStep;
 
-        public bool CanSubmitEmail =>
-            !string.IsNullOrWhiteSpace(Email) &&
-            !IsBusy;
-
-        public bool CanSubmitCode =>
-            !string.IsNullOrWhiteSpace(Code) &&
-            Code.Length == 6 &&
-            !IsBusy;
-
-        public bool CanResetPassword =>
-            !string.IsNullOrWhiteSpace(NewPassword) &&
-            !string.IsNullOrWhiteSpace(ConfirmPassword) &&
-            !IsBusy;
-
-        partial void OnEmailChanged(string value)
-        {
-            OnPropertyChanged(nameof(CanSubmitEmail));
-        }
-
-        partial void OnCodeChanged(string value)
-        {
-            OnPropertyChanged(nameof(CanSubmitCode));
-        }
-
-        partial void OnNewPasswordChanged(string value)
-        {
-            OnPropertyChanged(nameof(CanResetPassword));
-        }
-
-        partial void OnConfirmPasswordChanged(string value)
-        {
-            OnPropertyChanged(nameof(CanResetPassword));
-        }
+        // Buttons stay enabled while idle, so a tap on an empty or invalid field
+        // explains what is missing instead of doing nothing.
+        public bool IsNotBusy => !IsBusy;
 
         partial void OnIsBusyChanged(bool value)
         {
-            OnPropertyChanged(nameof(CanSubmitEmail));
-            OnPropertyChanged(nameof(CanSubmitCode));
-            OnPropertyChanged(nameof(CanResetPassword));
+            OnPropertyChanged(nameof(IsNotBusy));
         }
 
         partial void OnIsCodeStepChanged(bool value)
@@ -96,21 +68,39 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
         [RelayCommand]
         private async Task SendCodeAsync()
         {
-            if (!CanSubmitEmail)
+            if (IsBusy)
                 return;
+
+            string email = Email.Trim();
+
+            if (string.IsNullOrEmpty(email))
+            {
+                await ShowValidationAsync(
+                    "Unesite email adresu na koju je registrovan vaš nalog.");
+
+                return;
+            }
+
+            if (!IsValidEmail(email))
+            {
+                await ShowValidationAsync(
+                    "Email adresa nije ispravna. Provjerite da li ste je dobro upisali, npr. korisnik@email.com.");
+
+                return;
+            }
 
             IsBusy = true;
 
             try
             {
                 await authService.RequestPasswordResetAsync(
-                    Email.Trim());
+                    email);
 
                 IsCodeStep = true;
 
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Kod poslan",
-                    "Provjerite email adresu. Poslali smo vam šestocifreni kod za potvrdu.",
+                    "Poslali smo vam šestocifreni kod za potvrdu na email. Ako ga ne vidite u inboxu za nekoliko minuta, provjerite i folder Spam (Neželjena pošta).",
                     "U redu");
             }
             catch (ApiException ex)
@@ -135,8 +125,26 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
         [RelayCommand]
         private async Task VerifyCodeAsync()
         {
-            if (!CanSubmitCode)
+            if (IsBusy)
                 return;
+
+            string code = Code.Trim();
+
+            if (string.IsNullOrEmpty(code))
+            {
+                await ShowValidationAsync(
+                    "Unesite šestocifreni kod koji smo poslali na vaš email.");
+
+                return;
+            }
+
+            if (code.Length != CodeLength || !code.All(char.IsAsciiDigit))
+            {
+                await ShowValidationAsync(
+                    "Kod mora imati tačno 6 cifara. Provjerite kod u emailu.");
+
+                return;
+            }
 
             IsBusy = true;
 
@@ -144,7 +152,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             {
                 await authService.VerifyPasswordResetCodeAsync(
                     Email.Trim(),
-                    Code.Trim());
+                    code);
 
                 IsCodeStep = false;
                 IsPasswordStep = true;
@@ -171,8 +179,24 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
         [RelayCommand]
         private async Task ResetPasswordAsync()
         {
-            if (!CanResetPassword)
+            if (IsBusy)
                 return;
+
+            if (string.IsNullOrWhiteSpace(NewPassword))
+            {
+                await ShowValidationAsync(
+                    "Unesite novu lozinku.");
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ConfirmPassword))
+            {
+                await ShowValidationAsync(
+                    "Ponovite novu lozinku u drugom polju.");
+
+                return;
+            }
 
             if (NewPassword != ConfirmPassword)
             {
@@ -248,6 +272,27 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             Code = string.Empty;
             NewPassword = string.Empty;
             ConfirmPassword = string.Empty;
+        }
+
+        private static Task ShowValidationAsync(string message) =>
+            AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                AlertTitle,
+                message,
+                "U redu");
+
+        private static bool IsValidEmail(string email)
+        {
+            if (!MailAddress.TryCreate(email, out MailAddress? address) ||
+                !string.Equals(address.Address, email, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            // MailAddress accepts "ime@domena"; a real address needs a dot in the domain.
+            string host = address.Host;
+            int lastDot = host.LastIndexOf('.');
+
+            return lastDot > 0 && lastDot < host.Length - 1;
         }
 
         private static async Task ShowApiErrorAsync(
