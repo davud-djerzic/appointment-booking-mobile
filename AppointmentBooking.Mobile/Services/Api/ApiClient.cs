@@ -149,7 +149,8 @@ public sealed class ApiClient(HttpClient httpClient) : IApiClient
 
         throw new ApiException(
             response.StatusCode,
-            responseBody);
+            responseBody,
+            ApiException.ReadRetryAfter(response));
     }
 
     private static async Task HandleResponseAsync(
@@ -167,7 +168,8 @@ public sealed class ApiClient(HttpClient httpClient) : IApiClient
 
         throw new ApiException(
             response.StatusCode,
-            responseBody);
+            responseBody,
+            ApiException.ReadRetryAfter(response));
     }
 
     public async Task<TResponse?> PatchAsync<TRequest, TResponse>(string endpoint, TRequest request, CancellationToken cancellationToken = default)

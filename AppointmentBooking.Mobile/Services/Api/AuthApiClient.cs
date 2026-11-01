@@ -77,7 +77,8 @@ namespace AppointmentBooking.Mobile.Services.Api
 
             throw new ApiException(
                 response.StatusCode,
-                responseBody);
+                responseBody,
+                ApiException.ReadRetryAfter(response));
         }
     }
 }

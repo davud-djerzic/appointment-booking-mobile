@@ -1,6 +1,7 @@
 ﻿using AppointmentBooking.Mobile.Models.Auth;
 using AppointmentBooking.Mobile.Models.Auth.Requests;
 using AppointmentBooking.Mobile.Services.Api;
+using AppointmentBooking.Mobile.Services.ErrorHandling;
 using AppointmentBooking.Mobile.Services.Session;
 using AppointmentBooking.Mobile.Services.Storage;
 using System;
@@ -55,6 +56,12 @@ namespace AppointmentBooking.Mobile.Services.Authentication
                             false,
                             null,
                             "Email ili lozinka nisu ispravni."),
+
+                    HttpStatusCode.TooManyRequests =>
+                        new AuthResult(
+                            false,
+                            null,
+                            RateLimitMessage.Create(ex.RetryAfter)),
 
                     HttpStatusCode.InternalServerError =>
                         new AuthResult(
@@ -115,6 +122,12 @@ namespace AppointmentBooking.Mobile.Services.Authentication
                             false,
                             null,
                             "Korisnički račun sa ovim emailom već postoji."),
+
+                    HttpStatusCode.TooManyRequests =>
+                        new AuthResult(
+                            false,
+                            null,
+                            RateLimitMessage.Create(ex.RetryAfter)),
 
                     HttpStatusCode.InternalServerError =>
                         new AuthResult(

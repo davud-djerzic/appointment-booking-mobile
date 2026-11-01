@@ -139,6 +139,15 @@ public sealed class SessionService(
 
                 return false;
             }
+            catch (ApiException ex)
+                when (ex.StatusCode ==
+                      System.Net.HttpStatusCode.TooManyRequests)
+            {
+                // The server only asks to wait: the session is still valid.
+                // Keep the refresh token and the signed-in state, and let the
+                // screen that made the request show the "try again later" message.
+                throw;
+            }
             catch (ApiException)
             {
                 // Temporary API/server problem.

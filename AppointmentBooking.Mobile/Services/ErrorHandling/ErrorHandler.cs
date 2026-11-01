@@ -15,16 +15,20 @@ namespace AppointmentBooking.Mobile.Services.ErrorHandling
                 exception,
                 "Došlo je do neobrađene greške u aplikaciji.");
 
-            string title = exception is UserMessageException userMessage
-                ? userMessage.Title
-                : "Greška";
+            string title = exception switch
+            {
+                UserMessageException userMessage => userMessage.Title,
+                ApiException { StatusCode: HttpStatusCode.TooManyRequests } => RateLimitMessage.Title,
+                _ => "Greška"
+            };
 
             string message = GetUserMessage(exception);
 
 #if DEBUG
             // Debug builds only: show what actually failed, so errors like
             // "neočekivana greška" can be diagnosed on a device.
-            if (exception is not UserMessageException)
+            if (exception is not UserMessageException &&
+                exception is not ApiException { StatusCode: HttpStatusCode.TooManyRequests })
             {
                 message += $"\n\n[DEBUG] {exception.GetType().Name}: {exception.Message}";
             }
@@ -67,7 +71,7 @@ namespace AppointmentBooking.Mobile.Services.ErrorHandling
                         "Podaci nisu mogli biti obrađeni.",
 
                     HttpStatusCode.TooManyRequests =>
-                        "Previše zahtjeva. Pokušajte ponovo za nekoliko trenutaka.",
+                        RateLimitMessage.Create(apiException.RetryAfter),
 
                     HttpStatusCode.InternalServerError =>
                         "Došlo je do greške na serveru. Pokušajte ponovo.",

@@ -1,5 +1,6 @@
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.Authentication;
+using AppointmentBooking.Mobile.Services.ErrorHandling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
@@ -299,6 +300,16 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             ApiException ex,
             string fallbackMessage)
         {
+            if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                    RateLimitMessage.Title,
+                    RateLimitMessage.Create(ex.RetryAfter),
+                    "U redu");
+
+                return;
+            }
+
             string message = ex.StatusCode switch
             {
                 HttpStatusCode.BadRequest =>
@@ -309,9 +320,6 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
                 HttpStatusCode.Conflict =>
                     "Zahtjev nije moguće obraditi. Pokušajte ponovo.",
-
-                HttpStatusCode.TooManyRequests =>
-                    "Previše pokušaja. Sačekajte malo pa pokušajte ponovo.",
 
                 _ => fallbackMessage
             };
