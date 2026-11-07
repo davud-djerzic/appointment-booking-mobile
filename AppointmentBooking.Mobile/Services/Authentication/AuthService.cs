@@ -12,15 +12,16 @@ using System.Text.Json;
 
 namespace AppointmentBooking.Mobile.Services.Authentication
 {
-    public sealed class AuthService(IApiClient apiClient, ISessionService sessionService) : IAuthService
+    // Sign-in and registration go through IAuthApiClient (no BearerTokenHandler): a 401 there
+    // means wrong credentials, so it must not trigger a token refresh and a resent request.
+    public sealed class AuthService(IApiClient apiClient, IAuthApiClient authApiClient, ISessionService sessionService) : IAuthService
     {
         public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
         {
             try
             {
                 AuthenticationTokenResponse? response =
-                    await apiClient.PostAsync<LoginRequest, AuthenticationTokenResponse>(
-                        "api/auth/login",
+                    await authApiClient.LoginAsync(
                         request,
                         cancellationToken);
 
@@ -85,8 +86,7 @@ namespace AppointmentBooking.Mobile.Services.Authentication
             try
             {
                 AuthenticationTokenResponse? response =
-                    await apiClient.PostAsync<RegisterRequest, AuthenticationTokenResponse>(
-                        "api/auth/register",
+                    await authApiClient.RegisterAsync(
                         request,
                         cancellationToken);
 

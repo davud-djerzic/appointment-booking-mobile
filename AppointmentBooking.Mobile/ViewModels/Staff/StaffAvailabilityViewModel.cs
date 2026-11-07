@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Net;
 
 namespace AppointmentBooking.Mobile.ViewModels.Staff;
 
@@ -37,7 +38,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
     private EmployeeUnavailabilityType selectedType = EmployeeUnavailabilityType.Break;
 
     [ObservableProperty]
-    private DateTime breakDate = DateTime.Today;
+    private DateTime breakDate = GetNextWeekday(DateTime.Today);
 
     [ObservableProperty]
     private TimeSpan breakStartsAt = new(12, 0, 0);
@@ -130,8 +131,9 @@ public partial class StaffAvailabilityViewModel : ObservableObject
 
     public bool CanSave => !IsSaving;
 
+    // Disabled only while saving; a missing day or a wrong time is explained in a popup on tap.
     public bool CanApplyRecurringBreak =>
-        !IsApplyingRecurringBreak && RecurringBreakDays.Any(day => day.IsSelected);
+        !IsApplyingRecurringBreak;
 
     public string RecurringBreakDaySelectionDisplay =>
         $"Odabrano dana: {RecurringBreakDays.Count(day => day.IsSelected)}";
@@ -153,6 +155,17 @@ public partial class StaffAvailabilityViewModel : ObservableObject
     public string RecurringBreakEndsAtDisplay => FormatTime(RecurringBreakEndsAt);
 
     public DateTime Today => DateTime.Today;
+
+    // Breaks are only on working days (Monday–Friday); a new break starts on the next one.
+    private static DateTime GetNextWeekday(DateTime date)
+    {
+        while (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        {
+            date = date.AddDays(1);
+        }
+
+        return date;
+    }
 
     public DateTime Tomorrow => DateTime.Today.AddDays(1);
 
@@ -484,9 +497,14 @@ public partial class StaffAvailabilityViewModel : ObservableObject
                     appliedDays.Add(day.Label);
                     day.IsSelected = false;
                 }
+                catch (ApiException ex) when (
+                    ex.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Conflict)
+                {
+                    failedDays.Add($"{day.Label}: {GetRecurringBreakApiMessage(ex)}");
+                }
                 catch
                 {
-                    failedDays.Add(day.Label);
+                    failedDays.Add($"{day.Label}: Pauzu trenutno nije moguće postaviti. Pokušajte ponovo.");
                 }
             }
 
@@ -514,7 +532,8 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             if (failedDays.Count > 0)
             {
                 message += (message.Length > 0 ? "\n\n" : string.Empty) +
-                    $"Nije primijenjena za: {string.Join(", ", failedDays)}. Provjerite postojeće radno vrijeme i zakazane termine.";
+                    "Nije primijenjena:\n" +
+                    string.Join("\n", failedDays.Select(failedDay => $"• {failedDay}"));
             }
 
             await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
@@ -568,7 +587,7 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         editingId = null;
         IsEditing = false;
         SelectedType = EmployeeUnavailabilityType.Break;
-        BreakDate = DateTime.Today;
+        BreakDate = GetNextWeekday(DateTime.Today);
         BreakStartsAt = new TimeSpan(12, 0, 0);
         BreakEndsAt = new TimeSpan(12, 30, 0);
         VacationStartsOn = Tomorrow;
@@ -680,6 +699,16 @@ public partial class StaffAvailabilityViewModel : ObservableObject
             OnBlocksChanged();
             CancelForm();
         }
+        catch (ApiException ex) when (
+            ex.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Conflict)
+        {
+            bool isBreak = request!.Type == EmployeeUnavailabilityType.Break;
+
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                isBreak ? "Pauza nije zakazana" : "Godišnji odmor nije zakazan",
+                GetBlockApiMessage(ex, isBreak),
+                "U redu");
+        }
         catch (Exception ex)
         {
             await errorHandler.HandleAsync(ex);
@@ -688,6 +717,58 @@ public partial class StaffAvailabilityViewModel : ObservableObject
         {
             IsSaving = false;
         }
+    }
+
+    // Why the API rejected a recurring break for one day (ProblemDetails.detail).
+    private static string GetRecurringBreakApiMessage(ApiException ex)
+    {
+        string detail = ex.ProblemDetail;
+
+        // Messages about the break's time range are already written in Bosnian by the API.
+        if (detail.StartsWith("Stalna pauza", StringComparison.Ordinal))
+        {
+            return detail;
+        }
+
+        if (detail.Contains("booking already exists", StringComparison.OrdinalIgnoreCase))
+        {
+            return "U tom vremenu postoji zakazan termin. Prije postavljanja pauze otkažite taj termin.";
+        }
+
+        if (detail.Contains("later than StartsAt", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Vrijeme završetka pauze mora biti nakon vremena početka.";
+        }
+
+        return "Pauzu nije moguće postaviti u odabranom vremenu. Provjerite radno vrijeme tog dana.";
+    }
+
+    // The API explains why a break or leave was rejected in ProblemDetails.detail.
+    private static string GetBlockApiMessage(ApiException ex, bool isBreak)
+    {
+        string detail = ex.ProblemDetail;
+
+        if (detail.Contains("existing booking", StringComparison.OrdinalIgnoreCase))
+        {
+            return isBreak
+                ? "U tom vremenu već postoji rezervisan termin. Prije zakazivanja pauze otkažite taj termin."
+                : "U tom periodu postoje rezervisani termini. Prije zakazivanja godišnjeg odmora otkažite te termine.";
+        }
+
+        if (detail.Contains("booking hold", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Klijent upravo rezerviše termin u tom vremenu. Pokušajte ponovo za nekoliko minuta.";
+        }
+
+        // Messages about the break's own time range are already written in Bosnian by the API.
+        if (detail.StartsWith("Privremena pauza", StringComparison.Ordinal))
+        {
+            return detail;
+        }
+
+        return isBreak
+            ? "Pauzu nije moguće zakazati u odabranom vremenu. Provjerite unos i pokušajte ponovo."
+            : "Godišnji odmor nije moguće zakazati u odabranom periodu. Provjerite unos i pokušajte ponovo.";
     }
 
     [RelayCommand]

@@ -28,10 +28,10 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>AppointmentBooking.Mobile</ApplicationTitle>
+		<ApplicationTitle>Ko te šiša</ApplicationTitle>
 
-		<!-- App Identifier -->
-		<ApplicationId>com.companyname.appointmentbooking.mobile</ApplicationId>
+		<!-- App Identifier (Play Store / App Store). Cannot be changed after the first release. -->
+		<ApplicationId>ba.kotesisa.app</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -55,7 +55,8 @@
 		<DefineConstants>$(DefineConstants);DOCKER_API</DefineConstants>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(ApiTarget)' == 'Docker' and '$(Configuration)' == 'Debug' and '$(TargetFramework)' == 'net10.0-android'">
+	<!-- Docker API is plain http: allowed whenever ApiTarget=Docker (Debug, or Release for local testing). -->
+	<ItemGroup Condition="'$(ApiTarget)' == 'Docker' and '$(TargetFramework)' == 'net10.0-android'">
 		<AndroidManifestOverlay Include="Platforms\Android\AndroidManifest.Docker.Overlay.xml" />
 	</ItemGroup>
 
@@ -63,17 +64,19 @@
 		<AssemblyMetadata Include="DockerApiHost" Value="$(DockerApiHost)" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(ApiTarget)' == 'Docker' and '$(Configuration)' == 'Debug' and '$(TargetFramework)' == 'net10.0-ios'">
+	<ItemGroup Condition="'$(ApiTarget)' == 'Docker' and '$(TargetFramework)' == 'net10.0-ios'">
 		<None Remove="Platforms\iOS\Info.plist;Platforms\iOS\Info-Docker.plist" />
 		<None Include="Platforms\iOS\Info-Docker.plist" Link="Info.plist" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<!-- App Icon: the salon logo on its navy background, always fully visible.
+		     Android crops icons to a circle (logo at 58%), iOS to a rounded square (logo at 80%). -->
+		<MauiIcon Condition="'$(TargetFramework)' != 'net10.0-ios'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\kotesisa_icon_fg.png" ForegroundScale="0.58" Color="#041330" />
+		<MauiIcon Condition="'$(TargetFramework)' == 'net10.0-ios'" Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\kotesisa_icon_fg.png" ForegroundScale="0.8" Color="#041330" />
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<!-- Splash Screen: logo at 62% on the same navy, so it fits Android 12's round splash mask. -->
+		<MauiSplashScreen Include="Resources\Splash\kotesisa_splash.png" Color="#041330" BaseSize="240,240" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />

@@ -10,6 +10,8 @@ using AppointmentBooking.Mobile.Services.ProfileData;
 using AppointmentBooking.Mobile.Services.Session;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Net;
+using System.Text.Json;
 
 namespace AppointmentBooking.Mobile.ViewModels.Profile
 {
@@ -249,6 +251,14 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                     "Vaši podaci su uspješno ažurirani.",
                     "U redu");
             }
+            catch (ApiException ex) when (
+                ex.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Conflict)
+            {
+                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                    "Profil nije ažuriran",
+                    GetProfileApiMessage(ex),
+                    "U redu");
+            }
             catch (Exception ex)
             {
                 await errorHandler.HandleAsync(ex);
@@ -262,6 +272,68 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
                 StartEditingCommand.NotifyCanExecuteChanged();
                 SaveChangesCommand.NotifyCanExecuteChanged();
+            }
+        }
+
+        // Turns the API's reason (409 detail or 400 field errors) into a message for the customer.
+        private static string GetProfileApiMessage(ApiException ex)
+        {
+            if (ex.ProblemDetail.Contains("email already exists", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Nalog s tom email adresom već postoji. Unesite drugu email adresu.";
+            }
+
+            List<string> messages = [];
+
+            foreach (string field in ReadValidationErrorFields(ex.ResponseBody))
+            {
+                string? message = field.ToLowerInvariant() switch
+                {
+                    "email" => "Email adresa nije ispravna.",
+                    "firstname" => "Ime mora imati između 2 i 100 znakova.",
+                    "lastname" => "Prezime mora imati između 2 i 100 znakova.",
+                    "phone" => "Broj telefona nije ispravan.",
+                    _ => null
+                };
+
+                if (message is not null && !messages.Contains(message))
+                {
+                    messages.Add(message);
+                }
+            }
+
+            if (messages.Count > 0)
+            {
+                return string.Join("\n", messages);
+            }
+
+            return ex.StatusCode == HttpStatusCode.Conflict
+                ? "Profil trenutno nije moguće ažurirati. Pokušajte ponovo."
+                : "Podaci nisu ispravni. Provjerite unos i pokušajte ponovo.";
+        }
+
+        // Field names from ValidationProblemDetails.errors (e.g. "Email" or "$.email").
+        private static IEnumerable<string> ReadValidationErrorFields(string responseBody)
+        {
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(responseBody);
+
+                if (document.RootElement.ValueKind != JsonValueKind.Object ||
+                    !document.RootElement.TryGetProperty("errors", out JsonElement errors) ||
+                    errors.ValueKind != JsonValueKind.Object)
+                {
+                    return [];
+                }
+
+                return errors
+                    .EnumerateObject()
+                    .Select(error => error.Name.TrimStart('$', '.'))
+                    .ToArray();
+            }
+            catch (JsonException)
+            {
+                return [];
             }
         }
 

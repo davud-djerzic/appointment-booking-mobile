@@ -94,7 +94,8 @@ public static class MauiProgram
         builder.Services.AddTransient<ProfilePage>();
         builder.Services.AddTransient<ProfileViewModel>();
 
-#if DEBUG
+        // Docker API (http://<host>:8080): Debug by default, Release with -p:ApiTarget=Docker
+        // (to test a Release build against the local Docker API before production exists).
 #if DOCKER_API
         string? configuredDockerHost = typeof(MauiProgram)
             .Assembly
@@ -109,16 +110,13 @@ public static class MauiProgram
                 : "localhost";
 
         string apiBaseUrl = $"http://{apiHost}:8080/";
-#else
+#elif DEBUG
         string apiBaseUrl =
             DeviceInfo.Platform == DevicePlatform.Android
                 ? "https://10.0.2.2:7236/"
                 : "https://localhost:7236/";
-#endif
 #else
-        string apiBaseUrl =
-            throw new InvalidOperationException(
-                "Production API URL has not been configured.");
+        string apiBaseUrl = GetProductionApiBaseUrl();
 #endif
 
         builder.Services.Configure<ApiOptions>(
@@ -203,6 +201,11 @@ public static class MauiProgram
 
         return builder.Build();
     }
+
+    // Production API on Railway (HTTPS is terminated at Railway's edge).
+    // Release builds use it unless built with -p:ApiTarget=Docker for local testing.
+    private static string GetProductionApiBaseUrl() =>
+        "https://appointment-booking-api-production.up.railway.app/";
 
     private static HttpMessageHandler CreateHttpClientHandler()
     {

@@ -9,6 +9,8 @@ namespace AppointmentBooking.Mobile.Views.Shared;
 /// The weekday header and day grid are rendered by a single <see cref="GraphicsView"/>
 /// instead of one native button per day, so opening the popup and switching months
 /// does not create or destroy native views.
+/// With <c>excludeWeekends</c> the calendar shows only Monday–Friday (5 columns),
+/// like the booking calendar, so a weekend day cannot be picked.
 /// </summary>
 public sealed class CalendarDatePickerPopup : Popup<DateTime?>
 {
@@ -26,12 +28,19 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
     private PointF? interactionStart;
     private bool isClosing;
 
-    public CalendarDatePickerPopup(DateTime selectedDate, DateTime minimumDate, string title)
+    public CalendarDatePickerPopup(
+        DateTime selectedDate,
+        DateTime minimumDate,
+        string title,
+        bool excludeWeekends = false)
     {
         this.minimumDate = minimumDate.Date;
-        this.selectedDate = selectedDate.Date < this.minimumDate
+        DateTime initialDate = selectedDate.Date < this.minimumDate
             ? this.minimumDate
             : selectedDate.Date;
+        this.selectedDate = excludeWeekends
+            ? GetNextWeekday(initialDate)
+            : initialDate;
         displayedMonth = new DateTime(this.selectedDate.Year, this.selectedDate.Month, 1);
 
         CanBeDismissedByTappingOutsideOfPopup = false;
@@ -47,11 +56,13 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
             VerticalTextAlignment = TextAlignment.Center
         };
 
-        calendarDrawable = new CalendarMonthDrawable(new CalendarPalette(
-            Background: GetColor("BrandBackground", Color.FromArgb("#07152F")),
-            Text: GetColor("TextOnBrandBackground", Colors.White),
-            Accent: GetColor("BrandButton", Color.FromArgb("#E7C45A")),
-            Border: GetColor("PanelBorder", Color.FromArgb("#2B3D5C"))));
+        calendarDrawable = new CalendarMonthDrawable(
+            new CalendarPalette(
+                Background: GetColor("BrandBackground", Color.FromArgb("#07152F")),
+                Text: GetColor("TextOnBrandBackground", Colors.White),
+                Accent: GetColor("BrandButton", Color.FromArgb("#E7C45A")),
+                Border: GetColor("PanelBorder", Color.FromArgb("#2B3D5C"))),
+            excludeWeekends);
 
         calendarView = new GraphicsView
         {
@@ -256,6 +267,19 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
         BorderWidth = isPrimary ? 0 : 1
     };
 
+    private static bool IsWeekend(DateTime date) =>
+        date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    private static DateTime GetNextWeekday(DateTime date)
+    {
+        while (IsWeekend(date))
+        {
+            date = date.AddDays(1);
+        }
+
+        return date;
+    }
+
     private static Color GetColor(string key, Color fallback) =>
         Application.Current?.Resources.TryGetValue(key, out object? value) == true &&
         value is Color color
@@ -264,9 +288,8 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
 
     private sealed record CalendarPalette(Color Background, Color Text, Color Accent, Color Border);
 
-    private sealed class CalendarMonthDrawable(CalendarPalette palette) : IDrawable
+    private sealed class CalendarMonthDrawable(CalendarPalette palette, bool excludeWeekends) : IDrawable
     {
-        private const int Columns = 7;
         private const int Rows = 6;
         private const float CellHeight = 38f;
         private const float CellSpacing = 4f;
@@ -284,6 +307,9 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
         private DateTime displayedMonth;
         private DateTime selectedDate;
         private DateTime minimumDate;
+
+        // Monday–Friday only when weekends are excluded (max. 23 weekdays + 4 offset = 6 rows).
+        private int Columns => excludeWeekends ? 5 : 7;
 
         public void Update(DateTime month, DateTime selected, DateTime minimum)
         {
@@ -325,11 +351,15 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
 
             for (int day = 1; day <= daysInMonth; day++)
             {
-                int cellIndex = firstDayOffset + day - 1;
+                DateTime date = new(displayedMonth.Year, displayedMonth.Month, day);
+                if (GetCellIndex(date, firstDayOffset) is not int cellIndex)
+                {
+                    continue;
+                }
+
                 float x = (cellIndex % Columns) * (cellWidth + CellSpacing);
                 float y = HeaderHeight + CellSpacing + ((cellIndex / Columns) * (CellHeight + CellSpacing));
 
-                DateTime date = new(displayedMonth.Year, displayedMonth.Month, day);
                 bool isSelected = date == selectedDate;
 
                 canvas.Alpha = date >= minimumDate ? 1f : DisabledAlpha;
@@ -365,24 +395,61 @@ public sealed class CalendarDatePickerPopup : Popup<DateTime?>
 
             int column = (int)(point.X / (cellWidth + CellSpacing));
             int row = (int)((point.Y - gridTop) / (CellHeight + CellSpacing));
-            if (column is < 0 or >= Columns || row is < 0 or >= Rows)
+            if (column < 0 || column >= Columns || row is < 0 or >= Rows)
             {
                 return null;
             }
 
-            int day = (row * Columns) + column - GetFirstDayOffset() + 1;
+            int tappedCellIndex = (row * Columns) + column;
+            int firstDayOffset = GetFirstDayOffset();
             int daysInMonth = DateTime.DaysInMonth(displayedMonth.Year, displayedMonth.Month);
-            if (day < 1 || day > daysInMonth)
+
+            for (int day = 1; day <= daysInMonth; day++)
             {
-                return null;
+                DateTime date = new(displayedMonth.Year, displayedMonth.Month, day);
+                if (GetCellIndex(date, firstDayOffset) == tappedCellIndex)
+                {
+                    return date;
+                }
             }
 
-            return new DateTime(displayedMonth.Year, displayedMonth.Month, day);
+            return null;
         }
 
-        private int GetFirstDayOffset() => ((int)displayedMonth.DayOfWeek + 6) % 7;
+        // Position of a day in the grid; null for a weekend day when weekends are excluded.
+        private int? GetCellIndex(DateTime date, int firstDayOffset)
+        {
+            if (!excludeWeekends)
+            {
+                return firstDayOffset + date.Day - 1;
+            }
 
-        private static float GetCellWidth(float width) =>
+            if (IsWeekend(date))
+            {
+                return null;
+            }
+
+            int cellIndex = firstDayOffset;
+            for (int day = 1; day < date.Day; day++)
+            {
+                if (!IsWeekend(new DateTime(date.Year, date.Month, day)))
+                {
+                    cellIndex++;
+                }
+            }
+
+            return cellIndex;
+        }
+
+        // Monday = 0 … Sunday = 6. Without weekends a month that starts on Saturday or
+        // Sunday begins with its first Monday in the first column.
+        private int GetFirstDayOffset()
+        {
+            int offset = ((int)displayedMonth.DayOfWeek + 6) % 7;
+            return excludeWeekends && offset >= 5 ? 0 : offset;
+        }
+
+        private float GetCellWidth(float width) =>
             (width - ((Columns - 1) * CellSpacing)) / Columns;
     }
 }

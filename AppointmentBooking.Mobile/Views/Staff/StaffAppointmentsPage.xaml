@@ -195,8 +195,14 @@
                 </Grid>
             </Border>
 
-            <CollectionView
+            <!-- Pull down to load the selected day again. -->
+            <RefreshView
                 Grid.Row="1"
+                IsRefreshing="{Binding IsRefreshingAppointments}"
+                Command="{Binding RefreshAppointmentsCommand}"
+                RefreshColor="{StaticResource BrandButton}">
+
+            <CollectionView
                 ItemsSource="{Binding VisibleAppointments}"
                 SelectionMode="None">
 
@@ -499,6 +505,8 @@
                 </CollectionView.Footer>
 
             </CollectionView>
+
+            </RefreshView>
 
         </Grid>
 

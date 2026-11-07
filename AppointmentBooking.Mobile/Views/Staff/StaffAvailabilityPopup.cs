@@ -235,7 +235,7 @@ public sealed class StaffAvailabilityPopup : Popup<bool>
 
     private async void OnBreakDateClicked(object? sender, EventArgs e)
     {
-        if (await PickDateAsync(viewModel.BreakDate, viewModel.Today, "Datum pauze") is DateTime date)
+        if (await PickDateAsync(viewModel.BreakDate, viewModel.Today, "Datum pauze", excludeWeekends: true) is DateTime date)
         {
             viewModel.BreakDate = date;
         }
@@ -257,7 +257,11 @@ public sealed class StaffAvailabilityPopup : Popup<bool>
         }
     }
 
-    private async Task<DateTime?> PickDateAsync(DateTime selectedDate, DateTime minimumDate, string title)
+    private async Task<DateTime?> PickDateAsync(
+        DateTime selectedDate,
+        DateTime minimumDate,
+        string title,
+        bool excludeWeekends = false)
     {
         // Ignore repeated taps while the calendar is already opening or open.
         if (isDatePickerOpen || isClosing)
@@ -269,7 +273,7 @@ public sealed class StaffAvailabilityPopup : Popup<bool>
         try
         {
             var result = await parentPage.ShowPopupAsync<DateTime?>(
-                new CalendarDatePickerPopup(selectedDate, minimumDate, title));
+                new CalendarDatePickerPopup(selectedDate, minimumDate, title, excludeWeekends));
             return result.Result;
         }
         finally

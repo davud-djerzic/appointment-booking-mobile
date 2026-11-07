@@ -244,6 +244,17 @@ public partial class HomeViewModel : ObservableObject
             IsHoldConfirmationVisible = true;
             SelectedTimeSlot = null;
         }
+        catch (ApiException ex) when (ActiveBookingLimitMessage.IsLimitReached(ex))
+        {
+            SelectedTimeSlot = null;
+            IsAvailabilityModalVisible = false;
+
+            await MainThread.InvokeOnMainThreadAsync(
+                () => AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                    ActiveBookingLimitMessage.Title,
+                    ActiveBookingLimitMessage.Create(ex),
+                    "U redu"));
+        }
         catch (ApiException ex) when (
             ex.StatusCode == HttpStatusCode.Conflict)
         {
@@ -294,6 +305,17 @@ public partial class HomeViewModel : ObservableObject
             await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                 "Rezervacija uspješna",
                 "Vaš termin je uspješno rezervisan.",
+                "U redu");
+        }
+        catch (ApiException ex) when (ActiveBookingLimitMessage.IsLimitReached(ex))
+        {
+            // The API has already released the held slot.
+            BookingHold = null;
+            IsHoldConfirmationVisible = false;
+
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                ActiveBookingLimitMessage.Title,
+                ActiveBookingLimitMessage.Create(ex),
                 "U redu");
         }
         catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)

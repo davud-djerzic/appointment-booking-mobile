@@ -25,6 +25,12 @@ namespace AppointmentBooking.Mobile.Services.Api
             if (response.StatusCode != HttpStatusCode.Unauthorized)
                 return response;
 
+            // Sign-in, registration and password reset (api/auth/*) are not authorized with the
+            // access token: a 401 there means wrong credentials or code, not an expired token.
+            // Never refresh and resend those requests.
+            if (IsAuthEndpoint(request))
+                return response;
+
             if (request.Options.TryGetValue(
                     RetryKey,
                     out bool alreadyRetried) &&
@@ -61,6 +67,12 @@ namespace AppointmentBooking.Mobile.Services.Api
                 retryRequest,
                 cancellationToken);
         }
+
+        private static bool IsAuthEndpoint(
+            HttpRequestMessage request) =>
+            request.RequestUri?.AbsolutePath.StartsWith(
+                "/api/auth/",
+                StringComparison.OrdinalIgnoreCase) == true;
 
         private void AddAccessToken(
             HttpRequestMessage request)

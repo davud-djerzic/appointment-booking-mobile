@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 
 namespace AppointmentBooking.Mobile.Services.Api
 {
@@ -23,6 +24,30 @@ namespace AppointmentBooking.Mobile.Services.Api
             StatusCode = statusCode;
             ResponseBody = responseBody;
             RetryAfter = retryAfter;
+        }
+
+        /// <summary>
+        /// The API's explanation from ProblemDetails.detail, or an empty string.
+        /// </summary>
+        public string ProblemDetail
+        {
+            get
+            {
+                try
+                {
+                    using JsonDocument document = JsonDocument.Parse(ResponseBody);
+
+                    return document.RootElement.ValueKind == JsonValueKind.Object &&
+                           document.RootElement.TryGetProperty("detail", out JsonElement detail) &&
+                           detail.ValueKind == JsonValueKind.String
+                        ? detail.GetString() ?? string.Empty
+                        : string.Empty;
+                }
+                catch (JsonException)
+                {
+                    return string.Empty;
+                }
+            }
         }
 
         public static TimeSpan? ReadRetryAfter(HttpResponseMessage response)

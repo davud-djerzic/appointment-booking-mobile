@@ -1,7 +1,5 @@
+using AppointmentBooking.Mobile.ViewModels.Booking;
 using AppointmentBooking.Mobile.ViewModels.Staff;
-using AppointmentBooking.Mobile.Views.Shared;
-using CommunityToolkit.Maui.Extensions;
-using CommunityToolkit.Maui.Views;
 
 namespace AppointmentBooking.Mobile.Views.Staff;
 
@@ -16,28 +14,44 @@ public partial class StaffCreateBookingPage : ContentPage
         BindingContext = viewModel;
     }
 
+    // The page is reused; start every opening at the top.
+    // (Only needed when the page was shown before and still has its native view.)
+    public void PrepareForShow()
+    {
+        if (BookingScrollView.Handler is not null)
+        {
+            _ = BookingScrollView.ScrollToAsync(0, 0, false);
+        }
+    }
+
     private async void OnCancelClicked(object? sender, EventArgs e)
     {
         await Navigation.PopModalAsync();
     }
 
-    private async void OnStaffBookingDateClicked(object? sender, EventArgs e)
+    private async void OnBookingCalendarDateClicked(object? sender, EventArgs e)
     {
-        var result = await this.ShowPopupAsync<DateTime?>(
-            new CalendarDatePickerPopup(
-                viewModel.StaffBookingDate,
-                viewModel.StaffBookingToday,
-                "Odaberite datum termina"));
-
-        if (result.WasDismissedByTappingOutsideOfPopup is false && result.Result is DateTime date)
+        if (sender is not Button { BindingContext: CalendarDayItem day } ||
+            !day.IsSelectable)
         {
-            viewModel.StaffBookingDate = date;
+            return;
         }
+
+        double scrollY = BookingScrollView.ScrollY;
+        await viewModel.SelectBookingDateCommand.ExecuteAsync(day);
+
+        // Loading the free slots changes the content height; keep the user's position
+        // (same as the customer booking page).
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            await Task.Yield();
+            await BookingScrollView.ScrollToAsync(0, scrollY, false);
+        });
     }
 
-    private async void OnSaveClicked(object? sender, EventArgs e)
+    private async void OnConfirmStaffBookingClicked(object? sender, EventArgs e)
     {
-        await viewModel.CreateStaffBookingCommand.ExecuteAsync(null);
+        await viewModel.ConfirmStaffBookingCommand.ExecuteAsync(null);
 
         if (viewModel.WasStaffBookingCreated)
         {

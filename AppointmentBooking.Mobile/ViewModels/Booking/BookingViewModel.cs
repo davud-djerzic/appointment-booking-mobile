@@ -477,6 +477,14 @@ public partial class BookingViewModel : ObservableObject
             OnPropertyChanged(nameof(HoldEndsAtLocal));
             OnPropertyChanged(nameof(HoldExpiresAtLocal));
         }
+        catch (ApiException ex) when (ActiveBookingLimitMessage.IsLimitReached(ex))
+        {
+            await MainThread.InvokeOnMainThreadAsync(
+                () => AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                    ActiveBookingLimitMessage.Title,
+                    ActiveBookingLimitMessage.Create(ex),
+                    "U redu"));
+        }
         catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
         {
             await MainThread.InvokeOnMainThreadAsync(
@@ -594,6 +602,20 @@ public partial class BookingViewModel : ObservableObject
             OnPropertyChanged(nameof(HoldStartsAtLocal));
             OnPropertyChanged(nameof(HoldEndsAtLocal));
             OnPropertyChanged(nameof(HoldExpiresAtLocal));
+        }
+        catch (ApiException ex) when (ActiveBookingLimitMessage.IsLimitReached(ex))
+        {
+            // The API has already released the held slot.
+            BookingHold = null;
+            IsHoldConfirmationVisible = false;
+            OnPropertyChanged(nameof(HoldStartsAtLocal));
+            OnPropertyChanged(nameof(HoldEndsAtLocal));
+            OnPropertyChanged(nameof(HoldExpiresAtLocal));
+
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                ActiveBookingLimitMessage.Title,
+                ActiveBookingLimitMessage.Create(ex),
+                "U redu");
         }
         catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
         {

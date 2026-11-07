@@ -39,6 +39,39 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
         private bool isBusy;
 
         [ObservableProperty]
+        private bool isNewPasswordHidden = true;
+
+        [ObservableProperty]
+        private bool isConfirmPasswordHidden = true;
+
+        public string NewPasswordVisibilityIcon =>
+            IsNewPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
+        public string ConfirmPasswordVisibilityIcon =>
+            IsConfirmPasswordHidden ? "eye_hidden.svg" : "eye_open.svg";
+
+        [RelayCommand]
+        private void ToggleNewPasswordVisibility() =>
+            IsNewPasswordHidden = !IsNewPasswordHidden;
+
+        [RelayCommand]
+        private void ToggleConfirmPasswordVisibility() =>
+            IsConfirmPasswordHidden = !IsConfirmPasswordHidden;
+
+        partial void OnIsNewPasswordHiddenChanged(bool value) =>
+            OnPropertyChanged(nameof(NewPasswordVisibilityIcon));
+
+        partial void OnIsConfirmPasswordHiddenChanged(bool value) =>
+            OnPropertyChanged(nameof(ConfirmPasswordVisibilityIcon));
+
+        // Passwords are hidden again whenever the password step is left.
+        private void HidePasswords()
+        {
+            IsNewPasswordHidden = true;
+            IsConfirmPasswordHidden = true;
+        }
+
+        [ObservableProperty]
         private bool isCodeStep;
 
         [ObservableProperty]
@@ -221,6 +254,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
                 NewPassword = string.Empty;
                 ConfirmPassword = string.Empty;
+                HidePasswords();
 
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Lozinka promijenjena",
@@ -262,6 +296,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
 
             NewPassword = string.Empty;
             ConfirmPassword = string.Empty;
+            HidePasswords();
         }
 
         [RelayCommand]
@@ -273,6 +308,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             Code = string.Empty;
             NewPassword = string.Empty;
             ConfirmPassword = string.Empty;
+            HidePasswords();
         }
 
         private static Task ShowValidationAsync(string message) =>

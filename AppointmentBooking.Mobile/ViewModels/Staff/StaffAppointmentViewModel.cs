@@ -20,7 +20,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace AppointmentBooking.Mobile.ViewModels.Staff
 {
@@ -49,28 +51,10 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private bool isPreparingStaffBooking;
 
         [ObservableProperty]
-        private bool isSavingStaffBooking;
-
-        [ObservableProperty]
         private string customerFirstName = string.Empty;
 
         [ObservableProperty]
         private string customerLastName = string.Empty;
-
-        [ObservableProperty]
-        private DateTime staffBookingDate = DateTime.Today;
-
-        [ObservableProperty]
-        private TimeSpan staffBookingTime = new(16, 0, 0);
-
-        [ObservableProperty]
-        private bool isTimeSelectorVisible;
-
-        [ObservableProperty]
-        private string timeSelectorHour = "16";
-
-        [ObservableProperty]
-        private string timeSelectorMinute = "00";
 
         [ObservableProperty]
         private string? staffBookingNotes;
@@ -79,6 +63,15 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private BookableEmployeeResponse? selectedBookingEmployee;
 
         private bool wasStaffBookingCreated;
+
+        // Every load of the day list gets a number. Only the newest one may change the list,
+        // so a slower answer for a day the user already left cannot overwrite the current day.
+        private static readonly TimeSpan LoadingIndicatorDelay = TimeSpan.FromMilliseconds(300);
+        private int appointmentsLoadVersion;
+        private int completedAppointmentsLoadVersion;
+
+        [ObservableProperty]
+        private bool isRefreshingAppointments;
         private bool adminBookingDataLoaded;
         private bool bookingServicesLoaded;
         private long? bookingServicesEmployeeId;
@@ -102,23 +95,11 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         public bool IsEmployee => !IsAdmin;
 
-        public DateTime StaffBookingToday => DateTime.Today;
-        public string StaffBookingDateDisplay => StaffBookingDate.ToString(
-            "d. MMMM yyyy.",
-            CultureInfo.GetCultureInfo("bs-BA"));
-
-        public string StaffBookingTimeDisplay => StaffBookingTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
-
-        public bool CanCreateStaffBooking =>
-            !IsSavingStaffBooking &&
-            !string.IsNullOrWhiteSpace(CustomerFirstName) &&
-            !string.IsNullOrWhiteSpace(CustomerLastName) &&
-            SelectedBookingEmployee is not null &&
-            SelectedBookingServiceCount > 0 &&
-            CreateLocalStaffBookingStart() > DateTime.Now;
 
         public bool HasNoBookingServices =>
-            SelectedBookingEmployee is not null && BookingServices.Count == 0;
+            !IsPreparingStaffBooking &&
+            SelectedBookingEmployee is not null &&
+            BookingServices.Count == 0;
 
         public int SelectedBookingServiceCount =>
             BookingServices.Count(x => x.IsSelected);
@@ -205,45 +186,38 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             this.availabilityViewModel = availabilityViewModel;
         }
 
-        partial void OnCustomerFirstNameChanged(string value) =>
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
-
-        partial void OnCustomerLastNameChanged(string value) =>
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
-
-        partial void OnStaffBookingDateChanged(DateTime value)
-        {
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
-            OnPropertyChanged(nameof(StaffBookingDateDisplay));
-        }
-
-        partial void OnStaffBookingTimeChanged(TimeSpan value)
-        {
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
-            OnPropertyChanged(nameof(StaffBookingTimeDisplay));
-        }
-
         partial void OnSelectedBookingEmployeeChanged(BookableEmployeeResponse? value)
         {
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
             OnPropertyChanged(nameof(HasNoBookingServices));
         }
 
-        partial void OnIsSavingStaffBookingChanged(bool value) =>
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
+        partial void OnIsPreparingStaffBookingChanged(bool value) =>
+            OnPropertyChanged(nameof(HasNoBookingServices));
 
-        public async Task<bool> PrepareStaffBookingAsync()
+        // Clears the "Novi termin" form. The page is reused, so this runs before every opening.
+        public void ResetStaffBookingForm()
+        {
+            wasStaffBookingCreated = false;
+            OnPropertyChanged(nameof(WasStaffBookingCreated));
+            CustomerFirstName = string.Empty;
+            CustomerLastName = string.Empty;
+            StaffBookingNotes = string.Empty;
+
+            foreach (ServiceSelectionItem service in BookingServices)
+            {
+                service.IsSelected = false;
+            }
+
+            ResetStaffBookingCalendar();
+        }
+
+        // Loads what the form needs while the page is already open. Usually everything is
+        // already in memory; only the first opening after the app starts asks the server.
+        public async Task<bool> LoadStaffBookingDataAsync()
         {
             try
             {
                 IsPreparingStaffBooking = true;
-                wasStaffBookingCreated = false;
-                OnPropertyChanged(nameof(WasStaffBookingCreated));
-                CustomerFirstName = string.Empty;
-                CustomerLastName = string.Empty;
-                StaffBookingDate = DateTime.Today;
-                StaffBookingTime = new TimeSpan(16, 0, 0);
-                StaffBookingNotes = string.Empty;
 
                 if (IsAdmin)
                 {
@@ -280,7 +254,10 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                     service.IsSelected = false;
                 }
 
-                return IsAdmin || BookingServices.Count > 0;
+                await LoadStaffBookingCalendarAsync();
+
+                // An employee without services sees the explanation on the page.
+                return true;
             }
             catch (Exception ex)
             {
@@ -319,8 +296,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                     return;
                 }
 
+                // Same order as the customer booking page (api/BookableServices returns them by Id).
                 HashSet<long> addedServiceIds = [];
-                foreach (ServiceResponse service in services ?? [])
+                foreach (ServiceResponse service in (services ?? []).OrderBy(x => x.Id))
                 {
                     if (!addedServiceIds.Add(service.Id))
                     {
@@ -342,97 +320,97 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             }
         }
 
-        [RelayCommand]
-        private async Task CreateStaffBookingAsync()
+        private const int CustomerNameMaxLength = 50;
+
+        // Checked in the order the fields appear on the page.
+        private string? GetStaffBookingValidationMessage()
         {
-            if (!CanCreateStaffBooking ||
-                SelectedBookingEmployee is null)
+            if (SelectedBookingEmployee is null)
             {
-                return;
+                return "Nije odabran zaposlenik za kojeg se dodaje termin.";
             }
 
+            if (SelectedBookingServiceCount == 0)
+            {
+                return "Odaberite barem jednu uslugu.";
+            }
+
+            if (string.IsNullOrWhiteSpace(CustomerFirstName))
+            {
+                return "Unesite ime klijenta.";
+            }
+
+            if (CustomerFirstName.Trim().Length > CustomerNameMaxLength)
+            {
+                return $"Ime klijenta može imati najviše {CustomerNameMaxLength} znakova.";
+            }
+
+            if (string.IsNullOrWhiteSpace(CustomerLastName))
+            {
+                return "Unesite prezime klijenta.";
+            }
+
+            if (CustomerLastName.Trim().Length > CustomerNameMaxLength)
+            {
+                return $"Prezime klijenta može imati najviše {CustomerNameMaxLength} znakova.";
+            }
+
+            return null;
+        }
+
+        // The API explains a rejected booking in ProblemDetails.detail (English);
+        // the known reasons are shown in Bosnian, anything else gets a general message.
+        private static string GetStaffBookingApiMessage(ApiException ex)
+        {
+            string detail = ReadProblemDetail(ex.ResponseBody);
+
+            if (detail.Contains("working hours", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Odabrano vrijeme je izvan radnog vremena. Odaberite vrijeme unutar radnog vremena.";
+            }
+
+            if (detail.Contains("break or leave", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Odabrano vrijeme se preklapa s pauzom ili godišnjim odmorom. Odaberite drugo vrijeme.";
+            }
+
+            if (detail.Contains("already booked", StringComparison.OrdinalIgnoreCase))
+            {
+                return "U odabrano vrijeme već postoji termin. Odaberite drugo vrijeme.";
+            }
+
+            if (detail.Contains("temporarily reserved", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Ovo vrijeme upravo rezerviše klijent preko aplikacije. Sačekajte nekoliko minuta ili odaberite drugo vrijeme.";
+            }
+
+            if (detail.Contains("in the future", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Odabrani datum i vrijeme su već prošli. Odaberite kasnije vrijeme.";
+            }
+
+            return ex.StatusCode == HttpStatusCode.Conflict
+                ? "Termin nije moguće dodati u odabrano vrijeme. Provjerite radno vrijeme, pauze i postojeće termine."
+                : "Podaci termina nisu ispravni. Provjerite unos i pokušajte ponovo.";
+        }
+
+        private static string ReadProblemDetail(string responseBody)
+        {
             try
             {
-                IsSavingStaffBooking = true;
+                using JsonDocument document = JsonDocument.Parse(responseBody);
 
-                DateTime localStart = CreateLocalStaffBookingStart();
-                DateTimeOffset startsAt = new(
-                    localStart,
-                    SalonTimeZone.Info.GetUtcOffset(localStart));
-
-                CreateStaffBookingRequest request = new(
-                    CustomerFirstName.Trim(),
-                    CustomerLastName.Trim(),
-                    IsAdmin ? SelectedBookingEmployee.Id : null,
-                    startsAt,
-                    BookingServices
-                        .Where(x => x.IsSelected)
-                        .Select(x => x.Service.Id)
-                        .ToArray(),
-                    string.IsNullOrWhiteSpace(StaffBookingNotes)
-                        ? null
-                        : StaffBookingNotes.Trim());
-
-                EmployeeBookingDetailsResponse? created =
-                    await apiClient.PostAsync<
-                        CreateStaffBookingRequest,
-                        EmployeeBookingDetailsResponse>(
-                        "api/bookings/staff",
-                        request);
-
-                if (created is null)
-                {
-                    throw new InvalidOperationException(
-                        "API nije vratio kreirani termin.");
-                }
-
-                wasStaffBookingCreated = true;
-                OnPropertyChanged(nameof(WasStaffBookingCreated));
-                SelectedDate = StaffBookingDate.Date;
+                return document.RootElement.ValueKind == JsonValueKind.Object &&
+                       document.RootElement.TryGetProperty("detail", out JsonElement detail) &&
+                       detail.ValueKind == JsonValueKind.String
+                    ? detail.GetString() ?? string.Empty
+                    : string.Empty;
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
-                await errorHandler.HandleAsync(ex);
-            }
-            finally
-            {
-                IsSavingStaffBooking = false;
+                return string.Empty;
             }
         }
-
-        private DateTime CreateLocalStaffBookingStart() =>
-            DateTime.SpecifyKind(
-                StaffBookingDate.Date.Add(StaffBookingTime),
-                DateTimeKind.Unspecified);
-
-        [RelayCommand]
-        private void OpenTimeSelector()
-        {
-            TimeSelectorHour = StaffBookingTime.Hours.ToString("00", CultureInfo.InvariantCulture);
-            TimeSelectorMinute = StaffBookingTime.Minutes.ToString("00", CultureInfo.InvariantCulture);
-            IsTimeSelectorVisible = true;
-        }
-
-        [RelayCommand]
-        private async Task ConfirmTimeSelectorAsync()
-        {
-            if (!int.TryParse(TimeSelectorHour, NumberStyles.None, CultureInfo.InvariantCulture, out int hour) ||
-                !int.TryParse(TimeSelectorMinute, NumberStyles.None, CultureInfo.InvariantCulture, out int minute) ||
-                hour is < 0 or > 23 || minute is < 0 or > 59)
-            {
-                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
-                    "Neispravno vrijeme",
-                    "Unesite sat od 00 do 23 i minute od 00 do 59.",
-                    "U redu");
-                return;
-            }
-
-            StaffBookingTime = new TimeSpan(hour, minute, 0);
-            IsTimeSelectorVisible = false;
-        }
-
-        [RelayCommand]
-        private void CloseTimeSelector() => IsTimeSelectorVisible = false;
 
         private void ClearBookingServices()
         {
@@ -457,7 +435,9 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
         private void NotifyBookingServiceSelectionChanged()
         {
-            OnPropertyChanged(nameof(CanCreateStaffBooking));
+            // Like the customer page: a different set of services needs a new date and slot.
+            ClearBookingDateSelection();
+
             OnPropertyChanged(nameof(HasNoBookingServices));
             OnPropertyChanged(nameof(SelectedBookingServiceCount));
             OnPropertyChanged(nameof(SelectedBookingServicesDuration));
@@ -471,8 +451,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             OnPropertyChanged(nameof(IsTodaySelected));
             OnPropertyChanged(nameof(EmptyAppointmentsTitle));
 
+            // The previous day's list stays visible until the new day has arrived.
             IsShowingPassedToday = false;
-            VisibleAppointments.Clear();
         }
 
         public void ResetToNextWorkingDay()
@@ -511,18 +491,45 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         }
 
         [RelayCommand]
-        private async Task LoadAppointmentsAsync()
+        private Task LoadAppointmentsAsync() =>
+            LoadAppointmentsCoreAsync(showLoadingIndicator: true);
+
+        // Pull-to-refresh: the RefreshView shows its own spinner.
+        [RelayCommand]
+        private async Task RefreshAppointmentsAsync()
         {
             try
             {
-                IsLoading = true;
+                await LoadAppointmentsCoreAsync(showLoadingIndicator: false);
+            }
+            finally
+            {
+                IsRefreshingAppointments = false;
+            }
+        }
 
+        private async Task LoadAppointmentsCoreAsync(bool showLoadingIndicator)
+        {
+            int version = ++appointmentsLoadVersion;
+
+            if (showLoadingIndicator)
+            {
+                _ = ShowLoadingIndicatorIfSlowAsync(version);
+            }
+
+            try
+            {
                 if (IsAdmin)
                 {
                     await EnsureAdminBookingDataLoadedAsync();
                 }
 
                 await EnsureStaffWorkingDatesAsync();
+
+                if (version != appointmentsLoadVersion)
+                {
+                    return;
+                }
 
                 if (selectNextWorkingDayOnLoad)
                 {
@@ -554,27 +561,15 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                     }
                 }
 
-                Appointments.Clear();
-                VisibleAppointments.Clear();
-                CancelledAppointments.Clear();
-                OnPropertyChanged(nameof(HasCancelledAppointments));
-                OnPropertyChanged(nameof(CancelledAppointmentsTitle));
+                DateTime date = SelectedDate.Date;
 
-                DateTimeOffset dayStart =
-                    CreateLocalDateStart(SelectedDate);
+                // From local midnight to just before the next local midnight
+                // (correct also on the days the clock changes).
+                DateTimeOffset dayStart = CreateLocalDateStart(date);
+                DateTimeOffset dayEnd = CreateLocalDateStart(date.AddDays(1)).AddTicks(-1);
 
-                DateTimeOffset dayEnd =
-                    dayStart
-                        .AddDays(1)
-                        .AddTicks(-1);
-
-                string from =
-                    Uri.EscapeDataString(
-                        dayStart.ToString("O"));
-
-                string to =
-                    Uri.EscapeDataString(
-                        dayEnd.ToString("O"));
+                string from = Uri.EscapeDataString(dayStart.ToString("O"));
+                string to = Uri.EscapeDataString(dayEnd.ToString("O"));
 
                 string endpoint =
                     $"api/bookings/employee" +
@@ -588,14 +583,21 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                         PagedResponse<EmployeeBookingSummaryResponse>>(
                         endpoint);
 
-                foreach (
-                    EmployeeBookingSummaryResponse appointment
-                    in response?.Items ?? [])
+                // The user moved to another day meanwhile: this answer is outdated.
+                if (version != appointmentsLoadVersion)
+                {
+                    return;
+                }
+
+                // Replace the list in one step, only now that the new day has arrived.
+                Appointments.Clear();
+
+                foreach (EmployeeBookingSummaryResponse appointment
+                    in (response?.Items ?? []).OrderBy(x => x.StartsAt))
                 {
                     Appointments.Add(appointment);
                 }
 
-                SortAppointments();
                 RefreshVisibleAppointments();
 
                 OnPropertyChanged(nameof(HasAppointments));
@@ -604,11 +606,30 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             }
             catch (Exception ex)
             {
-                await errorHandler.HandleAsync(ex);
+                if (version == appointmentsLoadVersion)
+                {
+                    await errorHandler.HandleAsync(ex);
+                }
             }
             finally
             {
-                IsLoading = false;
+                if (version == appointmentsLoadVersion)
+                {
+                    completedAppointmentsLoadVersion = version;
+                    IsLoading = false;
+                }
+            }
+        }
+
+        // The spinner appears only when the answer takes longer than a moment.
+        private async Task ShowLoadingIndicatorIfSlowAsync(int version)
+        {
+            await Task.Delay(LoadingIndicatorDelay);
+
+            if (version == appointmentsLoadVersion &&
+                completedAppointmentsLoadVersion != version)
+            {
+                IsLoading = true;
             }
         }
 
@@ -683,7 +704,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             }
         }
 
-        [RelayCommand]
+        // Quick taps are allowed; only the last selected day is shown.
+        [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task PreviousDayAsync()
         {
             await MoveToWorkingDateAsync(-1);
@@ -743,7 +765,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         private void ToggleCancelledPanel() =>
             IsCancelledPanelExpanded = !IsCancelledPanelExpanded;
 
-        [RelayCommand]
+        [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task NextDayAsync()
         {
             await MoveToWorkingDateAsync(1);
@@ -862,23 +884,6 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
                 .ThenBy(group => group.Key)
                 .Select(group => group.First())
                 .FirstOrDefault();
-        }
-
-        private void SortAppointments()
-        {
-            EmployeeBookingSummaryResponse[] sorted =
-                Appointments
-                    .OrderBy(x => x.StartsAt)
-                    .ToArray();
-
-            Appointments.Clear();
-
-            foreach (
-                EmployeeBookingSummaryResponse appointment
-                in sorted)
-            {
-                Appointments.Add(appointment);
-            }
         }
 
         private static DateTimeOffset CreateLocalDateStart(

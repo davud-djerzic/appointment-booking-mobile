@@ -6,13 +6,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Staff"
     xmlns:serviceModels="clr-namespace:AppointmentBooking.Mobile.Models.BookableServices"
+    xmlns:bookingViewModels="clr-namespace:AppointmentBooking.Mobile.ViewModels.Booking"
+    xmlns:bookingResponses="clr-namespace:AppointmentBooking.Mobile.Models.Bookings.Responses"
+    x:Name="RootPage"
     x:DataType="viewModels:StaffAppointmentsViewModel"
     BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False"
     SafeAreaEdges="All">
 
-    <Grid RowDefinitions="Auto,*,Auto">
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Padding="20,18,20,14" ColumnSpacing="12">
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Padding="20,18,20,14" ColumnSpacing="12">
             <VerticalStackLayout Spacing="4" VerticalOptions="Center">
                 <Label
                     Text="Novi termin"
@@ -20,13 +23,22 @@
                     FontAttributes="Bold"
                     TextColor="{StaticResource TextOnBrandBackground}" />
                 <Label
-                    Text="Ručni unos rezervacije za klijenta"
+                    Text="Odaberite usluge, klijenta i slobodan termin."
                     FontSize="14"
                     TextColor="{StaticResource TextOnBrandBackground}"
                     Opacity="0.7" />
             </VerticalStackLayout>
-            <Button
+            <!-- Only the first opening after start waits for the server. -->
+            <ActivityIndicator
                 Grid.Column="1"
+                IsRunning="{Binding IsPreparingStaffBooking}"
+                IsVisible="{Binding IsPreparingStaffBooking}"
+                Color="{StaticResource BrandButton}"
+                HeightRequest="24"
+                WidthRequest="24"
+                VerticalOptions="Center" />
+            <Button
+                Grid.Column="2"
                 Text="✕"
                 Clicked="OnCancelClicked"
                 BackgroundColor="{StaticResource QuickBookingPanelBackground}"
@@ -42,7 +54,7 @@
                 VerticalOptions="Center" />
         </Grid>
 
-        <ScrollView Grid.Row="1">
+        <ScrollView x:Name="BookingScrollView" Grid.Row="1">
             <VerticalStackLayout Padding="20,0,20,20" Spacing="16">
                 <!-- Zaposlenik -->
                 <Border
@@ -195,48 +207,6 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- Datum i vrijeme -->
-                <Border
-                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                    Stroke="{StaticResource PanelBorder}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="16">
-                    <VerticalStackLayout Spacing="12">
-                        <Label Text="Datum i vrijeme" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                            <VerticalStackLayout Spacing="5">
-                                <Label Text="Datum" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                                <Border Padding="10,0" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="0.8" StrokeShape="RoundRectangle 12">
-                                    <Button
-                                        Text="{Binding StaffBookingDateDisplay}"
-                                        Clicked="OnStaffBookingDateClicked"
-                                        BackgroundColor="Transparent"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        FontAttributes="Bold"
-                                        HorizontalOptions="Fill"
-                                        HeightRequest="46"
-                                        Padding="0" />
-                                </Border>
-                            </VerticalStackLayout>
-                            <VerticalStackLayout Grid.Column="1" Spacing="5">
-                                <Label Text="Početak" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                                <Button
-                                    Text="{Binding StaffBookingTimeDisplay}"
-                                    Command="{Binding OpenTimeSelectorCommand}"
-                                    BackgroundColor="{StaticResource BrandBackground}"
-                                    TextColor="{StaticResource BrandButton}"
-                                    BorderColor="{StaticResource PanelBorder}"
-                                    BorderWidth="1"
-                                    FontSize="16"
-                                    FontAttributes="Bold"
-                                    HeightRequest="46"
-                                    CornerRadius="12" />
-                            </VerticalStackLayout>
-                        </Grid>
-                    </VerticalStackLayout>
-                </Border>
-
                 <!-- Napomena -->
                 <Border
                     BackgroundColor="{StaticResource QuickBookingPanelBackground}"
@@ -257,66 +227,307 @@
                                 PlaceholderColor="#8A9BB5"
                                 TextColor="{StaticResource TextOnBrandBackground}" />
                         </Border>
-                        <Label Text="Termin će se provjeriti prema radnom vremenu, pauzama i postojećim rezervacijama." FontSize="12" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.6" />
                     </VerticalStackLayout>
                 </Border>
+
+                <!-- Odaberite datum (isti kalendar kao kod klijenta) -->
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Odaberite datum"
+                        FontSize="19"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource TextOnBrandBackground}" />
+
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Button
+                            Grid.Column="0"
+                            Text="‹"
+                            Command="{Binding PreviousBookingMonthCommand}"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            Padding="0"
+                            FontSize="24"
+                            BackgroundColor="{StaticResource BrandButton}"
+                            TextColor="{StaticResource BrandBackground}"
+                            FontAttributes="Bold"
+                            CornerRadius="12" />
+                        <Label
+                            Grid.Column="1"
+                            Text="{Binding BookingDisplayedMonthTitle}"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center" />
+                        <Button
+                            Grid.Column="2"
+                            Text="›"
+                            Command="{Binding NextBookingMonthCommand}"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            Padding="0"
+                            FontSize="24"
+                            BackgroundColor="{StaticResource BrandButton}"
+                            TextColor="{StaticResource BrandBackground}"
+                            FontAttributes="Bold"
+                            CornerRadius="12" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*,*,*,*" Padding="2,0">
+                        <Label Text="Po" HorizontalOptions="Center" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+                        <Label Grid.Column="1" Text="Ut" HorizontalOptions="Center" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+                        <Label Grid.Column="2" Text="Sr" HorizontalOptions="Center" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+                        <Label Grid.Column="3" Text="Če" HorizontalOptions="Center" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+                        <Label Grid.Column="4" Text="Pe" HorizontalOptions="Center" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+                    </Grid>
+
+                    <!-- Lightweight grid of day cells (5 per row) instead of a CollectionView. -->
+                    <FlexLayout
+                        BindableLayout.ItemsSource="{Binding BookingCalendarDays}"
+                        Direction="Row"
+                        Wrap="Wrap"
+                        AlignItems="Start"
+                        AlignContent="Start"
+                        Margin="-2.5">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="bookingViewModels:CalendarDayItem">
+                                <ContentView FlexLayout.Basis="20%" Padding="2.5">
+                                    <Border
+                                        Padding="0"
+                                        StrokeThickness="1"
+                                        Stroke="{StaticResource PanelBorder}"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{StaticResource BrandButton}" />
+                                                <Setter Property="Stroke" Value="{StaticResource BrandButton}" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelectable}" Value="False">
+                                                <Setter Property="Opacity" Value="0.35" />
+                                                <Setter Property="BackgroundColor" Value="Transparent" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Button
+                                            Text="{Binding DayNumber}"
+                                            Clicked="OnBookingCalendarDateClicked"
+                                            HeightRequest="42"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{StaticResource TextOnBrandBackground}"
+                                            FontAttributes="Bold"
+                                            IsEnabled="{Binding IsSelectable}"
+                                            Padding="0">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="TextColor" Value="{StaticResource BrandBackground}" />
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
+                                    </Border>
+                                </ContentView>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+
+                <!-- Slobodni termini -->
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Slobodni termini"
+                        FontSize="19"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource TextOnBrandBackground}" />
+
+                    <Border
+                        HeightRequest="285"
+                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                        Stroke="{StaticResource PanelBorder}"
+                        StrokeThickness="0.8"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="12">
+                        <Grid>
+                            <ActivityIndicator
+                                IsRunning="{Binding IsLoadingBookingAvailability}"
+                                IsVisible="{Binding IsLoadingBookingAvailability}"
+                                Color="{StaticResource BrandButton}"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                SemanticProperties.Description="Učitavanje slobodnih termina" />
+
+                            <Label
+                                Text="Odaberite usluge i datum za prikaz termina."
+                                FontSize="14"
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                HorizontalTextAlignment="Center"
+                                VerticalTextAlignment="Center"
+                                IsVisible="{Binding HasNoBookingSelectedDate}" />
+
+                            <VerticalStackLayout
+                                Spacing="4"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                IsVisible="{Binding HasNoBookingAvailability}">
+                                <Label
+                                    Text="Nema slobodnih termina"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource TextOnBrandBackground}"
+                                    HorizontalTextAlignment="Center" />
+                                <Label
+                                    Text="Odaberite drugi datum."
+                                    FontSize="13"
+                                    TextColor="{StaticResource TextOnBrandBackground}"
+                                    Opacity="0.8"
+                                    HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+
+                            <!-- Lightweight wrap of slot buttons (3 per row) instead of a CollectionView. -->
+                            <ScrollView
+                                IsVisible="{Binding HasBookingAvailability}"
+                                VerticalOptions="Fill"
+                                HeightRequest="250"
+                                Margin="-3">
+                                <FlexLayout
+                                    BindableLayout.ItemsSource="{Binding BookingAvailableSlots}"
+                                    Direction="Row"
+                                    Wrap="Wrap"
+                                    AlignItems="Start"
+                                    AlignContent="Start">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="bookingResponses:AvailableTimeSlotResponse">
+                                            <ContentView FlexLayout.Basis="33.333%" Padding="3">
+                                                <Button
+                                                    Text="{Binding StartsAt, StringFormat='{}{0:HH:mm}'}"
+                                                    Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.CreateStaffHoldCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="44"
+                                                    Padding="0"
+                                                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                                    BorderColor="{StaticResource PanelBorder}"
+                                                    BorderWidth="1"
+                                                    TextColor="{StaticResource TextOnBrandBackground}"
+                                                    FontSize="15"
+                                                    FontAttributes="Bold"
+                                                    CornerRadius="12" />
+                                            </ContentView>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
+                            </ScrollView>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Bottom action bar -->
-        <Border Grid.Row="2" Padding="20,10,20,16" BackgroundColor="{StaticResource BrandBackground}" StrokeThickness="0">
-            <Button
-                Text="Sačuvaj termin"
-                Clicked="OnSaveClicked"
-                IsEnabled="{Binding CanCreateStaffBooking}"
-                BackgroundColor="{StaticResource BrandButton}"
-                TextColor="{StaticResource BrandBackground}"
-                FontSize="15"
-                FontAttributes="Bold"
-                HeightRequest="52"
-                CornerRadius="14" />
-        </Border>
-
-        <!-- Time selector popup -->
+        <!-- Potvrda termina (hold), isto kao kod klijenta -->
         <Grid
-            Grid.RowSpan="3"
-            IsVisible="{Binding IsTimeSelectorVisible}"
-            BackgroundColor="#B3000000"
-            Padding="24">
+            Grid.RowSpan="2"
+            IsVisible="{Binding IsStaffHoldConfirmationVisible}"
+            ZIndex="100">
+            <BoxView Color="#80000000" />
+
             <Border
-                MaximumWidthRequest="420"
-                Padding="22"
+                VerticalOptions="End"
                 BackgroundColor="{StaticResource QuickBookingPanelBackground}"
                 Stroke="{StaticResource PanelBorder}"
                 StrokeThickness="1"
-                StrokeShape="RoundRectangle 22"
-                HorizontalOptions="Center"
-                VerticalOptions="Center">
-                <VerticalStackLayout Spacing="18">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Odaberite vrijeme" FontSize="21" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
-                        <Label Text="Unesite sat i minute početka termina." FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
-                    </VerticalStackLayout>
+                StrokeShape="RoundRectangle 24,24,0,0"
+                Padding="20,22,20,24">
+                <VerticalStackLayout Spacing="16">
+                    <BoxView
+                        HeightRequest="4"
+                        WidthRequest="42"
+                        CornerRadius="2"
+                        HorizontalOptions="Center"
+                        Color="{StaticResource PanelBorder}" />
 
-                    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
-                        <VerticalStackLayout Spacing="8">
-                            <Label Text="SAT" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.6" />
-                            <Border Padding="4" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="1" StrokeShape="RoundRectangle 14">
-                                <Entry Text="{Binding TimeSelectorHour}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource BrandButton}" BackgroundColor="Transparent" />
-                            </Border>
-                        </VerticalStackLayout>
-                        <Label Grid.Column="1" Text=":" FontSize="30" FontAttributes="Bold" VerticalOptions="End" Margin="0,0,0,5" TextColor="{StaticResource BrandButton}" />
-                        <VerticalStackLayout Grid.Column="2" Spacing="8">
-                            <Label Text="MINUTE" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.6" />
-                            <Border Padding="4" BackgroundColor="{StaticResource BrandBackground}" Stroke="{StaticResource PanelBorder}" StrokeThickness="1" StrokeShape="RoundRectangle 14">
-                                <Entry Text="{Binding TimeSelectorMinute}" Keyboard="Numeric" MaxLength="2" HorizontalTextAlignment="Center" FontSize="30" FontAttributes="Bold" TextColor="{StaticResource BrandButton}" BackgroundColor="Transparent" />
-                            </Border>
-                        </VerticalStackLayout>
+                    <Label
+                        Text="Potvrda termina"
+                        FontSize="23"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource TextOnBrandBackground}" />
+
+                    <Label
+                        Text="Termin je privremeno zadržan. Potvrdite rezervaciju ili odustanite."
+                        FontSize="14"
+                        TextColor="{StaticResource TextOnBrandBackground}"
+                        Opacity="0.8" />
+
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="7">
+                        <Label Text="Klijent" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <Label Grid.Column="1" Text="{Binding StaffHoldCustomerName}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+
+                        <Label Grid.Row="1" Text="Zaposlenik" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding SelectedBookingEmployee.FullName}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+
+                        <Label Grid.Row="2" Text="Datum" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding StaffHoldStartsAtLocal, StringFormat='{}{0:dd.MM.yyyy.}'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+
+                        <Label Grid.Row="3" Text="Vrijeme" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding StaffHoldStartsAtLocal, StringFormat='{}{0:HH:mm}'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
+
+                        <Label Grid.Row="4" Text="Trajanje" FontSize="13" TextColor="{StaticResource TextOnBrandBackground}" Opacity="0.7" />
+                        <Label Grid.Row="4" Grid.Column="1" Text="{Binding StaffBookingHold.TotalDurationMinutes, StringFormat='{}{0} min'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource TextOnBrandBackground}" />
                     </Grid>
 
+                    <Border
+                        BackgroundColor="{StaticResource BrandBackground}"
+                        Stroke="{StaticResource PanelBorder}"
+                        StrokeThickness="0.8"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label
+                                Text="Ukupna cijena"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource TextOnBrandBackground}"
+                                VerticalOptions="Center" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding StaffBookingHold.TotalPrice, StringFormat='{}{0:0.00} KM'}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandButton}"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
+                    <VerticalStackLayout Spacing="3">
+                        <Label
+                            Text="Hold ističe"
+                            FontSize="12"
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            Opacity="0.7" />
+                        <Label
+                            Text="{Binding StaffHoldExpiresAtLocal, StringFormat='{}{0:HH:mm}'}"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandButton}" />
+                    </VerticalStackLayout>
+
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Button Text="Zatvori" Command="{Binding CloseTimeSelectorCommand}" BackgroundColor="{StaticResource BrandBackground}" BorderColor="{StaticResource PanelBorder}" BorderWidth="1" TextColor="{StaticResource TextOnBrandBackground}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
-                        <Button Grid.Column="1" Text="Potvrdi" Command="{Binding ConfirmTimeSelectorCommand}" BackgroundColor="{StaticResource BrandButton}" TextColor="{StaticResource BrandBackground}" FontAttributes="Bold" HeightRequest="48" CornerRadius="12" />
+                        <Button
+                            Grid.Column="0"
+                            Text="ODUSTANI"
+                            Command="{Binding CancelStaffHoldCommand}"
+                            HeightRequest="52"
+                            CornerRadius="14"
+                            BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                            BorderColor="{StaticResource PanelBorder}"
+                            BorderWidth="1"
+                            TextColor="{StaticResource TextOnBrandBackground}"
+                            FontAttributes="Bold" />
+                        <Button
+                            Grid.Column="1"
+                            Text="POTVRDI TERMIN"
+                            Clicked="OnConfirmStaffBookingClicked"
+                            HeightRequest="52"
+                            CornerRadius="14"
+                            BackgroundColor="{StaticResource BrandButton}"
+                            TextColor="{StaticResource BrandBackground}"
+                            FontAttributes="Bold" />
                     </Grid>
                 </VerticalStackLayout>
             </Border>
