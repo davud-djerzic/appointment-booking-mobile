@@ -1,3 +1,4 @@
+using AppointmentBooking.Mobile.Configuration;
 using AppointmentBooking.Mobile.Models.Profile.Requests;
 using AppointmentBooking.Mobile.Models.Profile.Responses;
 using AppointmentBooking.Mobile.Views.Shared;
@@ -6,10 +7,12 @@ using CommunityToolkit.Maui.Extensions;
 using AppointmentBooking.Mobile.Models.Salons.Responses;
 using AppointmentBooking.Mobile.Services.Api;
 using AppointmentBooking.Mobile.Services.ErrorHandling;
+using AppointmentBooking.Mobile.Services.Legal;
 using AppointmentBooking.Mobile.Services.ProfileData;
 using AppointmentBooking.Mobile.Services.Session;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.Json;
 
@@ -21,6 +24,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
         private readonly IErrorHandler errorHandler;
         private readonly ISessionService sessionService;
         private readonly ProfileDataCache profileDataCache;
+        private readonly ApiOptions apiOptions;
 
         private string originalFirstName = string.Empty;
         private string originalLastName = string.Empty;
@@ -76,12 +80,14 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
             IApiClient apiClient,
             IErrorHandler errorHandler,
             ISessionService sessionService,
-            ProfileDataCache profileDataCache)
+            ProfileDataCache profileDataCache,
+            IOptions<ApiOptions> apiOptions)
         {
             this.apiClient = apiClient;
             this.errorHandler = errorHandler;
             this.sessionService = sessionService;
             this.profileDataCache = profileDataCache;
+            this.apiOptions = apiOptions.Value;
         }
 
         [RelayCommand]
@@ -336,6 +342,10 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
                 return [];
             }
         }
+
+        [RelayCommand]
+        private Task OpenPrivacyPolicyAsync() =>
+            LegalPages.OpenPrivacyPolicyAsync(apiOptions);
 
         [RelayCommand]
         private async Task OpenInstagramAsync()

@@ -28,26 +28,78 @@ namespace AppointmentBooking.Mobile.Views.Home
         {
             if (sender is not HomeViewModel viewModel ||
                 e.PropertyName is not nameof(HomeViewModel.IsServicePickerVisible) and
-                    not nameof(HomeViewModel.IsAvailabilityModalVisible))
+                    not nameof(HomeViewModel.IsAvailabilityModalVisible) and
+                    not nameof(HomeViewModel.IsHoldConfirmationVisible))
             {
                 return;
             }
 
-            bool isVisible =
-                viewModel.IsServicePickerVisible ||
-                viewModel.IsAvailabilityModalVisible;
-            bool isAvailabilityVisible = viewModel.IsAvailabilityModalVisible;
-
-            MainThread.BeginInvokeOnMainThread(
-                () => SetBackdropBlur(isVisible, isAvailabilityVisible));
+            // The state is read when the update runs, so switching from one popup to the next
+            // (e.g. free slots -> confirmation) is applied as one change, without a flicker.
+            MainThread.BeginInvokeOnMainThread(() => UpdateQuickBookingPopupState(viewModel));
         }
 
-        private void SetBackdropBlur(bool isVisible, bool isAvailabilityVisible)
+        // While a quick-booking popup is open it behaves like a modal window: the page behind
+        // it is blurred and does not react to touches, and the tab bar is hidden so the user
+        // cannot leave Home with a half-finished booking (or an active hold).
+        private void UpdateQuickBookingPopupState(HomeViewModel viewModel)
+        {
+            VisualElement? openPopup =
+                viewModel.IsHoldConfirmationVisible ? HoldConfirmationOverlay :
+                viewModel.IsAvailabilityModalVisible ? AvailableTimesOverlay :
+                viewModel.IsServicePickerVisible ? ServicePickerOverlay :
+                null;
+
+            bool isPopupOpen = openPopup is not null;
+
+            HeaderGrid.InputTransparent = isPopupOpen;
+            MainScrollView.InputTransparent = isPopupOpen;
+            Shell.SetTabBarIsVisible(this, !isPopupOpen);
+
+            SetBackdropBlur(openPopup);
+        }
+
+        // Android back button closes the open popup (like its cancel button) instead of
+        // leaving the page; an active hold is released through the same command.
+        protected override bool OnBackButtonPressed()
+        {
+            if (BindingContext is not HomeViewModel viewModel)
+            {
+                return base.OnBackButtonPressed();
+            }
+
+            if (viewModel.IsHoldConfirmationVisible)
+            {
+                // While the booking is being confirmed, wait for the result.
+                if (!viewModel.IsLoading)
+                {
+                    viewModel.CancelHoldConfirmationCommand.Execute(null);
+                }
+
+                return true;
+            }
+
+            if (viewModel.IsAvailabilityModalVisible)
+            {
+                viewModel.CancelAvailabilityCommand.Execute(null);
+                return true;
+            }
+
+            if (viewModel.IsServicePickerVisible)
+            {
+                viewModel.CloseServicePickerCommand.Execute(null);
+                return true;
+            }
+
+            return base.OnBackButtonPressed();
+        }
+
+        private void SetBackdropBlur(VisualElement? openPopup)
         {
 #if ANDROID
             if (OperatingSystem.IsAndroidVersionAtLeast(31))
             {
-                Android.Graphics.RenderEffect? effect = isVisible
+                Android.Graphics.RenderEffect? effect = openPopup is not null
                     ? Android.Graphics.RenderEffect.CreateBlurEffect(
                         5f,
                         5f,
@@ -58,13 +110,11 @@ namespace AppointmentBooking.Mobile.Views.Home
                 ApplyAndroidBlur(MainScrollView, effect);
             }
 #elif IOS
+            bool isVisible = openPopup is not null;
             UIView? rootView = Content?.Handler?.PlatformView as UIView;
-            VisualElement overlayElement = isAvailabilityVisible
-                ? AvailableTimesOverlay
-                : ServicePickerOverlay;
-            UIView? overlayView = overlayElement.Handler?.PlatformView as UIView;
+            UIView? overlayView = openPopup?.Handler?.PlatformView as UIView;
 
-            if (rootView is null || overlayView is null)
+            if (rootView is null || (isVisible && overlayView is null))
             {
                 return;
             }
@@ -85,7 +135,7 @@ namespace AppointmentBooking.Mobile.Views.Home
                 }
 
                 ResizeBackdropBlur();
-                rootView.BringSubviewToFront(overlayView);
+                rootView.BringSubviewToFront(overlayView!);
             }
             else
             {

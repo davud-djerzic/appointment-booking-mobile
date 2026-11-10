@@ -852,6 +852,19 @@
                     Opacity="1"
                     Margin="0,0,0,0" />
 
+                <!-- PRIVACY POLICY (required by App Store / Play Store) -->
+                <Button
+                    Text="Politika privatnosti"
+                    Command="{Binding OpenPrivacyPolicyCommand}"
+                    BackgroundColor="Transparent"
+                    BorderWidth="0"
+                    TextColor="{StaticResource TextOnBrandBackground}"
+                    FontSize="12"
+                    HeightRequest="34"
+                    Padding="10,0"
+                    CornerRadius="10"
+                    Margin="0,-8,0,0" />
+
                 <!-- LOADING -->
                 <ActivityIndicator
                     IsRunning="{Binding IsLoading}"

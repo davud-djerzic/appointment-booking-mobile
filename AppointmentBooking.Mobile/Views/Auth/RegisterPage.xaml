@@ -300,6 +300,33 @@
                     HorizontalOptions="Center"
                     Margin="0,-2,0,0" />
 
+                <!-- PRIVACY POLICY (required by App Store / Play Store) -->
+
+                <Label
+                    FontSize="12"
+                    HorizontalTextAlignment="Center"
+                    Margin="4,-4,4,0"
+                    SemanticProperties.Description="Registracijom potvrđujete da ste pročitali Politiku privatnosti. Dodirnite za otvaranje.">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span
+                                Text="Registracijom potvrđujete da ste pročitali "
+                                TextColor="{StaticResource TextOnBrandBackground}" />
+                            <Span
+                                Text="Politiku privatnosti"
+                                TextColor="{StaticResource BrandButton}"
+                                FontAttributes="Bold"
+                                TextDecorations="Underline" />
+                            <Span
+                                Text="."
+                                TextColor="{StaticResource TextOnBrandBackground}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenPrivacyPolicyCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+
             </VerticalStackLayout>
 
 

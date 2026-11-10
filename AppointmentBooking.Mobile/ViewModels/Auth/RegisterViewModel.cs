@@ -1,7 +1,10 @@
+using AppointmentBooking.Mobile.Configuration;
 using AppointmentBooking.Mobile.Models.Auth;
 using AppointmentBooking.Mobile.Services.Authentication;
+using AppointmentBooking.Mobile.Services.Legal;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,10 +14,14 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
     public partial class RegisterViewModel : ObservableObject
     {
         private readonly IAuthService authService;
+        private readonly ApiOptions apiOptions;
 
-        public RegisterViewModel(IAuthService authService)
+        public RegisterViewModel(
+            IAuthService authService,
+            IOptions<ApiOptions> apiOptions)
         {
             this.authService = authService;
+            this.apiOptions = apiOptions.Value;
         }
 
         [ObservableProperty]
@@ -152,6 +159,10 @@ namespace AppointmentBooking.Mobile.ViewModels.Auth
             Password = string.Empty;
             ConfirmPassword = string.Empty;
         }
+
+        [RelayCommand]
+        private Task OpenPrivacyPolicyAsync() =>
+            LegalPages.OpenPrivacyPolicyAsync(apiOptions);
 
         [RelayCommand]
         private async Task BackToLoginAsync()

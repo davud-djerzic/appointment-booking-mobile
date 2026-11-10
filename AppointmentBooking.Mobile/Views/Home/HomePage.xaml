@@ -486,12 +486,12 @@
 
         </Grid>
 
-        <!-- HOLD CONFIRMATION MODAL -->
+        <!-- HOLD CONFIRMATION MODAL (same blurred backdrop as the other quick-booking popups) -->
         <Grid
+            x:Name="HoldConfirmationOverlay"
             Grid.Row="0"
             Grid.RowSpan="2"
             IsVisible="{Binding IsHoldConfirmationVisible}"
-            BackgroundColor="#80000000"
             Padding="24">
 
             <Border

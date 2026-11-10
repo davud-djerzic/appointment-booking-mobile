@@ -68,9 +68,9 @@ public partial class HomeViewModel : ObservableObject
     public bool CanSearchAvailability =>
         SelectedService is not null && !IsLoading;
 
+    // Enabled even without a selected slot: tapping "Potvrdi" then explains what is missing.
     public bool CanConfirmBooking =>
         SelectedService is not null &&
-        SelectedTimeSlot is not null &&
         !IsLoading;
 
     public DateTimeOffset? HoldStartsAtLocal => BookingHold is null ? null : SalonTimeZone.ToLocal(BookingHold.StartsAt);
@@ -123,6 +123,13 @@ public partial class HomeViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadServicesAsync()
     {
+        // Appearing also fires when an alert popup (shown as a modal page) closes. If a
+        // quick-booking popup is open at that moment, keep it and its selection as they are.
+        if (IsServicePickerVisible || IsAvailabilityModalVisible || IsHoldConfirmationVisible)
+        {
+            return;
+        }
+
         try
         {
             IsLoading = true;
@@ -207,10 +214,18 @@ public partial class HomeViewModel : ObservableObject
     [RelayCommand]
     private async Task CreateHoldAsync()
     {
-        if (SelectedService is null ||
-            SelectedTimeSlot is null ||
-            QuickAvailability is null)
+        if (SelectedService is null || QuickAvailability is null)
         {
+            return;
+        }
+
+        if (SelectedTimeSlot is null)
+        {
+            await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                "Odaberite termin",
+                "Odaberite jedan od slobodnih termina, pa pritisnite Potvrdi.",
+                "U redu");
+
             return;
         }
 

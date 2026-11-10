@@ -64,10 +64,14 @@
 		<AssemblyMetadata Include="DockerApiHost" Value="$(DockerApiHost)" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(ApiTarget)' == 'Docker' and '$(TargetFramework)' == 'net10.0-ios'">
-		<None Remove="Platforms\iOS\Info.plist;Platforms\iOS\Info-Docker.plist" />
-		<None Include="Platforms\iOS\Info-Docker.plist" Link="Info.plist" />
-	</ItemGroup>
+	<!-- iOS needs no Docker-specific Info.plist: App Transport Security does not apply to
+	     localhost, unqualified host names and IP addresses, so http://<host>:8080 is allowed. -->
+
+	<!-- iOS: Keychain access group, required by SecureStorage (refresh token) on the simulator;
+	     also valid for device and App Store builds. -->
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
+		<CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon: the salon logo on its navy background, always fully visible.
