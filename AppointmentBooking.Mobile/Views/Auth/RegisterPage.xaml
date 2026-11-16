@@ -11,6 +11,10 @@
     BackgroundColor="{StaticResource BrandBackground}"
     SafeAreaEdges="All">
 
+    <!-- ScrollView (like Login): while the keyboard is open the form can still be scrolled,
+         so the lower fields and the REGISTRUJ SE button stay reachable on every screen size. -->
+    <ScrollView>
+
     <Grid
         Padding="24,24,24,30"
         RowDefinitions="Auto,Auto,Auto"
@@ -386,5 +390,7 @@
             </VerticalStackLayout>
 
     </Grid>
+
+    </ScrollView>
 
 </ContentPage>

@@ -191,21 +191,14 @@
                         TextColor="{StaticResource TextOnBrandBackground}"
                         Margin="4,0" />
 
-                    <CollectionView
-                        ItemsSource="{Binding FeaturedServices}"
-                        SelectionMode="None"
-                        Margin="0"
+                    <!-- Services: a plain stack (not a CollectionView inside the page ScrollView), so every card
+                         measures its own height and grows with the screen width and the system font size. -->
+                    <VerticalStackLayout
+                        BindableLayout.ItemsSource="{Binding FeaturedServices}"
+                        Spacing="12"
                         HorizontalOptions="Fill">
 
-                        <CollectionView.ItemsLayout>
-                            <GridItemsLayout
-                Orientation="Vertical"
-                Span="1"
-                HorizontalItemSpacing="0"
-                VerticalItemSpacing="12" />
-                        </CollectionView.ItemsLayout>
-
-                        <CollectionView.ItemTemplate>
+                        <BindableLayout.ItemTemplate>
                             <DataTemplate
                 x:DataType="serviceResponses:ServiceResponse">
 
@@ -214,18 +207,18 @@
                                     Stroke="{StaticResource PanelBorder}"
                                     StrokeThickness="0.8"
                                     StrokeShape="RoundRectangle 14"
-                                    HeightRequest="70"
-                                    Padding="12,8"
+                                    MinimumHeightRequest="70"
+                                    Padding="14,10"
                                     HorizontalOptions="Fill">
 
-                                    <Grid RowDefinitions="*,Auto" RowSpacing="6">
+                                    <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
 
                                         <Label
                                             Text="{Binding Name}"
                                             FontSize="16"
                                             FontAttributes="Bold"
                                             TextColor="{StaticResource TextOnBrandBackground}"
-                                            MaxLines="1"
+                                            MaxLines="2"
                                             LineBreakMode="TailTruncation"
                                             VerticalOptions="Start" />
 
@@ -257,6 +250,7 @@
                                                 FontAttributes="Bold"
                                                 TextColor="{StaticResource BrandButton}"
                                                 HorizontalTextAlignment="End"
+                                                LineBreakMode="NoWrap"
                                                 VerticalOptions="Center" />
 
                                         </Grid>
@@ -266,9 +260,9 @@
                                 </Border>
 
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
+                        </BindableLayout.ItemTemplate>
 
-                    </CollectionView>
+                    </VerticalStackLayout>
 
                 </VerticalStackLayout>
 
@@ -631,7 +625,7 @@
 
                             <!-- HOLD EXPIRATION -->
                             <Label
-                                Text="{Binding HoldExpiresAtLocal, StringFormat='Hold ističe: {0:HH:mm}'}"
+                                Text="{Binding HoldExpiresAtLocal, StringFormat='Privremena rezervacija ističe: {0:HH:mm}'}"
                                 FontSize="13"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource BrandButton}"

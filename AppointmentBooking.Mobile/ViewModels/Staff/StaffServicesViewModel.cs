@@ -31,7 +31,6 @@ public partial class StaffServicesViewModel : ObservableObject
     public const decimal PriceMax = 99_999_999.99m;
 
     private static readonly CultureInfo BosnianCulture = CultureInfo.GetCultureInfo("bs-BA");
-    private static readonly StringComparer NameComparer = StringComparer.Create(BosnianCulture, ignoreCase: true);
 
     private readonly IApiClient apiClient;
     private readonly IErrorHandler errorHandler;
@@ -432,7 +431,8 @@ public partial class StaffServicesViewModel : ObservableObject
     {
         List<StaffServiceItem> filtered = allServices
             .Where(item => item.IsActive)
-            .OrderBy(item => item.Name, NameComparer)
+            // Same order as the customer booking list (API returns services ORDER BY id).
+            .OrderBy(item => item.Id)
             .ToList();
 
         VisibleServices.Clear();

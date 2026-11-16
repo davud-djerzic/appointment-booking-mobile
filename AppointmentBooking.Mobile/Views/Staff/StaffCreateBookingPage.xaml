@@ -111,6 +111,10 @@
                                             StrokeShape="RoundRectangle 14"
                                             Padding="14"
                                             Margin="0">
+                                            <!-- The whole card toggles the service (the check box only shows the state). -->
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />
+                                            </Border.GestureRecognizers>
                                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                                                 <Label
                                                     Grid.Row="0"
@@ -121,7 +125,8 @@
                                                 <CheckBox
                                                     Grid.Row="0"
                                                     Grid.Column="1"
-                                                    IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                    IsChecked="{Binding IsSelected}"
+                                                    InputTransparent="True"
                                                     Color="{StaticResource BrandButton}"
                                                     VerticalOptions="Center" />
                                                 <Grid
@@ -496,7 +501,7 @@
 
                     <VerticalStackLayout Spacing="3">
                         <Label
-                            Text="Hold ističe"
+                            Text="Privremena rezervacija ističe"
                             FontSize="12"
                             TextColor="{StaticResource TextOnBrandBackground}"
                             Opacity="0.7" />

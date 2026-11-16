@@ -27,6 +27,7 @@
         <!-- HEADER -->
 
         <VerticalStackLayout
+            x:Name="HeaderLayout"
             Grid.Row="0"
             Spacing="5"
             Margin="0,0,0,18">
@@ -126,6 +127,11 @@
                                     Padding="14,12"
                                     Margin="0,0,0,10">
 
+                                    <!-- The whole card toggles the service (the check box only shows the state). -->
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />
+                                    </Border.GestureRecognizers>
+
                                     <Border.Triggers>
                                         <DataTrigger
                                             TargetType="Border"
@@ -155,7 +161,8 @@
                                         <CheckBox
                                             Grid.Row="0"
                                             Grid.Column="1"
-                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            IsChecked="{Binding IsSelected}"
+                                            InputTransparent="True"
                                             Color="{StaticResource BrandButton}"
                                             VerticalOptions="Center" />
 
@@ -581,15 +588,13 @@
 
         <!-- HOLD CONFIRMATION PANEL -->
 
+        <!-- Acts as a modal window (see BookingPage.xaml.cs): the page behind it is blurred and
+             ignores touches/scrolling, and the tab bar is hidden while it is open. -->
         <Grid
+            x:Name="HoldConfirmationOverlay"
             Grid.RowSpan="2"
             IsVisible="{Binding IsHoldConfirmationVisible}"
             ZIndex="100">
-
-            <!-- BACKDROP -->
-
-            <BoxView
-                Color="#80000000" />
 
             <!-- PANEL -->
 
@@ -730,7 +735,7 @@
                         Spacing="3">
 
                         <Label
-                            Text="Hold ističe"
+                            Text="Privremena rezervacija ističe"
                             FontSize="12"
                             TextColor="{StaticResource TextOnBrandBackground}"
                             Opacity="0.7" />
