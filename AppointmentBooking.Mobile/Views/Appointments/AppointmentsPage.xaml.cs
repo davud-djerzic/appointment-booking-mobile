@@ -11,6 +11,8 @@ namespace AppointmentBooking.Mobile.Views.Appointments
         private readonly AppointmentViewModel viewModel;
         private bool isDetailsModalOpen;
         private bool isCancellationConfirmationOpen;
+        // Set while "Detalji termina" loads and opens, so quick repeated taps open it only once.
+        private bool isOpeningDetails;
 
         public AppointmentsPage(AppointmentViewModel viewModel)
         {
@@ -28,17 +30,30 @@ namespace AppointmentBooking.Mobile.Views.Appointments
                 return;
             }
 
-            BookingDetailsResponse? details =
-                await viewModel.GetBookingDetailsAsync(appointment.Id);
-
-            if (details is null)
+            if (isOpeningDetails)
             {
                 return;
             }
 
-            isDetailsModalOpen = true;
-            await Navigation.PushModalAsync(
-                new AppointmentDetailsPage(details));
+            isOpeningDetails = true;
+            try
+            {
+                BookingDetailsResponse? details =
+                    await viewModel.GetBookingDetailsAsync(appointment.Id);
+
+                if (details is null)
+                {
+                    return;
+                }
+
+                isDetailsModalOpen = true;
+                await Navigation.PushModalAsync(
+                    new AppointmentDetailsPage(details));
+            }
+            finally
+            {
+                isOpeningDetails = false;
+            }
         }
         protected override async void OnAppearing()
         {

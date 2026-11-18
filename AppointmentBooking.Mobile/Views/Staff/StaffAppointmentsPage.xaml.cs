@@ -10,6 +10,8 @@ namespace AppointmentBooking.Mobile.Views.Staff
         private Task? preloadTask;
         private bool isDetailsModalOpen;
         private bool isCreateBookingModalOpen;
+        // Set while "Detalji termina" loads and opens, so quick repeated taps open it only once.
+        private bool isOpeningDetails;
         private Window? resumeWindow;
 
         // "Novi termin" is built once and reused while the app runs:
@@ -34,17 +36,30 @@ namespace AppointmentBooking.Mobile.Views.Staff
                 return;
             }
 
-            EmployeeBookingDetailsResponse? details =
-                await viewModel.GetBookingDetailsAsync(summary.Id);
-
-            if (details is null)
+            if (isOpeningDetails)
             {
                 return;
             }
 
-            isDetailsModalOpen = true;
-            await Navigation.PushModalAsync(
-                new StaffBookingDetailsPage(details));
+            isOpeningDetails = true;
+            try
+            {
+                EmployeeBookingDetailsResponse? details =
+                    await viewModel.GetBookingDetailsAsync(summary.Id);
+
+                if (details is null)
+                {
+                    return;
+                }
+
+                isDetailsModalOpen = true;
+                await Navigation.PushModalAsync(
+                    new StaffBookingDetailsPage(details));
+            }
+            finally
+            {
+                isOpeningDetails = false;
+            }
         }
 
         private async void OnCancelStaffBookingClicked(

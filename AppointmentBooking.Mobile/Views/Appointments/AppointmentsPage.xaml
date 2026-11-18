@@ -55,7 +55,7 @@
                 <Border
                     x:Name="UpcomingTab"
                     Grid.Column="0"
-                    Padding="10,9"
+                    Padding="4,9"
                     BackgroundColor="{StaticResource BrandButton}"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 10">
@@ -67,6 +67,8 @@
                     <Label
                         Text="Predstojeći"
                         FontSize="14"
+                        MaxLines="1"
+                        LineBreakMode="TailTruncation"
                         FontAttributes="Bold"
                         TextColor="{StaticResource BrandBackground}"
                         HorizontalTextAlignment="Center"
@@ -79,7 +81,7 @@
                 <Border
                     x:Name="PreviousTab"
                     Grid.Column="1"
-                    Padding="10,9"
+                    Padding="4,9"
                     BackgroundColor="Transparent"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 10">
@@ -91,6 +93,8 @@
                     <Label
                         Text="Prethodni"
                         FontSize="14"
+                        MaxLines="1"
+                        LineBreakMode="TailTruncation"
                         FontAttributes="Bold"
                         TextColor="{StaticResource TextOnBrandBackground}"
                         Opacity="0.7"
@@ -104,7 +108,7 @@
                 <Border
                     x:Name="CancelledTab"
                     Grid.Column="2"
-                    Padding="10,9"
+                    Padding="4,9"
                     BackgroundColor="Transparent"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 10">
@@ -116,6 +120,8 @@
                     <Label
                         Text="Otkazani"
                         FontSize="14"
+                        MaxLines="1"
+                        LineBreakMode="TailTruncation"
                         FontAttributes="Bold"
                         TextColor="{StaticResource TextOnBrandBackground}"
                         Opacity="0.7"
