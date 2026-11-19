@@ -30,8 +30,11 @@
 		<!-- Display name -->
 		<ApplicationTitle>Ko te šiša</ApplicationTitle>
 
-		<!-- App Identifier (Play Store / App Store). Cannot be changed after the first release. -->
+		<!-- App Identifier. Android (Play Store): ba.kotesisa.app. iOS (App Store): ba.kotesisa.ios,
+		     registered at Apple because ba.kotesisa.app was not available there.
+		     Neither may be changed after the first upload to its store. -->
 		<ApplicationId>ba.kotesisa.app</ApplicationId>
+		<ApplicationId Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">ba.kotesisa.ios</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -96,7 +99,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.101" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.130" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
