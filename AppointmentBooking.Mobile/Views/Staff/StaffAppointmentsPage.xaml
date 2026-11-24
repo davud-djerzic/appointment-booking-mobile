@@ -202,15 +202,17 @@
                 Command="{Binding RefreshAppointmentsCommand}"
                 RefreshColor="{StaticResource BrandButton}">
 
-            <CollectionView
-                ItemsSource="{Binding VisibleAppointments}"
-                SelectionMode="None">
+            <!-- ScrollView + BindableLayout instead of a CollectionView: on iOS the CollectionView did not
+                 re-measure its footer when the cancelled panel opened, so the last cancelled appointments
+                 could not be scrolled to. A day has only a few bookings, so building all cards is fast. -->
+            <ScrollView x:Name="AppointmentsScrollView">
 
-                <CollectionView.EmptyView>
+                <VerticalStackLayout>
 
                     <VerticalStackLayout
+                        IsVisible="{Binding HasNoVisibleAppointments}"
                         HorizontalOptions="Center"
-                        VerticalOptions="Center"
+                        Margin="0,48,0,24"
                         Spacing="8">
 
                         <Label
@@ -234,167 +236,166 @@
 
                     </VerticalStackLayout>
 
-                </CollectionView.EmptyView>
+                    <VerticalStackLayout
+                        BindableLayout.ItemsSource="{Binding VisibleAppointments}">
 
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate
+                                x:DataType="bookingModels:EmployeeBookingSummaryResponse">
 
-                <CollectionView.ItemTemplate>
+                                <Border
+                                    BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                    Stroke="{StaticResource PanelBorder}"
+                                    StrokeThickness="0.8"
+                                    StrokeShape="RoundRectangle 18"
+                                    Padding="18"
+                                    Margin="0,0,0,16">
 
-                    <DataTemplate
-                        x:DataType="bookingModels:EmployeeBookingSummaryResponse">
+                                    <VerticalStackLayout Spacing="12">
 
-                        <Border
-                            BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                            Stroke="{StaticResource PanelBorder}"
-                            StrokeThickness="0.8"
-                            StrokeShape="RoundRectangle 18"
-                            Padding="18"
-                            Margin="0,0,0,16">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <Label
+                                                Text="{Binding LocalStartsAt, StringFormat='{0:dd.MM.yyyy.}'}"
+                                                FontSize="19"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                VerticalOptions="Center" />
 
-                            <VerticalStackLayout Spacing="12">
+                                            <Border
+                                                Grid.Column="1"
+                                                BackgroundColor="{StaticResource BrandBackground}"
+                                                Stroke="{StaticResource PanelBorder}"
+                                                StrokeThickness="0.8"
+                                                StrokeShape="RoundRectangle 10"
+                                                Padding="10,5"
+                                                VerticalOptions="Center">
+                                                <Label
+                                                    Text="{Binding StatusName}"
+                                                    FontSize="12"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandButton}" />
+                                            </Border>
+                                        </Grid>
 
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                    <Label
-                                        Text="{Binding LocalStartsAt, StringFormat='{0:dd.MM.yyyy.}'}"
-                                        FontSize="19"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        VerticalOptions="Center" />
+                                        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="7">
+                                            <Label
+                                                Text="{Binding LocalStartsAt, StringFormat='{0:HH:mm}'}"
+                                                FontSize="18"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandButton}" />
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="–"
+                                                FontSize="18"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandButton}" />
+                                            <Label
+                                                Grid.Column="2"
+                                                Text="{Binding LocalEndsAt, StringFormat='{0:HH:mm}'}"
+                                                FontSize="18"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandButton}" />
+                                        </Grid>
 
-                                    <Border
-                                        Grid.Column="1"
-                                        BackgroundColor="{StaticResource BrandBackground}"
-                                        Stroke="{StaticResource PanelBorder}"
-                                        StrokeThickness="0.8"
-                                        StrokeShape="RoundRectangle 10"
-                                        Padding="10,5"
-                                        VerticalOptions="Center">
-                                        <Label
-                                            Text="{Binding StatusName}"
-                                            FontSize="12"
-                                            FontAttributes="Bold"
-                                            TextColor="{StaticResource BrandButton}" />
-                                    </Border>
-                                </Grid>
+                                        <BoxView
+                                            HeightRequest="0.8"
+                                            Color="{StaticResource PanelBorder}" />
 
-                                <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="7">
-                                    <Label
-                                        Text="{Binding LocalStartsAt, StringFormat='{0:HH:mm}'}"
-                                        FontSize="18"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandButton}" />
-                                    <Label
-                                        Grid.Column="1"
-                                        Text="–"
-                                        FontSize="18"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandButton}" />
-                                    <Label
-                                        Grid.Column="2"
-                                        Text="{Binding LocalEndsAt, StringFormat='{0:HH:mm}'}"
-                                        FontSize="18"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandButton}" />
-                                </Grid>
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Label
+                                                Text="Klijent:"
+                                                FontSize="14"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                Opacity="0.7" />
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding CustomerName}"
+                                                FontSize="15"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                LineBreakMode="TailTruncation" />
+                                        </Grid>
 
-                                <BoxView
-                                    HeightRequest="0.8"
-                                    Color="{StaticResource PanelBorder}" />
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Label
+                                                Text="Trajanje:"
+                                                FontSize="14"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                Opacity="0.7" />
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding DurationText}"
+                                                FontSize="15"
+                                                TextColor="{StaticResource TextOnBrandBackground}" />
+                                        </Grid>
 
-                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                    <Label
-                                        Text="Klijent:"
-                                        FontSize="14"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        Opacity="0.7" />
-                                    <Label
-                                        Grid.Column="1"
-                                        Text="{Binding CustomerName}"
-                                        FontSize="15"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        LineBreakMode="TailTruncation" />
-                                </Grid>
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Label
+                                                Text="Cijena:"
+                                                FontSize="14"
+                                                TextColor="{StaticResource TextOnBrandBackground}"
+                                                Opacity="0.7" />
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding PriceText}"
+                                                FontSize="16"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandButton}" />
+                                        </Grid>
 
-                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                    <Label
-                                        Text="Trajanje:"
-                                        FontSize="14"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        Opacity="0.7" />
-                                    <Label
-                                        Grid.Column="1"
-                                        Text="{Binding DurationText}"
-                                        FontSize="15"
-                                        TextColor="{StaticResource TextOnBrandBackground}" />
-                                </Grid>
+                                        <Grid
+                                            ColumnDefinitions="*,*"
+                                            ColumnSpacing="10"
+                                            Margin="0,6,0,0">
 
-                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                    <Label
-                                        Text="Cijena:"
-                                        FontSize="14"
-                                        TextColor="{StaticResource TextOnBrandBackground}"
-                                        Opacity="0.7" />
-                                    <Label
-                                        Grid.Column="1"
-                                        Text="{Binding PriceText}"
-                                        FontSize="16"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandButton}" />
-                                </Grid>
+                                            <Button
+                                                Grid.Column="0"
+                                                Text="Otkaži"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource Error}"
+                                                BackgroundColor="{StaticResource QuickBookingPanelBackground}"
+                                                BorderColor="{StaticResource Error}"
+                                                BorderWidth="1"
+                                                CornerRadius="12"
+                                                HeightRequest="44"
+                                                Clicked="OnCancelStaffBookingClicked"
+                                                CommandParameter="{Binding .}"
+                                                IsVisible="{Binding CanBeCancelledByEmployee}" />
 
-                                <Grid
-                                    ColumnDefinitions="*,*"
-                                    ColumnSpacing="10"
-                                    Margin="0,6,0,0">
+                                            <Button
+                                                Grid.Column="1"
+                                                Text="Detalji termina"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandBackground}"
+                                                BackgroundColor="{StaticResource BrandButton}"
+                                                CornerRadius="12"
+                                                HeightRequest="44"
+                                                Clicked="OnBookingDetailsClicked"
+                                                CommandParameter="{Binding .}">
+                                                <Button.Triggers>
+                                                    <DataTrigger
+                                                        TargetType="Button"
+                                                        Binding="{Binding CanBeCancelledByEmployee}"
+                                                        Value="False">
+                                                        <Setter Property="Grid.Column" Value="0" />
+                                                        <Setter Property="Grid.ColumnSpan" Value="2" />
+                                                    </DataTrigger>
+                                                </Button.Triggers>
+                                            </Button>
 
-                                    <Button
-                                        Grid.Column="0"
-                                        Text="Otkaži"
-                                        FontSize="14"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource Error}"
-                                        BackgroundColor="{StaticResource QuickBookingPanelBackground}"
-                                        BorderColor="{StaticResource Error}"
-                                        BorderWidth="1"
-                                        CornerRadius="12"
-                                        HeightRequest="44"
-                                        Clicked="OnCancelStaffBookingClicked"
-                                        CommandParameter="{Binding .}"
-                                        IsVisible="{Binding CanBeCancelledByEmployee}" />
+                                        </Grid>
 
-                                    <Button
-                                        Grid.Column="1"
-                                        Text="Detalji termina"
-                                        FontSize="14"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandBackground}"
-                                        BackgroundColor="{StaticResource BrandButton}"
-                                        CornerRadius="12"
-                                        HeightRequest="44"
-                                        Clicked="OnBookingDetailsClicked"
-                                        CommandParameter="{Binding .}">
-                                        <Button.Triggers>
-                                            <DataTrigger
-                                                TargetType="Button"
-                                                Binding="{Binding CanBeCancelledByEmployee}"
-                                                Value="False">
-                                                <Setter Property="Grid.Column" Value="0" />
-                                                <Setter Property="Grid.ColumnSpan" Value="2" />
-                                            </DataTrigger>
-                                        </Button.Triggers>
-                                    </Button>
+                                    </VerticalStackLayout>
 
-                                </Grid>
+                                </Border>
 
-                            </VerticalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
 
-                        </Border>
+                    </VerticalStackLayout>
 
-                    </DataTemplate>
-
-                </CollectionView.ItemTemplate>
-
-                <CollectionView.Footer>
                     <VerticalStackLayout
                         IsVisible="{Binding HasCancelledAppointments}"
                         Margin="0,8,0,24"
@@ -502,9 +503,10 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
-                </CollectionView.Footer>
 
-            </CollectionView>
+                </VerticalStackLayout>
+
+            </ScrollView>
 
             </RefreshView>
 

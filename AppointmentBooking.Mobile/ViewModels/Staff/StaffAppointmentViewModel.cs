@@ -122,6 +122,10 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         public bool HasCancelledAppointments =>
             CancelledAppointments.Count > 0;
 
+        // Shows the "Nema termina" message above the (possibly empty) cancelled panel.
+        public bool HasNoVisibleAppointments =>
+            VisibleAppointments.Count == 0;
+
         public string CancelledAppointmentsTitle =>
             $"Otkazani termini ({CancelledAppointments.Count})";
 
@@ -381,7 +385,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
             if (detail.Contains("temporarily reserved", StringComparison.OrdinalIgnoreCase))
             {
-                return "Ovo vrijeme upravo rezerviše klijent preko aplikacije. Sačekajte nekoliko minuta ili odaberite drugo vrijeme.";
+                // A hold by a customer in the app or an earlier, unfinished staff attempt.
+                return "Ovo vrijeme je trenutno privremeno rezervisano. Sačekajte 1–2 minute ili odaberite drugo vrijeme.";
             }
 
             if (detail.Contains("in the future", StringComparison.OrdinalIgnoreCase))
@@ -438,6 +443,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             // Like the customer page: a different set of services needs a new date and slot.
             ClearBookingDateSelection();
 
+            ServiceExclusions.Apply(BookingServices);
+
             OnPropertyChanged(nameof(HasNoBookingServices));
             OnPropertyChanged(nameof(SelectedBookingServiceCount));
             OnPropertyChanged(nameof(SelectedBookingServicesDuration));
@@ -475,6 +482,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
             VisibleAppointments.Clear();
             CancelledAppointments.Clear();
             OnPropertyChanged(nameof(HasAppointments));
+            OnPropertyChanged(nameof(HasNoVisibleAppointments));
             OnPropertyChanged(nameof(HasCancelledAppointments));
             OnPropertyChanged(nameof(CancelledAppointmentsTitle));
         }
@@ -757,6 +765,7 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
 
             OnPropertyChanged(nameof(UpcomingTodaySegmentLabel));
             OnPropertyChanged(nameof(PassedTodaySegmentLabel));
+            OnPropertyChanged(nameof(HasNoVisibleAppointments));
             OnPropertyChanged(nameof(HasCancelledAppointments));
             OnPropertyChanged(nameof(CancelledAppointmentsTitle));
         }

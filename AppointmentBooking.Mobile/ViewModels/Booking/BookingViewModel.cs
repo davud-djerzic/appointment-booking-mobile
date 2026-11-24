@@ -682,6 +682,8 @@ public partial class BookingViewModel : ObservableObject
             isResettingServices = false;
         }
 
+        ServiceExclusions.Apply(ServiceItems);
+
         OnPropertyChanged(nameof(TotalPrice));
         OnPropertyChanged(nameof(TotalDurationMinutes));
         OnPropertyChanged(nameof(SelectedServiceCount));
@@ -815,6 +817,8 @@ public partial class BookingViewModel : ObservableObject
         {
             return;
         }
+
+        ServiceExclusions.Apply(ServiceItems);
 
         OnPropertyChanged(nameof(TotalPrice));
         OnPropertyChanged(nameof(TotalDurationMinutes));

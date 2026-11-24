@@ -244,7 +244,8 @@ namespace AppointmentBooking.Mobile.ViewModels.Staff
         [RelayCommand]
         private async Task CreateStaffHoldAsync(AvailableTimeSlotResponse slot)
         {
-            if (slot is null || IsCreatingStaffHold)
+            // A hold is already waiting for "Potvrdi" / "Odustani": ignore further slot taps.
+            if (slot is null || IsCreatingStaffHold || StaffBookingHold is not null)
             {
                 return;
             }

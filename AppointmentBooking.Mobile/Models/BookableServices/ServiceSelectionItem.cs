@@ -14,8 +14,24 @@ namespace AppointmentBooking.Mobile.Models.BookableServices
         [ObservableProperty]
         private bool isSelected;
 
+        // True while a service that cannot be booked together with this one is selected
+        // (see ServiceExclusions): the card is greyed out and cannot be selected.
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CardOpacity))]
+        private bool isBlocked;
+
+        public double CardOpacity => IsBlocked ? 0.4 : 1.0;
+
         // Tapping anywhere on the service card selects / deselects the service.
         [RelayCommand]
-        private void ToggleSelected() => IsSelected = !IsSelected;
+        private void ToggleSelected()
+        {
+            if (IsBlocked && !IsSelected)
+            {
+                return;
+            }
+
+            IsSelected = !IsSelected;
+        }
     }
 }

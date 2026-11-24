@@ -125,7 +125,8 @@
                                     StrokeThickness="0.8"
                                     StrokeShape="RoundRectangle 16"
                                     Padding="14,12"
-                                    Margin="0,0,0,10">
+                                    Margin="0,0,0,10"
+                                    Opacity="{Binding CardOpacity}">
 
                                     <!-- The whole card toggles the service (the check box only shows the state). -->
                                     <Border.GestureRecognizers>

@@ -9,6 +9,9 @@ namespace AppointmentBooking.Mobile.Views.Appointments
 {
     public partial class AppointmentDetailsPage : ContentPage
     {
+        // Both "Zatvori" and "✕" close the page; a second tap must not pop a second time.
+        private bool isClosing;
+
         public AppointmentDetailsPage(BookingDetailsResponse booking)
         {
             InitializeComponent();
@@ -18,6 +21,12 @@ namespace AppointmentBooking.Mobile.Views.Appointments
 
         private async void OnCloseClicked(object? sender, EventArgs e)
         {
+            if (isClosing)
+            {
+                return;
+            }
+
+            isClosing = true;
             await Navigation.PopModalAsync();
         }
     }
