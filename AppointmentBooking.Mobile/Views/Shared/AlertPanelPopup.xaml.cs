@@ -4,6 +4,9 @@ namespace AppointmentBooking.Mobile.Views.Shared;
 
 public partial class AlertPanelPopup : Popup<bool>
 {
+    // Closes only once, even if both buttons (or one button twice) are tapped quickly.
+    private bool isClosing;
+
     public AlertPanelPopup(string title, string message, string accept, string? cancel = null)
     {
         CanBeDismissedByTappingOutsideOfPopup = false;
@@ -67,9 +70,20 @@ public partial class AlertPanelPopup : Popup<bool>
         };
     }
 
-    private async void OnAcceptClicked(object? sender, EventArgs e) => await CloseAsync(true);
+    private async void OnAcceptClicked(object? sender, EventArgs e) => await CloseOnceAsync(true);
 
-    private async void OnCancelClicked(object? sender, EventArgs e) => await CloseAsync(false);
+    private async void OnCancelClicked(object? sender, EventArgs e) => await CloseOnceAsync(false);
+
+    private async Task CloseOnceAsync(bool result)
+    {
+        if (isClosing)
+        {
+            return;
+        }
+
+        isClosing = true;
+        await CloseAsync(result);
+    }
 
     private static Button CreateButton(string text, Microsoft.Maui.Graphics.Color background, Microsoft.Maui.Graphics.Color foreground, bool bordered) => new()
     {

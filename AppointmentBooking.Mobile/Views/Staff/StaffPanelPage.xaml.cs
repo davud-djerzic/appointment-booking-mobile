@@ -15,6 +15,12 @@ namespace AppointmentBooking.Mobile.Views.Staff
         private readonly ISessionService sessionService;
         private Task? preloadTask;
         private bool isEditorPopupOpen;
+        // Set while a "Obriši" or "Odjava" confirmation is open or the action runs.
+        private bool isConfirmationOpen;
+
+        // One action at a time on this page: while an editor, a delete or the logout confirmation
+        // is open, taps on the other buttons are ignored (no two windows at once).
+        private bool IsAnyActionOpen => isEditorPopupOpen || isConfirmationOpen;
 
         public StaffPanelPage(
             StaffAvailabilityViewModel viewModel,
@@ -49,7 +55,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
 
         private async void OnAddClicked(object? sender, EventArgs e)
         {
-            if (isEditorPopupOpen)
+            if (IsAnyActionOpen)
             {
                 return;
             }
@@ -60,7 +66,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
 
         private async void OnAddVacationClicked(object? sender, EventArgs e)
         {
-            if (isEditorPopupOpen)
+            if (IsAnyActionOpen)
             {
                 return;
             }
@@ -80,7 +86,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
 
         private async void OnEditClicked(object? sender, EventArgs e)
         {
-            if (isEditorPopupOpen ||
+            if (IsAnyActionOpen ||
                 sender is not Button { CommandParameter: EmployeeUnavailabilityResponse block })
             {
                 return;
@@ -126,27 +132,51 @@ namespace AppointmentBooking.Mobile.Views.Staff
 
         private async void OnDeleteClicked(object? sender, EventArgs e)
         {
-            if (sender is Button { CommandParameter: EmployeeUnavailabilityResponse block })
+            if (IsAnyActionOpen ||
+                sender is not Button { CommandParameter: EmployeeUnavailabilityResponse block })
+            {
+                return;
+            }
+
+            isConfirmationOpen = true;
+            try
             {
                 await viewModel.DeleteBlockCommand.ExecuteAsync(block);
+            }
+            finally
+            {
+                isConfirmationOpen = false;
             }
         }
 
         private async void OnLogoutClicked(object? sender, EventArgs e)
         {
-            bool confirmed =
-                await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
-                    "Odjava",
-                    "Da li ste sigurni da se želite odjaviti?",
-                    "Odjavi se",
-                    "Odustani");
-
-            if (!confirmed)
+            if (IsAnyActionOpen)
             {
                 return;
             }
 
-            await sessionService.SignOutAsync();
+            isConfirmationOpen = true;
+            try
+            {
+                bool confirmed =
+                    await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                        "Odjava",
+                        "Da li ste sigurni da se želite odjaviti?",
+                        "Odjavi se",
+                        "Odustani");
+
+                if (!confirmed)
+                {
+                    return;
+                }
+
+                await sessionService.SignOutAsync();
+            }
+            finally
+            {
+                isConfirmationOpen = false;
+            }
         }
     }
 }

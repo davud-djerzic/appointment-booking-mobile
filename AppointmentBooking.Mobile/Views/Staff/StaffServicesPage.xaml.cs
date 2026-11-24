@@ -10,6 +10,12 @@ public partial class StaffServicesPage : ContentPage
 {
     private readonly StaffServicesViewModel viewModel;
     private bool isPopupOpen;
+    // Set while the "Obriši uslugu" confirmation is open or the delete runs.
+    private bool isDeleting;
+
+    // One action at a time on this page: while the editor or a delete is open,
+    // taps on the other buttons are ignored (no two windows at once).
+    private bool IsAnyActionOpen => isPopupOpen || isDeleting;
 
     public StaffServicesPage(StaffServicesViewModel viewModel)
     {
@@ -30,7 +36,7 @@ public partial class StaffServicesPage : ContentPage
 
     private async void OnAddClicked(object? sender, EventArgs e)
     {
-        if (isPopupOpen)
+        if (IsAnyActionOpen)
         {
             return;
         }
@@ -41,7 +47,7 @@ public partial class StaffServicesPage : ContentPage
 
     private async void OnEditClicked(object? sender, EventArgs e)
     {
-        if (isPopupOpen || sender is not Button { CommandParameter: StaffServiceItem item })
+        if (IsAnyActionOpen || sender is not Button { CommandParameter: StaffServiceItem item })
         {
             return;
         }
@@ -52,12 +58,20 @@ public partial class StaffServicesPage : ContentPage
 
     private async void OnDeleteClicked(object? sender, EventArgs e)
     {
-        if (isPopupOpen || sender is not Button { CommandParameter: StaffServiceItem item })
+        if (IsAnyActionOpen || sender is not Button { CommandParameter: StaffServiceItem item })
         {
             return;
         }
 
-        await viewModel.DeleteAsync(item);
+        isDeleting = true;
+        try
+        {
+            await viewModel.DeleteAsync(item);
+        }
+        finally
+        {
+            isDeleting = false;
+        }
     }
 
     private async Task ShowEditorAsync()

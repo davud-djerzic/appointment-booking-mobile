@@ -14,6 +14,11 @@ namespace AppointmentBooking.Mobile.Views.Appointments
         // Set while "Detalji termina" loads and opens, so quick repeated taps open it only once.
         private bool isOpeningDetails;
 
+        // One action at a time on this page: while "Detalji termina" or "Otkaži" is opening,
+        // open or running, taps on the other buttons are ignored (no two windows at once).
+        private bool IsAnyActionOpen =>
+            isOpeningDetails || isDetailsModalOpen || isCancellationConfirmationOpen;
+
         public AppointmentsPage(AppointmentViewModel viewModel)
         {
             InitializeComponent();
@@ -30,7 +35,7 @@ namespace AppointmentBooking.Mobile.Views.Appointments
                 return;
             }
 
-            if (isOpeningDetails)
+            if (IsAnyActionOpen)
             {
                 return;
             }
@@ -76,41 +81,43 @@ namespace AppointmentBooking.Mobile.Views.Appointments
 
         private async void OnCancelClicked(object? sender, EventArgs e)
         {
-            if (sender is not Button button ||
+            if (IsAnyActionOpen ||
+                sender is not Button button ||
                 button.CommandParameter is not BookingSummaryResponse appointment)
             {
                 return;
             }
 
+            // Stays set during the confirmation and the cancellation request, so a second tap
+            // (on this or another button) does nothing until it is finished.
             isCancellationConfirmationOpen = true;
-            bool confirmed;
             try
             {
-                confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
+                bool confirmed = await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
                     "Otkazivanje termina",
                     "Da li ste sigurni da želite otkazati ovaj termin?",
                     "Da, otkaži",
                     "Ne");
+
+                if (!confirmed)
+                {
+                    return;
+                }
+
+                bool cancelled =
+                    await viewModel.CancelBookingAsync(appointment.Id);
+
+                if (!cancelled)
+                {
+                    return;
+                }
+
+                viewModel.MoveToCancelled(appointment);
             }
             finally
             {
                 isCancellationConfirmationOpen = false;
             }
-
-            if (!confirmed)
-            {
-                return;
-            }
-
-            bool cancelled =
-                await viewModel.CancelBookingAsync(appointment.Id);
-
-            if (!cancelled)
-            {
-                return;
-            }
-
-            viewModel.MoveToCancelled(appointment);
         }
 
         private void OnUpcomingTabTapped(object? sender, TappedEventArgs e)

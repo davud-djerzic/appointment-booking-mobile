@@ -1,5 +1,7 @@
 using AppointmentBooking.Mobile.Models.Bookings.Responses;
+using AppointmentBooking.Mobile.Services.Dialogs;
 using AppointmentBooking.Mobile.ViewModels.Staff;
+using System.ComponentModel;
 
 namespace AppointmentBooking.Mobile.Views.Staff
 {
@@ -12,6 +14,16 @@ namespace AppointmentBooking.Mobile.Views.Staff
         private bool isCreateBookingModalOpen;
         // Set while "Detalji termina" loads and opens, so quick repeated taps open it only once.
         private bool isOpeningDetails;
+        // Set while the "Otkaži" popup is open (and the cancellation runs). The popup is shown as
+        // a page above this one, so closing it raises Appearing: without this flag the page would
+        // jump back to the next working day and reload. Also blocks a second popup on quick taps.
+        private bool isCancelPopupOpen;
+
+        // One action at a time on this page: while "Detalji termina", "Otkaži" or "Novi termin"
+        // is opening, open or running, taps on the other buttons are ignored (no two windows at once).
+        private bool IsAnyActionOpen =>
+            isOpeningDetails || isDetailsModalOpen || isCancelPopupOpen || isCreateBookingModalOpen;
+
         private Window? resumeWindow;
 
         // "Novi termin" is built once and reused while the app runs:
@@ -24,6 +36,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
 
             this.viewModel = viewModel;
             BindingContext = viewModel;
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
         }
 
         private async void OnBookingDetailsClicked(
@@ -36,7 +49,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
                 return;
             }
 
-            if (isOpeningDetails)
+            if (IsAnyActionOpen)
             {
                 return;
             }
@@ -62,22 +75,47 @@ namespace AppointmentBooking.Mobile.Views.Staff
             }
         }
 
+        // Another day (or "Prošli" / "Aktuelni i naredni") starts at the top of the list.
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is not (nameof(StaffAppointmentsViewModel.SelectedDate)
+                    or nameof(StaffAppointmentsViewModel.IsShowingPassedToday)))
+            {
+                return;
+            }
+
+            if (AppointmentsScrollView.Handler is not null && AppointmentsScrollView.ScrollY > 0)
+            {
+                _ = AppointmentsScrollView.ScrollToAsync(0, 0, false);
+            }
+        }
+
         private async void OnCancelStaffBookingClicked(
             object? sender,
             EventArgs e)
         {
-            if (sender is not Button button ||
+            if (IsAnyActionOpen ||
+                sender is not Button button ||
                 button.CommandParameter is not EmployeeBookingSummaryResponse booking)
             {
                 return;
             }
 
-            await viewModel.CancelStaffBookingCommand.ExecuteAsync(booking);
+            isCancelPopupOpen = true;
+            try
+            {
+                // "Nazad" changes nothing; a confirmed cancellation reloads only the shown day.
+                await viewModel.CancelStaffBookingCommand.ExecuteAsync(booking);
+            }
+            finally
+            {
+                isCancelPopupOpen = false;
+            }
         }
 
         private async void OnCreateStaffBookingClicked(object? sender, EventArgs e)
         {
-            if (isCreateBookingModalOpen)
+            if (IsAnyActionOpen)
             {
                 return;
             }
@@ -133,6 +171,13 @@ namespace AppointmentBooking.Mobile.Views.Staff
                 return;
             }
 
+            // Back from the "Otkaži" popup or from an alert (e.g. an error message):
+            // stay on the shown day without reloading.
+            if (isCancelPopupOpen || AlertPanelService.IsShowing)
+            {
+                return;
+            }
+
             if (isCreateBookingModalOpen)
             {
                 isCreateBookingModalOpen = false;
@@ -171,7 +216,11 @@ namespace AppointmentBooking.Mobile.Views.Staff
 
             UnsubscribeFromAppResume();
 
-            if (!isDetailsModalOpen && !isCreateBookingModalOpen)
+            // A popup above this page is not leaving it: keep the shown day.
+            if (!isDetailsModalOpen &&
+                !isCreateBookingModalOpen &&
+                !isCancelPopupOpen &&
+                !AlertPanelService.IsShowing)
             {
                 hasLoaded = false;
             }
@@ -227,6 +276,7 @@ namespace AppointmentBooking.Mobile.Views.Staff
             hasLoaded = false;
             isDetailsModalOpen = false;
             isCreateBookingModalOpen = false;
+            isCancelPopupOpen = false;
 
             // A different user signs in next: build "Novi termin" again for them.
             createBookingPage = null;

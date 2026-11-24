@@ -38,17 +38,20 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid Padding="16">
+    <!-- The card takes 90% of the screen width and height (5% space on each side),
+         the same on iOS and Android. Before, it was sized by its content, which on iOS
+         made it narrow and short. -->
+    <Grid
+        ColumnDefinitions="5*,90*,5*"
+        RowDefinitions="5*,90*,5*">
 
         <Border
+            Grid.Row="1"
+            Grid.Column="1"
             BackgroundColor="{StaticResource QuickBookingPanelBackground}"
             Stroke="{StaticResource PanelBorder}"
             StrokeThickness="1"
-            StrokeShape="RoundRectangle 24"
-            HorizontalOptions="Center"
-            VerticalOptions="Center"
-            MaximumWidthRequest="480"
-            MaximumHeightRequest="860">
+            StrokeShape="RoundRectangle 24">
 
             <Grid RowDefinitions="Auto,*,Auto">
 

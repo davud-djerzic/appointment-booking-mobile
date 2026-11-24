@@ -392,8 +392,30 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
             }
         }
 
+        // "Odjava" and "Izbriši nalog" are separate commands, so they could run together on quick
+        // taps (two windows at once). Only one of them may be open or running at a time.
+        private bool isAccountActionOpen;
+
         [RelayCommand]
         private async Task LogoutAsync()
+        {
+            if (isAccountActionOpen)
+            {
+                return;
+            }
+
+            isAccountActionOpen = true;
+            try
+            {
+                await LogoutCoreAsync();
+            }
+            finally
+            {
+                isAccountActionOpen = false;
+            }
+        }
+
+        private async Task LogoutCoreAsync()
         {
             bool confirmed =
                 await AppointmentBooking.Mobile.Services.Dialogs.AlertPanelService.DisplayAlertAsync(
@@ -412,6 +434,24 @@ namespace AppointmentBooking.Mobile.ViewModels.Profile
 
         [RelayCommand]
         private async Task DeleteAccountAsync()
+        {
+            if (isAccountActionOpen)
+            {
+                return;
+            }
+
+            isAccountActionOpen = true;
+            try
+            {
+                await DeleteAccountCoreAsync();
+            }
+            finally
+            {
+                isAccountActionOpen = false;
+            }
+        }
+
+        private async Task DeleteAccountCoreAsync()
         {
             Page? page = Shell.Current?.CurrentPage;
             if (page is null)

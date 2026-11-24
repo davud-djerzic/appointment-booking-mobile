@@ -11,6 +11,9 @@ public enum StaffBookingCancellationChoice
 
 public sealed class CancelStaffBookingPopup : Popup<StaffBookingCancellationChoice?>
 {
+    // Closes only once, even if two of the buttons are tapped quickly.
+    private bool isClosing;
+
     public CancelStaffBookingPopup(string timeRange)
     {
         CanBeDismissedByTappingOutsideOfPopup = false;
@@ -22,7 +25,7 @@ public sealed class CancelStaffBookingPopup : Popup<StaffBookingCancellationChoi
             Color.FromArgb("#E7C45A"),
             Color.FromArgb("#07152F"));
         cancelWithBreak.Clicked += async (_, _) =>
-            await CloseAsync(StaffBookingCancellationChoice.CancelAndCreateBreak);
+            await CloseOnceAsync(StaffBookingCancellationChoice.CancelAndCreateBreak);
 
         Button cancelOnly = CreateButton(
             "Otkaži bez pauze",
@@ -30,14 +33,14 @@ public sealed class CancelStaffBookingPopup : Popup<StaffBookingCancellationChoi
             Colors.White,
             Color.FromArgb("#2B3D5C"));
         cancelOnly.Clicked += async (_, _) =>
-            await CloseAsync(StaffBookingCancellationChoice.CancelWithoutBreak);
+            await CloseOnceAsync(StaffBookingCancellationChoice.CancelWithoutBreak);
 
         Button back = CreateButton(
             "Nazad",
             Color.FromArgb("#07152F"),
             Colors.White,
             Color.FromArgb("#2B3D5C"));
-        back.Clicked += async (_, _) => await CloseAsync(null);
+        back.Clicked += async (_, _) => await CloseOnceAsync(null);
 
         Content = new Border
         {
@@ -73,6 +76,17 @@ public sealed class CancelStaffBookingPopup : Popup<StaffBookingCancellationChoi
                 }
             }
         };
+    }
+
+    private async Task CloseOnceAsync(StaffBookingCancellationChoice? choice)
+    {
+        if (isClosing)
+        {
+            return;
+        }
+
+        isClosing = true;
+        await CloseAsync(choice);
     }
 
     private static Button CreateButton(string text, Color background, Color foreground, Color? border = null) => new()

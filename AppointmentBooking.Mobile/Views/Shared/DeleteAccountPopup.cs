@@ -7,6 +7,9 @@ public sealed class DeleteAccountPopup : Popup<string?>
     private readonly Entry passwordEntry;
     private readonly Button deleteButton = null!;
 
+    // Closes only once, even if both buttons (or one button twice) are tapped quickly.
+    private bool isClosing;
+
     public DeleteAccountPopup()
     {
         CanBeDismissedByTappingOutsideOfPopup = false;
@@ -31,7 +34,7 @@ public sealed class DeleteAccountPopup : Popup<string?>
             Color.FromArgb("#07152F"),
             Colors.White,
             Color.FromArgb("#2B3D5C"));
-        cancelButton.Clicked += async (_, _) => await CloseAsync(null);
+        cancelButton.Clicked += async (_, _) => await CloseOnceAsync(null);
 
         deleteButton = CreateButton(
             "IZBRIŠI NALOG",
@@ -39,7 +42,7 @@ public sealed class DeleteAccountPopup : Popup<string?>
             Color.FromArgb("#F07A7A"),
             Color.FromArgb("#F07A7A"));
         deleteButton.IsEnabled = false;
-        deleteButton.Clicked += async (_, _) => await CloseAsync(passwordEntry.Text?.Trim());
+        deleteButton.Clicked += async (_, _) => await CloseOnceAsync(passwordEntry.Text?.Trim());
 
         VerticalStackLayout content = new()
         {
@@ -92,6 +95,17 @@ public sealed class DeleteAccountPopup : Popup<string?>
             WidthRequest = 340,
             Content = content
         };
+    }
+
+    private async Task CloseOnceAsync(string? password)
+    {
+        if (isClosing)
+        {
+            return;
+        }
+
+        isClosing = true;
+        await CloseAsync(password);
     }
 
     private static Button CreateButton(string text, Color background, Color foreground, Color border) => new()
